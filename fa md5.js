@@ -6,6 +6,8 @@
 // @author       idem
 // @match        https://www.furaffinity.net/view/*
 // @match        http://www.furaffinity.net/view/*
+// @match        http://www.furaffinity.net/full/*
+// @match        http://www.furaffinity.net/full/*
 // @grant        GM.xmlHttpRequest
 // @connect      facdn.net
 // ==/UserScript==
