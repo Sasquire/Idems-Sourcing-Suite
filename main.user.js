@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         On-site MD5 Hasher
 // @description  Will show you the main and thumbnail (and maybe more) hashes of images on some sites
-// @version      1.00002
+// @version      1.00003
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -22,126 +22,133 @@
 
 const url = new URL(window.location.href);
 if(url.host.includes('furaffinity.net')){
-	fa();
+        fa();
 } else if(url.host.includes('pixiv.net') && url.searchParams.get('mode') == 'manga'){
-	pixiv_manga();
+        pixiv_manga();
 } else if(url.host.includes('pixiv.net') && url.searchParams.get('mode') == 'medium'){
-	pixiv_medium();
+        pixiv_medium();
 }
 
 async function pixiv_manga(){
-	Promise.all(pixiv.context.images.map(async e => ({
-		original: await dl(e.replace('img-master', 'img-original').replace('_master1200', '')),
-		master: await dl(e),
-		_: document.querySelector(`img[data-src="${e}"]`).src = e, // force images to load right away
-		node: document.querySelector(`img[data-src="${e}"]`)
-	}))).then(pairs =>
-		pairs.forEach(e =>
-			e.node.parentNode.innerHTML += `<div style="vertical-align: middle;">${md5s_to_html([e.original, e.master])}</div>`
-		)
-	);
-
-	async function dl(url){ return md5_url(url, {referer: window.location.href}) }
+    pixiv.context.images.map(e => ({
+        _: document.querySelector(`img[data-src="${e}"]`).src = e, // force images to load right away
+        full: e.replace('img-master', 'img-original').replace('_master1200', ''),
+        thumb: e
+    })).forEach(e => {
+        const node = document.querySelector(`img[data-src="${e.thumb}"]`).parentNode;
+        Promise.all([
+            add_md5(e.full, 'full image', {referer: window.location.href}),
+            add_md5(e.thumb, 'thumbnail', {referer: window.location.href})
+        ]).then(md5s => {
+            const fancy_links = pretty_md5(md5s);
+            fancy_links.style.verticalAlign = 'middle';
+            node.appendChild(fancy_links);
+        });
+    });
 }
 
 async function pixiv_medium(){
-	const urls = Object.values(globalInitData.preload.illust)[0].urls
-	const md5s = await Promise.all([
-		dl(urls.original),
-		dl(urls.regular)
-	]);
-
-	const maybe_description = document.getElementsByClassName('sc-ccXozh deWYx')[0];
-	if(maybe_description != undefined){
-		maybe_description.innerHTML += md5s_to_html(md5s);
-	} else {
-		document.addEventListener("DOMNodeInserted", function(evt) {
-			const node = evt.target;
-			if(node.nodeType == 1 && node.className == '' && node.tagName == 'DIV') {
-				const maybe_description = node.getElementsByClassName('sc-ccXozh deWYx')[0];
-				if(maybe_description == undefined){ return; }
-				maybe_description.innerHTML += md5s_to_html(md5s);
-			}
-		}, false);
-	}
-	return;
-
-	async function dl(url){ return md5_url(url, {referer: window.location.href}) }
+        const urls = Object.values(globalInitData.preload.illust)[0].urls
+        Promise.all([
+                add_md5(urls.original, 'full image', {referer: window.location.href}),
+                add_md5(urls.regular, 'thumbnail', {referer: window.location.href})
+        ]).then(md5s => {
+        new MutationObserver((mutations, observer) => {
+            const node = mutations.map(o => o.addedNodes)
+                .reduce((acc, e) => acc.concat(Array.from(e)), [])
+                .filter(e => e.tagName == 'DIV')
+                .map(e => e.getElementsByClassName('sc-ccXozh deWYx')[0])
+                .find(e => e);
+            if(node == undefined){ return; }
+            observer.disconnect();
+            node.appendChild(pretty_md5(md5s));
+        }).observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
 }
 
 async function fa(){
-	const info = post_info();
-	console.log(info.thumb_url(400))
-	const md5s = await Promise.all([
-		md5_url(info.full_url),
-		md5_url(info.thumb_url(400))
-	]);
-	document.getElementsByClassName('stats-container')[0].innerHTML += md5s_to_html(md5s)
-	return;
+        const info = post_info();
+        Promise.all([
+                add_md5(info.full_url, 'full image'),
+                add_md5(info.thumb_url(400), 'thumbnail')
+        ]).then(md5s => {
+        document.getElementsByClassName('stats-container')[0].appendChild(pretty_md5(md5s))
+    });
 
-	function generate_full_url(name, created_at, orig_filename, file_ext){
-		const reduced_name = name.replace('_', '').toLowerCase();
-		const timestamp = created_at.getTime() / 1000;
-		return `https://d.facdn.net/art/${reduced_name}/${timestamp}/${timestamp}.${reduced_name}_${orig_filename}.${file_ext}`;
-	}
+        function generate_full_url(name, created_at, orig_filename, file_ext){
+                const reduced_name = name.replace('_', '').toLowerCase();
+                const timestamp = created_at.getTime() / 1000;
+                return `https://d.facdn.net/art/${reduced_name}/${timestamp}/${timestamp}.${reduced_name}_${orig_filename}.${file_ext}`;
+        }
 
-	function generate_thumb_url(post_id, res, created_at){
-		// known good res values [100, 200, 300, 400, 600, 800]
-		return `https://t.facdn.net/${post_id}@${res}-${created_at.getTime() / 1000}.jpg`
-	}
+        function generate_thumb_url(post_id, res, created_at){
+                // known good res values [100, 200, 300, 400, 600, 800]
+                return `https://t.facdn.net/${post_id}@${res}-${created_at.getTime() / 1000}.jpg`
+        }
 
-	function post_info(){
-		const top_half = document.querySelector('#page-submission > table > tbody > tr > td > :first-child');
-		const [, post_content, title_bar,,] = top_half.querySelectorAll('tbody > tr > :first-child');
-		const actions_bar = post_content.querySelector('.alt1.actions.aligncenter');
-		const actions = Array.from(actions_bar.children);
+        function post_info(){
+                const top_half = document.querySelector('#page-submission > table > tbody > tr > td > :first-child');
+                const [, post_content, title_bar,,] = top_half.querySelectorAll('tbody > tr > :first-child');
+                const actions_bar = post_content.querySelector('.alt1.actions.aligncenter');
+                const actions = Array.from(actions_bar.children);
 
-		const full_url = 'https:' + actions.find(e => e.textContent == 'Download').firstElementChild.href
-		// folder_timestamp is the current timestamp
-		// image_timestamp is the original upload timestamp
-		const [, folder_timestamp, image_timestamp, orig_filename, file_ext] = full_url.match(/.*\/(\d+)\/(\d+)\..*?_(.*)\.(.*)/);
-		const post_id = parseInt(actions.find(e => e.textContent == 'Full View').firstElementChild.href.match(/\/full\/(\d+)\//)[1]);
-		const author_name = title_bar.querySelector('a').textContent;
+                const full_url = 'https:' + actions.find(e => e.textContent == 'Download').firstElementChild.href
+                // folder_timestamp is the current timestamp
+                // image_timestamp is the original upload timestamp
+                const [, folder_timestamp, image_timestamp, orig_filename, file_ext] = full_url.match(/.*\/(\d+)\/(\d+)\..*?_(.*)\.(.*)/);
+                const post_id = parseInt(actions.find(e => e.textContent == 'Full View').firstElementChild.href.match(/\/full\/(\d+)\//)[1]);
+                const author_name = title_bar.querySelector('a').textContent;
 
-		return {
-			full_url: generate_full_url(author_name, new Date(image_timestamp * 1000), orig_filename, file_ext),
-			thumb_url: (res = 400) => generate_thumb_url(post_id, res, new Date(folder_timestamp * 1000)),
-		}
-	}
+                return {
+                        full_url: generate_full_url(author_name, new Date(image_timestamp * 1000), orig_filename, file_ext),
+                        thumb_url: (res = 400) => generate_thumb_url(post_id, res, new Date(folder_timestamp * 1000)),
+                }
+        }
 }
 
-function md5s_to_html(md5s, joiner = '<br>'){
-	const order = ['full image hash:', 'thumbnail hash:'];
-	if(typeof md5s[0] == 'object'){ md5s = md5s[0]; }
-	return md5s.map((e, i) => `
-		<a href="https://e621.net/post/show?md5=${e}" target="_blank">
-			<b>${order[i] || 'something:'}</b>
-			<span style="font-weight:normal;">${e}</span>
-		</a>
-	`).join(joiner);
+function string_to_node(string, id){
+        const temp = document.createElement('div');
+        temp.innerHTML = string;
+        if(id){ temp.id = id; }
+        return temp;
 }
 
-async function md5_url(in_url, _headers = {}) {
-	return new Promise(function(resolve, reject) {
-		GM.xmlHttpRequest({
-			method: 'GET',
-			url: in_url,
-			headers: _headers,
-			responseType: 'blob',
-			onload: function(response) {
-				const reader = new FileReader();
-				reader.readAsArrayBuffer(response.response);
-				reader.onloadend = function() {
-					const md5 = SparkMD5.ArrayBuffer.hash(reader.result);
-					if(md5 == 'a6433af4191d95f6191c2b90fc9117af'){ // FA 404 image hash
-						resolve(404);
-					} else {
-						resolve(md5);
-					}
-				}
-			}
-		});
-	});
+function pretty_md5(hash_arr, enclose = true, joiner = '<br>'){
+    const html = hash_arr.map(e => `
+        <a href="${e.url}" target="_blank">
+            <b>${e.type} hash:</b>
+        </a>
+        <a href="https://e621.net/post/show?md5=${e.hash}" style="font-weight:normal;" target="_blank">
+            ${e.hash}
+        </a>
+    `).join(joiner);
+    return enclose ? string_to_node(html) : html;
+}
+
+async function add_md5(url, type = 'something', _headers = {}) {
+        return new Promise(function(resolve, reject) {
+                GM.xmlHttpRequest({
+                        method: 'GET',
+                        url: url,
+                        headers: _headers,
+                        responseType: 'blob',
+                        onload: function(response) {
+                                const reader = new FileReader();
+                                reader.readAsArrayBuffer(response.response);
+                                reader.onloadend = function() {
+                                        const hash = SparkMD5.ArrayBuffer.hash(reader.result);
+                                        if(hash == 'a6433af4191d95f6191c2b90fc9117af'){ // FA 404 image hash
+                                                resolve({type, url, hash:404});
+                                        } else {
+                                                resolve({type, url, hash});
+                                        }
+                                }
+                        }
+                });
+        });
 }
 
 // SparkMD5 no idea where it came from, but thank god for it
