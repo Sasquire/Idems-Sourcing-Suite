@@ -1,15 +1,23 @@
 // ==UserScript==
 // @name         On-site MD5 Hasher
 // @description  Will show you the main and thumbnail (and maybe more) hashes of images on some sites
-// @version      1.0
+// @version      1.00001
 // @author       Meras
+
 // @namespace    https://github.com/Sasquire/
+// @supportURL   https://github.com/Sasquire/
+// @updateURL    https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.js
+// @downloadURL  https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.js
+// @icon         https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/icon32.png
+
 // @match        *.furaffinity.net/view/*
 // @match        *.furaffinity.net/full/*
 // @match        *.pixiv.net/member_illust.php*
-// @grant        GM.xmlHttpRequest
 // @connect      facdn.net
 // @connect      pximg.net
+
+// @grant        GM.xmlHttpRequest
+// @noframes
 // ==/UserScript==
 
 const url = new URL(window.location.href);
