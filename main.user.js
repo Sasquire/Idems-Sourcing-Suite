@@ -6,8 +6,8 @@
 
 // @namespace    https://github.com/Sasquire/
 // @supportURL   https://github.com/Sasquire/
-// @updateURL    https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.js
-// @downloadURL  https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.js
+// @updateURL    https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.user.js
+// @downloadURL  https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.user.js
 // @icon         https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/icon32.png
 
 // @match        *.furaffinity.net/view/*
