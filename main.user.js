@@ -38,7 +38,7 @@ if(url.host.includes('furaffinity.net')){
 }
 
 async function twitter(){
-    GM_addStyle('.Gallery-content{ margin-top: 1.5em; }');
+    GM_addStyle('.Gallery-content{ margin-top: 1em; }');
     new MutationObserver(watch_mutations)
         .observe(document.getElementsByClassName('Gallery-media')[0], {
             childList: true,
