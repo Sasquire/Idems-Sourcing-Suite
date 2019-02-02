@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        On-site MD5 Hasher
 // @description Will show you the main and thumbnail (and maybe more) hashes of images on some sites
-// @version     1.00004
+// @version     1.00005
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
@@ -14,9 +14,11 @@
 // @match       *.furaffinity.net/full/*
 // @match       *.pixiv.net/member_illust.php*
 // @match       *.twitter.com/*
+// @match       *.sofurry.com/view/*
 // @connect     facdn.net
 // @connect     pximg.net
 // @connect     twimg.com
+// @connect     sofurryfiles.com
 
 // @grant       GM.xmlHttpRequest
 // @grant       GM_addStyle
@@ -33,8 +35,20 @@ if(url.host.includes('furaffinity.net')){
     pixiv_medium();
 } else if(url.host.includes('twitter.com')){
     twitter();
+} else if(url.host.includes('sofurry.com')){
+          sofurry();
 } else {
     console.log('enabled but no match')
+}
+
+async function sofurry(){
+    const img = document.getElementById('sfContentImage').querySelector('img');
+    Promise.all([
+        add_md5(img.parentNode.href, 'full image'),
+        add_md5(img.src, 'sapmle'),
+    ]).then(md5s => {
+        document.getElementById('sfContentDescription').appendChild(pretty_md5(md5s))
+    });
 }
 
 async function twitter(){
