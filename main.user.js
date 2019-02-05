@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        On-site MD5 Hasher
 // @description Will show you the main and thumbnail (and maybe more) hashes of images on some sites
-// @version     1.00005
+// @version     1.00006
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
@@ -15,10 +15,14 @@
 // @match       *.pixiv.net/member_illust.php*
 // @match       *.twitter.com/*
 // @match       *.sofurry.com/view/*
+// @match       *.weasyl.com/~*/submissions/*
+// @match       *beta.furrynetwork.com/artwork/*
 // @connect     facdn.net
 // @connect     pximg.net
 // @connect     twimg.com
 // @connect     sofurryfiles.com
+// @connect     weasyl.com
+// @connect     cloudfront.net
 
 // @grant       GM.xmlHttpRequest
 // @grant       GM_addStyle
@@ -36,16 +40,58 @@ if(url.host.includes('furaffinity.net')){
 } else if(url.host.includes('twitter.com')){
     twitter();
 } else if(url.host.includes('sofurry.com')){
-          sofurry();
+    sofurry();
+} else if(url.host.includes('weasyl.com')){
+    weasyl();
+} else if(url.host.includes('furrynetwork.com')){
+    furrynetwork();
 } else {
     console.log('enabled but no match')
+}
+
+async function furrynetwork(){
+    new MutationObserver((mutations, observer) => { mutations
+            .map(o => o.addedNodes)
+            .reduce((acc, e) => acc.concat(Array.from(e)), [])
+            .map(e => e.querySelector('.image.submission-media__img img'))
+            .filter(e => e)
+            .forEach(e => {
+                observer.disconnect();
+                add_src();
+            });
+        }).observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+    async function add_src(){
+        const preview_src = document.querySelector('.image.submission-media__img img').src;
+        const full_url = document.querySelector('.t--reset-link').href;
+        Promise.all([
+            add_md5(full_url, 'full image'),
+            add_md5(preview_src, 'sample'),
+        ]).then(md5s => {
+            const tags = document.querySelector('.submission-tags.submission__community-tags');
+            tags.parentNode.insertBefore(pretty_md5(md5s), tags.nextSibling);
+        });
+    }
+}
+
+async function weasyl(){
+    const img = document.querySelector('#detail-art img');
+    Promise.all([
+        add_md5(img.parentNode.href, 'full image'),
+        add_md5(img.src, 'sample'),
+    ]).then(md5s => {
+        document.getElementById('di-info').appendChild(pretty_md5(md5s))
+    });
 }
 
 async function sofurry(){
     const img = document.getElementById('sfContentImage').querySelector('img');
     Promise.all([
         add_md5(img.parentNode.href, 'full image'),
-        add_md5(img.src, 'sapmle'),
+        add_md5(img.src, 'sample'),
     ]).then(md5s => {
         document.getElementById('sfContentDescription').appendChild(pretty_md5(md5s))
     });
@@ -73,7 +119,7 @@ async function twitter(){
             .forEach(e => {
                 Promise.all([
                     add_md5(e.full, 'full image'),
-                    add_md5(e.sample, 'sapmle'),
+                    add_md5(e.sample, 'sample'),
                     add_md5(e.thumb, 'thumbnail')
                 ]).then(md5s => {
                     document.body.appendChild(make_hashes(md5s));
@@ -84,7 +130,7 @@ async function twitter(){
     function clean_mutations(mutations, added){
         return mutations
             .map(o => added == 'added' ? o.addedNodes : o.removedNodes)
-            .reduce((acc, e) => acc.concat(Array.from(e)), [])
+            .reduce((acc, e) => acc.concat(Array.from(e)), []);
     }
 
     function make_hashes(hashes){
@@ -157,8 +203,8 @@ async function fa(){
         add_md5(info.full_url, 'full image'),
         add_md5(info.thumb_url, 'sample')
     ]).then(md5s => {
-        console.log(document.getElementsByClassName('stats-container')[0])
-        document.getElementsByClassName('stats-container')[0].appendChild(pretty_md5(md5s))
+        console.log(document.getElementsByClassName('stats-container')[0]);
+        document.getElementsByClassName('stats-container')[0].appendChild(pretty_md5(md5s));
     });
 
     function post_info(){
@@ -202,13 +248,13 @@ async function add_md5(url, type = 'something', _headers = {}) {
 
     async function parse_response(response){
         if(response.status == 404){ throw 404; }
-        let hash = await blob_to_md5(response.response);
+        const hash = await blob_to_md5(response.response);
         switch (hash) {
             case 'a6433af4191d95f6191c2b90fc9117af': // fa 404 image
             case '9eef03f05be8bcd4f6affc9876247a3f': // pixiv 404
             case '00000000000000000000000000000000':
             case 'ffffffffffffffffffffffffffffffff':
-            hash = 404;
+            throw 404;
         }
         return {type, url, hash};
     }
