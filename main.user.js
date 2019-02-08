@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        On-site MD5 Hasher
 // @description Will show you the main and thumbnail (and maybe more) hashes of images on some sites
-// @version     1.00006
+// @version     1.00007
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
@@ -10,19 +10,29 @@
 // @downloadURL https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.user.js
 // @icon        https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/icon32.png
 
+// @match       *.e621.net/extensions/image_compare
+// @connect     e621.net
+
 // @match       *.furaffinity.net/view/*
 // @match       *.furaffinity.net/full/*
-// @match       *.pixiv.net/member_illust.php*
-// @match       *.twitter.com/*
-// @match       *.sofurry.com/view/*
-// @match       *.weasyl.com/~*/submissions/*
-// @match       *beta.furrynetwork.com/artwork/*
 // @connect     facdn.net
+
+// @match       *.pixiv.net/member_illust.php*
 // @connect     pximg.net
+
+// @match       *.twitter.com/*
 // @connect     twimg.com
+
+// @match       *.sofurry.com/view/*
 // @connect     sofurryfiles.com
+
+// @match       *.weasyl.com/~*/submissions/*
 // @connect     weasyl.com
+
+// @match       *beta.furrynetwork.com/*
 // @connect     cloudfront.net
+
+// @match       *.inkbunny.net/s/*
 
 // @grant       GM.xmlHttpRequest
 // @grant       GM_addStyle
@@ -45,20 +55,226 @@ if(url.host.includes('furaffinity.net')){
     weasyl();
 } else if(url.host.includes('furrynetwork.com')){
     furrynetwork();
+} else if(url.host.includes('inkbunny.net')){
+    inkbunny();
+} else if(url.host.includes('e621.net') && url.pathname == '/extensions/image_compare'){
+    image_compare();
 } else {
     console.log('enabled but no match')
+}
+
+async function inkbunny(){
+    GM_addStyle('#md5box { font-size: 12px; }')
+    showMD5();
+    const md5box = document.getElementById('md5box');
+    md5box.parentNode.removeChild(md5box.previousSibling);
+    md5box.parentNode.removeChild(md5box.previousSibling);
+    const md5s = Array.from(md5box.querySelectorAll('div')).map(e => e.innerText.split(': ')[1]);
+    const full_url = document.querySelector('[download]').href;
+
+    const newmd5box = pretty_md5([
+        { type:'Initial', hash:md5s[0], url:window.location.href },
+        { type:'Full', hash:md5s[1], url: full_url },
+        { type:'Sample', hash:md5s[2], url: full_url.replace(/files\/full/, 'files/screen') },
+        { type:'Small', hash:md5s[3], url: full_url.replace(/files\/full(.*)\.(png|jpg)?$/, `files/preview$1.jpg`) },
+    ]);
+    newmd5box.id = 'md5box';
+    md5box.parentNode.appendChild(newmd5box);
+    md5box.parentNode.removeChild(md5box);
+}
+
+async function image_compare(){
+    init();
+    document.getElementById('cmp').addEventListener('click', compare_images);
+    document.getElementById('dwn').addEventListener('click', download_images);
+
+    class Color{
+        constructor(r, g, b, a){
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            this.a = a;
+            return this;
+        }
+
+        static compare_in_first(first, second){
+            const nr = first.r != second.r ? first.r : 0;
+            const ng = first.g != second.g ? first.g : 0;
+            const nb = first.b != second.b ? first.b : 0;
+            return nr || ng || nb ? new Color(first.r, first.g, first.b, first.a) : new Color(0, 0, 0, 0);
+        }
+
+        static compare_in_second(first, second){
+            const nr = second.r != first.r ? second.r : 0;
+            const ng = second.g != first.g ? second.g : 0;
+            const nb = second.b != first.b ? second.b : 0;
+            return nr || ng || nb ? new Color(second.r, second.g, second.b, second.a) : new Color(0, 0, 0, 0);
+        }
+
+        static modify(first, second, func){
+            return new Color(func('r'), func('g'), func('b'), first.a);
+        }
+
+        static compare_linear(first, second){
+            return Color.modify(first, second, a => Math.abs(first[a] - second[a]));
+        }
+
+        static compare_inverse_linear(first, second){
+            return Color.modify(first, second, a => 255 - Math.abs(first[a] - second[a]));
+        }
+
+        static compare_boolean(first, second){
+            return Color.modify(first, second, a => first[a] == second[a] ? 0 : 255);
+        }
+
+        static compare_inverse_boolean(first, second){
+            return Color.modify(first, second, a => first[a] == second[a] ? 255 : 0);
+        }
+
+        static compare_square(first, second){
+            return Color.modify(first, second, a => Math.min((first[a] - second[a])**2, 255));
+        }
+
+        static compare_difference_square(first, second){
+            return Color.modify(first, second, a => Math.abs(first[a]**2 - second[a]**2)**0.5);
+        }
+    }
+
+    function get_fn(){
+        switch(document.getElementById('func').value){
+            case 'boolean': return Color.compare_boolean;
+            case 'inverseboolean': return Color.compare_inverse_boolean;
+            case 'linear': return Color.compare_linear;
+            case 'inverselinear': return Color.compare_inverse_linear;
+            case 'square': return Color.compare_square;
+            case 'differencesquare': return Color.compare_difference_square;
+            case 'infirst': return Color.compare_in_first;
+            case 'insecond': return Color.compare_in_second;
+            default: return (p1, p2) => 255;
+        }
+    }
+
+    async function download_images(){
+        const link1 = document.getElementById('img1').value
+        const link2 = document.getElementById('img2').value;
+        const [ctx1, ctx2] = await Promise.all([
+            add_image_to_canvas(link1, 'can1'),
+            add_image_to_canvas(link2, 'can2')
+        ]);
+        if(ctx1.canvas.width != ctx2.canvas.width || ctx1.canvas.height != ctx2.canvas.height){
+            document.getElementById('answer').innerText = 'wrong size';
+        }
+    }
+
+    function compare_images(){
+        const ctx1 = document.getElementById('can1').getContext('2d');
+        const ctx2 = document.getElementById('can2').getContext('2d');
+        const width = ctx1.canvas.width;
+        const height = ctx1.canvas.height;
+
+        const final_ctx = document.getElementById('can_compare').getContext('2d');
+        final_ctx.canvas.width = width;
+        final_ctx.canvas.height = height;
+
+        const d1 = ctx1.getImageData(0, 0, width, height).data;
+        const d2 = ctx2.getImageData(0, 0, width, height).data;
+
+        const f = get_fn();
+        const d = new Array(width * height * 4);
+
+        for(let i = 0; i < d.length; i+=4){
+            const col1 = new Color(d1[i+0], d1[i+1], d1[i+2], d1[i+3]);
+            const col2 = new Color(d2[i+0], d2[i+1], d2[i+2], d2[i+3]);
+            const new_col = f(col1, col2);
+            [d[i+0], d[i+1], d[i+2], d[i+3]] = [new_col.r, new_col.g, new_col.b, new_col.a];
+        }
+        final_ctx.putImageData(new ImageData(Uint8ClampedArray.from(d), width, height), 0, 0);
+        return;
+    }
+
+    async function add_image_to_canvas(img_url, canvas_id){
+        return new Promise(async function(resolve, reject){
+            const ctx = document.getElementById(canvas_id).getContext('2d');
+            const data = await download_image(img_url);
+            const img = new Image();
+            img.onload = function () {
+                ctx.canvas.width = img.width;
+                ctx.canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                resolve(ctx);
+            };
+            img.src = URL.createObjectURL(data);
+        });
+    }
+
+    function init(){
+        while(document.head.children.length > 0){
+            document.head.removeChild(document.head.children[0]);
+        }
+        while(document.body.children.length > 0){
+            document.body.removeChild(document.body.children[0]);
+        }
+        GM_addStyle(`
+        #can1, #can2, #can_compare {
+            border: 2px solid;
+            background-color:black;
+        }
+        #can1 { border-color:red; }
+        #can2 { border-color:orange; }
+        #can_compare { border-color:blue; }
+
+        input#toggle-hidden[type=checkbox] {
+           position: absolute;
+           top: -9999px;
+           left: -9999px;
+        }
+        input#toggle-hidden[type=checkbox]:checked ~ #can1, input#toggle-hidden[type=checkbox]:checked ~ #can2 { display:none; }
+        .button {
+            font: bold 11px Arial;
+            text-decoration: none;
+            background-color: #EEEEEE;
+            color: #333333;
+            padding: 2px 6px 2px 6px;
+            border-top: 1px solid #CCCCCC;
+            border-right: 1px solid #333333;
+            border-bottom: 1px solid #333333;
+            border-left: 1px solid #CCCCCC;
+        }`);
+        document.body.innerHTML = `
+        <input type="checkbox" id="toggle-hidden">
+
+        <input id="img1" value="https://static1.e621.net/data/11/44/11448cd8ded2def6f0f26060b66f1015.jpg"></input>
+        <input id="img2" value="https://static1.e621.net/data/0c/2e/0c2e65e2d2e0f021db31e0aa9b122261.png"></input>
+        <button id="dwn">Download</button>
+        <button id="cmp">Compare</button>
+        <label class="button" for="toggle-hidden">Toggle Images</label>
+        <select id="func">
+            <option value="boolean">Boolean</option>
+            <option value="inverseboolean">Inverse Boolean</option>
+            <option value="linear">Linear</option>
+            <option value="inverselinear">Inverse Linear</option>
+            <option value="square">Square</option>
+            <option value="differencesquare">Difference of Squares</option>
+            <option value="infirst">In the first</option>
+            <option value="insecond">In the second</option>
+        </select>
+        <span id="answer"></span>
+        <hr>
+        <canvas id="can1"></canvas>
+        <canvas id="can2"></canvas>
+        <hr>
+        <canvas id="can_compare"></canvas>`;
+    }
 }
 
 async function furrynetwork(){
     new MutationObserver((mutations, observer) => { mutations
             .map(o => o.addedNodes)
             .reduce((acc, e) => acc.concat(Array.from(e)), [])
-            .map(e => e.querySelector('.image.submission-media__img img'))
+            .filter(e => e && e.className && e.className.includes('submission'))
+            .map(e => e.getElementsByClassName('image__img')[0])
             .filter(e => e)
-            .forEach(e => {
-                observer.disconnect();
-                add_src();
-            });
+            .forEach(add_src);
         }).observe(document.body, {
             childList: true,
             subtree: true
@@ -66,7 +282,7 @@ async function furrynetwork(){
 
     async function add_src(){
         const preview_src = document.querySelector('.image.submission-media__img img').src;
-        const full_url = document.querySelector('.t--reset-link').href;
+        const full_url = document.querySelector('.submission-actions > a.t--reset-link').href;
         Promise.all([
             add_md5(full_url, 'full image'),
             add_md5(preview_src, 'sample'),
@@ -171,11 +387,14 @@ async function pixiv_medium(){
         add_md5(urls.original, 'full image', {referer: window.location.href}),
         add_md5(urls.regular, 'sample', {referer: window.location.href})
     ]).then(md5s => {
-        const description = document.getElementsByClassName('sc-ccXozh deWYx')[0];
+        const description = document.querySelector('figcaption');
+        console.log(md5s)
         if(description){
             description.appendChild(pretty_md5(md5s));
+            console.log('done')
         } else {
             wait_for_description(md5s);
+            console.log('wait')
         }
     });
 
@@ -184,7 +403,7 @@ async function pixiv_medium(){
             .map(o => o.addedNodes)
             .reduce((acc, e) => acc.concat(Array.from(e)), [])
             .filter(e => e.tagName == 'DIV')
-            .map(e => e.getElementsByClassName('sc-ccXozh deWYx')[0])
+            .map(e => e.querySelector('figcaption'))
             .filter(e => e)
             .forEach(e => {
                 observer.disconnect();
@@ -235,20 +454,25 @@ function pretty_md5(hash_arr, joiner = '<br>', enclose = false, raw = false){
     }
 }
 
-async function add_md5(url, type = 'something', _headers = {}) {
+async function download_image(url, _headers = {}) {
     return new Promise(function(resolve, reject) {
         GM.xmlHttpRequest({
             method: 'GET',
             url: url,
             headers: _headers,
             responseType: 'blob',
-            onload: (e) => parse_response(e).then(resolve).catch(reject)
+            onload: e => e.status == 200 ? resolve(e.response) : reject(e)
         });
     });
+}
+
+async function add_md5(url, type = 'something', _headers = {}) {
+    return download_image(url, _headers)
+        .then(parse_response)
+        .catch(e => {throw e;});
 
     async function parse_response(response){
-        if(response.status == 404){ throw 404; }
-        const hash = await blob_to_md5(response.response);
+        const hash = await blob_to_md5(response);
         switch (hash) {
             case 'a6433af4191d95f6191c2b90fc9117af': // fa 404 image
             case '9eef03f05be8bcd4f6affc9876247a3f': // pixiv 404
