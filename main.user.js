@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        On-site MD5 Hasher
 // @description Will show you the main and thumbnail (and maybe more) hashes of images on some sites
-// @version     1.00007
+// @version     1.00008
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
@@ -11,7 +11,8 @@
 // @icon        https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/icon32.png
 
 // @match       *.e621.net/extensions/image_compare
-// @connect     e621.net
+// @match       *.e621.net/extensions/upload_bvas
+// @connect     *
 
 // @match       *.furaffinity.net/view/*
 // @match       *.furaffinity.net/full/*
@@ -33,6 +34,7 @@
 // @connect     cloudfront.net
 
 // @match       *.inkbunny.net/s/*
+// @match       *.inkbunny.net/submissionview.php*
 
 // @grant       GM.xmlHttpRequest
 // @grant       GM_addStyle
@@ -57,10 +59,285 @@ if(url.host.includes('furaffinity.net')){
     furrynetwork();
 } else if(url.host.includes('inkbunny.net')){
     inkbunny();
-} else if(url.host.includes('e621.net') && url.pathname == '/extensions/image_compare'){
+} else if(url.host.includes('e621.net') && url.pathname.includes('/extensions/image_compare')){
     image_compare();
+} else if(url.host.includes('e621.net') && url.pathname.includes('/extensions/upload_bvas')){
+    bvas();
 } else {
     console.log('enabled but no match')
+}
+
+async function bvas(){
+    const auth_token = document.getElementsByName('authenticity_token')[0].value;
+
+    init();
+    let options = {
+        change_description: true,
+        post_comment: false,
+        delete_posts: false, // not deleting implies flagging
+        filter_tags: [
+            "better_version_at_source",
+            "smaller_version_at_source",
+            "compression_artifacts",
+        //  "*_res",
+            "thumbnail",
+            "low_res",
+            "hi_res",
+            "absurd_res",
+            "superabsurd_res",
+            "cropped",
+            "upscale",
+            "huge_filesize"
+        ]
+    }
+    document.getElementById('load_post_btn').addEventListener('click', load_old_post);
+
+    function message(text){ document.getElementById('message').innerText = text; }
+
+    async function upload_better_version(old_data){
+        // upload
+        // comment
+        // set old's parent_id to this
+        // set old's children to this
+        // copy notes
+        // flag/delete old
+        const new_post = await create_post();
+
+        if(options.post_comment == true){
+            await post_comment(new_post.post_id, `Superior version of post #${old_data.id}`)
+        }
+
+        await set_parent(old_data.id, new_post.post_id);
+        const children_posts = document.getElementById('children').value.replace(/\W/g, '').split(',').filter(e => e);
+        for(const child_id of children_posts){
+            await set_parent(child_id, new_post.post_id);
+        }
+
+        if(old_data.has_notes){
+            const [new_width, new_height] = document.getElementById('new_size').innerText
+                .split('x')
+                .map(e => parseInt(e, 10));
+            const notes = await download_notes(old_data.id);
+            const new_notes = notes.map(e => ({
+                text: e.body,
+                x: Math.floor(e.x * (new_width / old_data.width)),
+                y: Math.floor(e.y * (new_height/ old_data.height)),
+                width: Math.floor(e.width * (new_width/ old_data.width)),
+                height: Math.floor(e.height * (new_height/ old_data.height))
+            }));
+            for(const note of new_notes){
+                let l = await set_note(new_post.post_id, note.x, note.y, note.width, note.height, note.text);
+                console.log(l);
+            }
+        }
+
+        if(options.delete_posts == true){
+            await delete_post(old_data.id, new_post.post_id);
+        } else {
+            await flag_post(old_data.id, new_post.post_id);
+        }
+
+        message(`Done - <a href="https://e621.net/post/show/${new_post.post_id}">New Post</a> - Reload the page for safety`);
+    }
+
+    async function load_new_post(old_data){
+        message('Loading new Image data');
+        const new_img_url = document.getElementById('new_url').value;
+        const img_blob = await download_image(new_img_url);
+        const new_img = new Image();
+        new_img.src = URL.createObjectURL(img_blob);
+        const hash = await blob_to_md5(img_blob);
+        document.getElementById('new_img').style = `background: #bbb url(${URL.createObjectURL(img_blob)}) no-repeat center/150px;`
+
+        document.getElementById('new_stats').innerHTML += `
+            <tr><td>Size: </td><td id="new_size">${new_img.width}x${new_img.height}</td></tr>
+            <tr><td>Type: </td><td>${new_img_url.split('.').reverse()[0]}</td></tr>
+            <tr><td>md5: </td><td>${hash}</td></tr>
+            <tr><td>Upload</td><td><button id="upload_button">Create Post</button></td></tr>`;
+        document.getElementById('new_url').value = new_img_url;
+
+        document.getElementById('sources').value = new_img_url + '\n' + old_data.sources.join('\n');
+        if(options.change_description){
+            document.getElementById('description').value = `Superior version of post #${old_data.id}\n` + old_data.description;
+        }
+
+        document.getElementById('upload_button').addEventListener('click', () => upload_better_version(old_data));
+        message('Data Loaded');
+    }
+
+    async function load_old_post(){
+        message('Loading data from e621');
+        const post_id = parseInt(document.getElementById('e6_post_id').value);
+        const data = await download_post(post_id);
+        document.getElementById('old_post').innerHTML = `
+        <div id="old_img" style="background: #bbb url(${data.preview_url}) no-repeat center/150px;"></div>
+        <table id="old_stats">
+            <tr><td>Poster: </td><td>${data.author}</td></tr>
+            <tr><td>Size: </td><td>${data.width}x${data.height}</td></tr>
+            <tr><td>Type: </td><td>${data.file_ext}</td></tr>
+            <tr><td>md5: </td><td>${data.md5}</td></tr>
+            <tr><td>Status: </td><td>${data.status}</td></tr>
+            <tr><td>Rating: </td><td>${data.rating}</td></tr>
+            <tr><td>Parent: </td><td>${data.parent_id || 'none'}</td></tr>
+            <tr><td>Children: </td><td>${(data.children || 'none').replace(',', ', ')}</td></tr>
+            <tr><td>Notes: </td><td>${data.has_notes ? 'yes' : 'none'}</td></tr>
+            <tr><td>Comments: </td><td>${data.has_comments ? 'yes' : 'none'}</td></tr>
+        </table>
+        <table id="old_fields">
+            <tr><td>Tags: </td><td id="ot"></td></tr>
+            <tr><td>L Tags: </td><td id="olt"></td></tr>
+            <tr><td>Sources: </td><td id="os"></td></tr>
+            <tr><td>Description: </td><td id="od"></td></tr>
+        </table>`;
+        document.getElementById('ot').textContent = data.tags;
+        document.getElementById('olt').textContent = data.locked_tags || '';
+        document.getElementById('os').textContent = data.source ? data.sources.join(' \r\n ') : '';
+        document.getElementById('od').textContent = data.description || '';
+
+        document.getElementById('new_post').innerHTML = `
+        <div id="new_img" style="background: #bbb"></div>
+        <table id="new_stats">
+            <tr>
+                <td><input id="new_url" placeholder="new image"></input></td>
+                <td><button id="load_new_post">Load</button></td>
+            </tr>
+            <tr><td>Rating: </td><td>
+                <input type="radio" name="rating" value="explicit" ${data.rating == 'e' ? 'checked' : ''}>e</input>
+                <input type="radio" name="rating" value="questionable" ${data.rating == 'q' ? 'checked' : ''}>q</input>
+                <input type="radio" name="rating" value="safe" ${data.rating == 's' ? 'checked' : ''}>s</input>
+            </td></tr>
+            <tr><td>Parent: </td><td><input id="parent_id" placeholder="parent id" value="${data.parent_id || ''}"</input></td></tr>
+            <tr><td>Children: </td><td><input id="children" placeholder="children id" value="${data.children || ''}"</input></td></tr>
+        </table>
+        </div>
+        <table id="new_fields">
+            <tr><td>Tags: </td><td><textarea id="tags" placeholder="tags"></textarea></td></tr>
+            <tr><td>Sources: </td><td><textarea id="sources" placeholder="sources"></textarea></td></tr>
+            <tr><td>Description: </td><td><textarea id="description" placeholder="description"></textarea></td></tr>
+        </table>`;
+        document.getElementById('tags').value = data.tags
+            .split(' ')
+            .filter(e => options.filter_tags.includes(e) == false)
+            .join(' ');
+        document.getElementById('sources').value = data.source ? data.sources.join('\n') : '';
+        document.getElementById('description').value = data.description;
+        document.getElementById('load_new_post').addEventListener('click', () => load_new_post(data));
+        message('Data loaded');
+    }
+
+    async function download_url(url, method = 'GET'){
+        return fetch(new Request(url), {'method': method})
+            .then(res => res.text())
+            .then(e => JSON.parse(e));
+    }
+    async function download_post(id){return download_url(`https://e621.net/post/show.json?id=${id}`); }
+    async function download_notes(id){return download_url(`https://e621.net/note/index.json?post_id=${id}`); }
+    async function post_comment(id, text){
+        message(`Posting comment to post ${id}`);
+        const url = new URL('https://e621.net/comment/create.json');
+        url.searchParams.set('comment[post_id]', id);
+        url.searchParams.set('comment[body]', text);
+        return download_url(url.href, 'POST');
+    }
+    async function set_parent(post_id, parent_id){
+        message(`Setting parent of ${post_id} to ${parent_id}`);
+        const url = new URL('https://e621.net/post/update.json');
+        url.searchParams.set('id', post_id);
+        url.searchParams.set('post[parent_id]', parent_id);
+        return download_url(url.href, 'POST');
+    }
+    async function set_note(post_id, x, y, width, height, text){
+        message(`Setting note of post ${post_id}`);
+        const url = new URL('https://e621.net/note/update.json');
+        url.searchParams.set('note[post_id]', post_id);
+        url.searchParams.set('note[x]', x);
+        url.searchParams.set('note[y]', y);
+        url.searchParams.set('note[width]', width);
+        url.searchParams.set('note[height]', height);
+        url.searchParams.set('note[is_active]', 1);
+        url.searchParams.set('note[body]', text);
+        return download_url(url.href, 'POST');
+    }
+    async function create_post(){
+        message('Creating Post');
+        const url = new URL('https://e621.net/post/create.json');
+        url.searchParams.set('post[tags]', document.getElementById('tags').value);
+        url.searchParams.set('post[rating]', Array.from(document.getElementsByName('rating')).find(e => e.checked).value);
+        url.searchParams.set('post[upload_url]', document.getElementById('new_url').value);
+        url.searchParams.set('post[source]', document.getElementById('sources').value);
+
+        const desc = document.getElementById('description').value
+        const parent_id = document.getElementById('parent_id').value;
+        if(desc){ url.searchParams.set('post[description]', document.getElementById('description').value); }
+        if(parent_id){ url.searchParams.set('post[parent_id]', parent_id); }
+        return download_url(url.href, 'POST');
+    }
+    async function flag_post(post_id, new_id){
+        message(`Flagging post ${post_id} as inferior to ${new_id}`);
+        const url = 'https://e621.net/post/flag/'+post_id;
+        const form = new FormData();
+        form.set('id', post_id);
+        form.set('inferior_parent', new_id);
+        form.set('flag_option', 'inferior');
+        form.set('authenticity_token', auth_token);
+        return fetch(new Request(url), {'method': 'POST', body: form});
+    }
+    async function delete_post(post_id, new_id){
+        message(`Deleting post ${post_id} as inferior to ${new_id}`);
+        const url = 'https://e621.net/post/destroy/'+post_id;
+        const form = new FormData();
+        form.set('id', post_id);
+        form.set('reason', `Inferior version/duplicate of post #${new_id}`);
+        form.set('authenticity_token', auth_token);
+        return fetch(new Request(url), {'method': 'POST', body: form});
+    }
+
+    function init(){
+        clear_page();
+        GM_addStyle(`
+        #post_container {
+            display:grid;
+            grid-template-columns: 50% 50%;
+            grid-gap: 5px;
+            width:100%;
+            height:100%
+        }
+        #old_post, #new_post {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            grid-template-rows: 200px auto;
+        }
+        #old_stats, #new_stats { background-color: #aaa; height: 100% }
+        #old_fields, #new_fields {
+            grid-column: 1/3; grid-row: 2/3;
+            min-height:100px;
+            background-color: #999;
+        }
+        table { line-height: 16px; }
+        table * { font-size: 13px; }
+        #new_fields table { width:95% }
+
+        table textarea { width: 90%; }
+        #new_stats tr > td:first-child { width:150px; }
+        #new_fields tr > td:first-child { width:20px; }
+
+        #os {
+            white-space: pre;
+            max-width: 0px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+         }
+        #tags, #sources, #description { height: 4em; }`);
+        document.body.innerHTML = `
+        <input type="number" id="e6_post_id" placeholder="e6 post"></input>
+        <button id="load_post_btn">Load</button>
+        <span id="message"></span>
+        <hr>
+        <div id="post_container">
+            <div id="old_post"></div>
+            <div id="new_post"></div>
+        </div>`;
+    }
 }
 
 async function inkbunny(){
@@ -70,7 +347,7 @@ async function inkbunny(){
     md5box.parentNode.removeChild(md5box.previousSibling);
     md5box.parentNode.removeChild(md5box.previousSibling);
     const md5s = Array.from(md5box.querySelectorAll('div')).map(e => e.innerText.split(': ')[1]);
-    const full_url = document.querySelector('[download]').href;
+    const full_url = document.getElementById('magicbox').src;
 
     const newmd5box = pretty_md5([
         { type:'Initial', hash:md5s[0], url:window.location.href },
@@ -208,12 +485,7 @@ async function image_compare(){
     }
 
     function init(){
-        while(document.head.children.length > 0){
-            document.head.removeChild(document.head.children[0]);
-        }
-        while(document.body.children.length > 0){
-            document.body.removeChild(document.body.children[0]);
-        }
+        clear_page();
         GM_addStyle(`
         #can1, #can2, #can_compare {
             border: 2px solid;
@@ -243,8 +515,8 @@ async function image_compare(){
         document.body.innerHTML = `
         <input type="checkbox" id="toggle-hidden">
 
-        <input id="img1" value="https://static1.e621.net/data/11/44/11448cd8ded2def6f0f26060b66f1015.jpg"></input>
-        <input id="img2" value="https://static1.e621.net/data/0c/2e/0c2e65e2d2e0f021db31e0aa9b122261.png"></input>
+        <input id="img1"></input>
+        <input id="img2"></input>
         <button id="dwn">Download</button>
         <button id="cmp">Compare</button>
         <label class="button" for="toggle-hidden">Toggle Images</label>
@@ -384,19 +656,16 @@ async function pixiv_manga(){
 async function pixiv_medium(){
     const urls = Object.values(globalInitData.preload.illust)[0].urls;
     Promise.all([
-        add_md5(urls.original, 'full image', {referer: window.location.href}),
-        add_md5(urls.regular, 'sample', {referer: window.location.href})
+        add_md5(urls.original, 'full image', { 'referer': window.location.href}),
+        add_md5(urls.regular, 'sample', {'referer': window.location.href})
     ]).then(md5s => {
         const description = document.querySelector('figcaption');
-        console.log(md5s)
         if(description){
             description.appendChild(pretty_md5(md5s));
-            console.log('done')
         } else {
             wait_for_description(md5s);
-            console.log('wait')
         }
-    });
+    })
 
     function wait_for_description(md5s){
         new MutationObserver((mutations, observer) => { mutations
@@ -422,7 +691,6 @@ async function fa(){
         add_md5(info.full_url, 'full image'),
         add_md5(info.thumb_url, 'sample')
     ]).then(md5s => {
-        console.log(document.getElementsByClassName('stats-container')[0]);
         document.getElementsByClassName('stats-container')[0].appendChild(pretty_md5(md5s));
     });
 
@@ -435,6 +703,16 @@ async function fa(){
             full_url: full_url,
             thumb_url: `https://t.facdn.net/${post_id}@${400}-${current_timestamp}.jpg`
         }
+    }
+}
+
+function clear_page(){
+    while(document.head.children.length > 0){
+        document.head.removeChild(document.head.children[0]);
+    }
+
+    while(document.body.children.length > 0){
+        document.body.removeChild(document.body.children[0]);
     }
 }
 
@@ -466,6 +744,14 @@ async function download_image(url, _headers = {}) {
     });
 }
 
+async function blob_to_md5(blob){
+    return new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(blob);
+        reader.onloadend = () => res(SparkMD5.ArrayBuffer.hash(reader.result));
+    });
+}
+
 async function add_md5(url, type = 'something', _headers = {}) {
     return download_image(url, _headers)
         .then(parse_response)
@@ -481,14 +767,6 @@ async function add_md5(url, type = 'something', _headers = {}) {
             throw 404;
         }
         return {type, url, hash};
-    }
-
-    async function blob_to_md5(blob){
-        return new Promise((res, rej) => {
-            const reader = new FileReader();
-            reader.readAsArrayBuffer(blob);
-            reader.onloadend = () => res(SparkMD5.ArrayBuffer.hash(reader.result));
-        });
     }
 }
 
