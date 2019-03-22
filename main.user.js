@@ -1,14 +1,14 @@
 // ==UserScript==
-// @name        On-site MD5 Hasher
-// @description Will show you the main and thumbnail (and maybe more) hashes of images on some sites
+// @name        Idem's Sourcing Suite
+// @description Adds a whole bunch of utilities, helpful for sourcing images
 // @version     1.00009
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
 // @supportURL  https://github.com/Sasquire/
-// @updateURL   https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.user.js
-// @downloadURL https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.user.js
-// @icon        https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/icon32.png
+// @updateURL   https://github.com/Sasquire/Idems-Sourcing-Suite/raw/master/main.user.js
+// @downloadURL https://github.com/Sasquire/Idems-Sourcing-Suite/raw/master/main.user.js
+// @icon        https://github.com/Sasquire/Idems-Sourcing-Suite/raw/master/icon32.png
 
 // @match       *.e621.net/extensions/image_compare
 // @match       *.e621.net/extensions/upload_bvas
@@ -30,7 +30,7 @@
 // @match       *.weasyl.com/~*/submissions/*
 // @connect     weasyl.com
 
-// @match       *beta.furrynetwork.com/*
+// @match       *furrynetwork.com/*
 // @connect     cloudfront.net
 
 // @match       *.inkbunny.net/s/*
@@ -79,15 +79,8 @@ async function bvas(){
             "better_version_at_source",
             "smaller_version_at_source",
             "compression_artifacts",
-        //  "*_res",
-            "thumbnail",
-            "low_res",
-            "hi_res",
-            "absurd_res",
-            "superabsurd_res",
             "cropped",
-            "upscale",
-            "huge_filesize"
+            "upscale"
         ]
     }
     document.getElementById('load_post_btn').addEventListener('click', load_old_post);
@@ -342,12 +335,13 @@ async function bvas(){
 
 async function inkbunny(){
     GM_addStyle('#md5box { font-size: 12px; }')
-    showMD5();
+    showMD5(); // function on IB's page
     const md5box = document.getElementById('md5box');
     md5box.parentNode.removeChild(md5box.previousSibling);
     md5box.parentNode.removeChild(md5box.previousSibling);
     const md5s = Array.from(md5box.querySelectorAll('div')).map(e => e.innerText.split(': ')[1]);
-    const full_url = document.getElementById('magicbox').src;
+    const download_link = document.querySelector('[download]');
+    const full_url = download_link ? download_link.href : document.getElementById('magicbox').src;
 
     const newmd5box = pretty_md5([
         { type:'Initial', hash:md5s[0], url:window.location.href },
