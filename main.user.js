@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        On-site MD5 Hasher
 // @description Will show you the main and thumbnail (and maybe more) hashes of images on some sites
-// @version     1.00008
+// @version     1.00009
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
@@ -92,7 +92,7 @@ async function bvas(){
     }
     document.getElementById('load_post_btn').addEventListener('click', load_old_post);
 
-    function message(text){ document.getElementById('message').innerText = text; }
+    function message(text){ document.getElementById('message').innerHTML = text; }
 
     async function upload_better_version(old_data){
         // upload
@@ -123,11 +123,11 @@ async function bvas(){
                 x: Math.floor(e.x * (new_width / old_data.width)),
                 y: Math.floor(e.y * (new_height/ old_data.height)),
                 width: Math.floor(e.width * (new_width/ old_data.width)),
-                height: Math.floor(e.height * (new_height/ old_data.height))
+                height: Math.floor(e.height * (new_height/ old_data.height)),
+                is_active: e.is_active
             }));
             for(const note of new_notes){
-                let l = await set_note(new_post.post_id, note.x, note.y, note.width, note.height, note.text);
-                console.log(l);
+                await set_note(new_post.post_id, note.x, note.y, note.width, note.height, note.text, note.is_active);
             }
         }
 
@@ -246,7 +246,7 @@ async function bvas(){
         url.searchParams.set('post[parent_id]', parent_id);
         return download_url(url.href, 'POST');
     }
-    async function set_note(post_id, x, y, width, height, text){
+    async function set_note(post_id, x, y, width, height, text, is_active){
         message(`Setting note of post ${post_id}`);
         const url = new URL('https://e621.net/note/update.json');
         url.searchParams.set('note[post_id]', post_id);
@@ -254,7 +254,7 @@ async function bvas(){
         url.searchParams.set('note[y]', y);
         url.searchParams.set('note[width]', width);
         url.searchParams.set('note[height]', height);
-        url.searchParams.set('note[is_active]', 1);
+        url.searchParams.set('note[is_active]', is_active ? 1 : 0);
         url.searchParams.set('note[body]', text);
         return download_url(url.href, 'POST');
     }
