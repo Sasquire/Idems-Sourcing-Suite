@@ -18,7 +18,7 @@ This is what the project initially started out as. A simple program to view the 
 This is a simple tool that will allow you to load two images and view the differences between them. There are a few options, but the easiest to use are the defaults of boolean and inverse boolean.
 
 #### [Post BVASer](https://e621.net/extensions/upload_bvas)
-This is a reinterpertation of [a tool](https://e621.net/forum/show/87369) originaly made by Munkelzahn. I had recieved some suggestions for how to improve this tool, and so I added those. On this page you can input a currently known e621 post, the data from that post is then loaded. After you can supply a new image as well as editing tags, sources, and other things. Finially you can upload this post, flag the old one as inferior and do a whole bunch of things automatically. This tool has worked well for the about ten uploads I have used it for. There are some settings, but you must edit the script for these.
+This is a reinterpretation of [a tool](https://e621.net/forum/show/87369) originaly made by Munkelzahn. I had received some suggestions for how to improve this tool, and so I added those. On this page you can input a currently known e621 post, the data from that post is then loaded. After you can supply a new image as well as editing tags, sources, and other things. Finally you can upload this post, flag the old one as inferior and do a bunch of things automatically. This tool has worked well for the about ten uploads I have used it for. There are some settings, but you must edit the script for these.
 
 ### Q: A:
 
@@ -32,7 +32,7 @@ Send me a suggestion, either on here or on e621 and I will probably add it.
 Create an issue, or even write the code yourself. I like great ideas and I like making great things.
 
 #### What about these permissions? Do you really need send requests to ANY URL?
-No I don't, and I wish I wish I didn't need those permissions. I feel the less you need to trust me the better. The only reason I request access to any site for this extension is so the image comparison and post BVASer can function. This is because your web browser is concerned about XSS attacks (and it should be!) so it does not allow me to get values from the canvas I draw the images on, and it does not let me get the md5sum of those images.
+No I don't, and I wish I didn't need those permissions. I feel the less you need to trust me the better. The only reason I request access to any site for this extension is so the image comparison and post BVASer can function. This is because your web browser is concerned about XSS attacks (and it should be!) so it does not allow me to get values from the canvas I draw the images on, and it does not let me get the md5sum of those images.
 
 #### I really don't like the way you do X
 That's a suggestion. See above.
