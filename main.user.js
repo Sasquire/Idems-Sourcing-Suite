@@ -72,9 +72,9 @@ async function bvas(){
 
     init();
     let options = {
-        change_description: true,
-        post_comment: false,
-        delete_posts: false, // not deleting implies flagging
+        change_description: true, // if true changes the description
+        post_comment: false,      // if true will post a comment on the post
+        delete_posts: false,      // not deleting implies flagging
         filter_tags: [
             "better_version_at_source",
             "smaller_version_at_source",
@@ -94,43 +94,46 @@ async function bvas(){
         // set old's children to this
         // copy notes
         // flag/delete old
-        const new_post = await create_post();
+        try {
+            const new_post = await create_post();
 
-        if(options.post_comment == true){
-            await post_comment(new_post.post_id, `Superior version of post #${old_data.id}`)
-        }
-
-        await set_parent(old_data.id, new_post.post_id);
-        const children_posts = document.getElementById('children').value.replace(/\W/g, '').split(',').filter(e => e);
-        for(const child_id of children_posts){
-            await set_parent(child_id, new_post.post_id);
-        }
-
-        if(old_data.has_notes){
-            const [new_width, new_height] = document.getElementById('new_size').innerText
-                .split('x')
-                .map(e => parseInt(e, 10));
-            const notes = await download_notes(old_data.id);
-            const new_notes = notes.map(e => ({
-                text: e.body,
-                x: Math.floor(e.x * (new_width / old_data.width)),
-                y: Math.floor(e.y * (new_height/ old_data.height)),
-                width: Math.floor(e.width * (new_width/ old_data.width)),
-                height: Math.floor(e.height * (new_height/ old_data.height)),
-                is_active: e.is_active
-            }));
-            for(const note of new_notes){
-                await set_note(new_post.post_id, note.x, note.y, note.width, note.height, note.text, note.is_active);
+            if(options.post_comment == true){
+                await post_comment(new_post.post_id, `Superior version of post #${old_data.id}`)
             }
-        }
 
-        if(options.delete_posts == true){
-            await delete_post(old_data.id, new_post.post_id);
-        } else {
-            await flag_post(old_data.id, new_post.post_id);
-        }
+            const children_posts = document.getElementById('children').value.replace(/\W/g, '').split(',').filter(e => e);
+            for(const child_id of children_posts){
+                await set_parent(child_id, new_post.post_id);
+            }
 
-        message(`Done - <a href="https://e621.net/post/show/${new_post.post_id}">New Post</a> - Reload the page for safety`);
+            if(old_data.has_notes){
+                const [new_width, new_height] = document.getElementById('new_size').innerText
+                    .split('x')
+                    .map(e => parseInt(e, 10));
+                const notes = await download_notes(old_data.id);
+                const new_notes = notes.map(e => ({
+                    text: e.body,
+                    x: Math.floor(e.x * (new_width / old_data.width)),
+                    y: Math.floor(e.y * (new_height/ old_data.height)),
+                    width: Math.floor(e.width * (new_width/ old_data.width)),
+                    height: Math.floor(e.height * (new_height/ old_data.height)),
+                    is_active: e.is_active
+                }));
+                for(const note of new_notes){
+                    await set_note(new_post.post_id, note.x, note.y, note.width, note.height, note.text, note.is_active);
+                }
+            }
+
+            if(options.delete_posts == true){
+                await delete_post(old_data.id, new_post.post_id);
+            } else {
+                await flag_post(old_data.id, new_post.post_id);
+            }
+
+            message(`Done - <a href="https://e621.net/post/show/${new_post.post_id}">New Post</a> - Reload the page for safety`);
+        } catch(e) {
+            document.getElementById('message').innerText += `\nSomething went wrong send a message to idem on e621\n${e}`
+        }
     }
 
     async function load_new_post(old_data){
@@ -149,7 +152,8 @@ async function bvas(){
             <tr><td>Upload</td><td><button id="upload_button">Create Post</button></td></tr>`;
         document.getElementById('new_url').value = new_img_url;
 
-        document.getElementById('sources').value = new_img_url + '\n' + old_data.sources.join('\n');
+        const new_source = old_data.sources.length == 0 ? new_img_url : '\n' + new_img_url;
+        document.getElementById('sources').value = old_data.sources.join('\n') + new_source;
         if(options.change_description){
             document.getElementById('description').value = `Superior version of post #${old_data.id}\n` + old_data.description;
         }
@@ -162,6 +166,7 @@ async function bvas(){
         message('Loading data from e621');
         const post_id = parseInt(document.getElementById('e6_post_id').value);
         const data = await download_post(post_id);
+
         document.getElementById('old_post').innerHTML = `
         <div id="old_img" style="background: #bbb url(${data.preview_url}) no-repeat center/150px;"></div>
         <table id="old_stats">
@@ -200,7 +205,7 @@ async function bvas(){
                 <input type="radio" name="rating" value="safe" ${data.rating == 's' ? 'checked' : ''}>s</input>
             </td></tr>
             <tr><td>Parent: </td><td><input id="parent_id" placeholder="parent id" value="${data.parent_id || ''}"</input></td></tr>
-            <tr><td>Children: </td><td><input id="children" placeholder="children id" value="${data.children || ''}"</input></td></tr>
+            <tr><td>Children: </td><td><input id="children" placeholder="children id" value="${data.has_children ? post_id + ',' + data.children : post_id.toString()}"</input></td></tr>
         </table>
         </div>
         <table id="new_fields">
