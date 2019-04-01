@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Idem's Sourcing Suite
 // @description Adds a whole bunch of utilities, helpful for sourcing images
-// @version     1.00009
+// @version     1.00010
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
@@ -228,8 +228,14 @@ async function bvas(){
             .then(res => res.text())
             .then(e => JSON.parse(e));
     }
-    async function download_post(id){return download_url(`https://e621.net/post/show.json?id=${id}`); }
-    async function download_notes(id){return download_url(`https://e621.net/note/index.json?post_id=${id}`); }
+    async function download_post(id){
+        const post_data = download_url(`https://e621.net/post/show.json?id=${id}`);
+        post_data.sources = post_data.sources || [];
+        return post_data;
+    }
+    async function download_notes(id){
+        return download_url(`https://e621.net/note/index.json?post_id=${id}`);
+    }
     async function post_comment(id, text){
         message(`Posting comment to post ${id}`);
         const url = new URL('https://e621.net/comment/create.json');
