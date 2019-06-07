@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Idem's Sourcing Suite
 // @description Adds a whole bunch of utilities, helpful for sourcing images
-// @version     1.00010
+// @version     1.00011
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
@@ -97,11 +97,14 @@ async function bvas(){
         try {
             const new_post = await create_post();
 
+            // Post comment
             if(options.post_comment == true){
                 await post_comment(new_post.post_id, `Superior version of post #${old_data.id}`)
             }
 
-            const children_posts = document.getElementById('children').value.replace(/\W/g, '').split(',').filter(e => e);
+            // Set old children's parent to new post, or
+            const children_posts = [...document.getElementById('children').value.matchAll(/\d+/g)]
+                .map(e => parseInt(e[0], 10));
             for(const child_id of children_posts){
                 await set_parent(child_id, new_post.post_id);
             }
@@ -166,6 +169,7 @@ async function bvas(){
         message('Loading data from e621');
         const post_id = parseInt(document.getElementById('e6_post_id').value);
         const data = await download_post(post_id);
+        data.sources = data.sources || [];
 
         document.getElementById('old_post').innerHTML = `
         <div id="old_img" style="background: #bbb url(${data.preview_url}) no-repeat center/150px;"></div>
