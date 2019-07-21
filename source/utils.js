@@ -58,10 +58,13 @@ function to_clipboard(str){
 
 function artist_commentary(description_node, title){
 	const description = html_to_dtext(description_node);
+	const lines = description.split('\n').length;
+	const expand = lines <= 5 || description.length <= 500;
 	const fixed_title = title
 		.replace(/\[/gu, '(')
 		.replace(/\]/gu, ')');
-	return `[section=${fixed_title}]
+
+	return `[section${expand ? ',expanded' : '' }=${fixed_title}]
 ${description}
 [/section]`;
 }
@@ -95,6 +98,7 @@ function html_to_dtext(entry){
 		case '#comment':
 		case 'IMG': return ''; // Images get destroyed :(
 		case 'BR': return '\n';
+		case 'P': return `${inner_text(entry)}\n`;
 		default: return inner_text(entry);
 	}
 
@@ -132,7 +136,14 @@ function safety_link(text){
 		'aryion.com',
 		'furrynetwork.com',
 		'weasyl.com',
-		'pixiv.net'
+		'pixiv.net',
+		'youtube.com',
+		'google.com',
+		'patreon.com',
+		'picarto.tv',
+		'gumroad.com',
+		'inkedfur.com',
+		'ko-fi.com'
 	];
 
 	// eslint-disable-next-line no-undef
