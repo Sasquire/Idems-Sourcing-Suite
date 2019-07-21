@@ -20,6 +20,19 @@ function clear_page(){
 	}
 }
 
+/* How to use this
+md5_append(
+	'.stats-container', // Where to place md5s
+	[full_url, 'full image'], // MD5 Data
+	[thumb_url, 'sample'] // Maybe headers as a third element
+);
+*/
+function md5_append(query, ...fills){
+	return Promise.all(fills.map((args) => add_md5(...args)))
+		.then(pretty_md5)
+		.then(html => query_append(query, html));
+}
+
 function description_button(attacher, description_node, title){
 	attacher.appendChild(string_to_node(
 		'<button id="copy_description">Copy Description</button>'
