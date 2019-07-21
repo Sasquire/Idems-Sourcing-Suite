@@ -6,7 +6,7 @@ if(new URL(window.location.href).host.includes('sofurry.com')){
 function sofurry(){
 	$q('#sf-viewcontent-content > div').innerHTML += '<hr>';
 
-	const img = document.querySelector('#sfContentImage img');
+	const img = $q('#sfContentImage img');
 	md5_append(
 		'#sf-viewcontent-content > div', // Where to place md5s
 		[img.parentNode.href, 'full image'], // MD5 Data

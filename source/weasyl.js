@@ -6,7 +6,7 @@ if(new URL(window.location.href).host.includes('weasyl.com')){
 function weasyl(){
 	$i('detail-description').innerHTML += '<hr>';
 
-	const img = document.querySelector('#detail-art img');
+	const img = $q('#detail-art img');
 	md5_append(
 		'#detail-description', // Where to place md5s
 		[img.parentNode.href, 'full image'], // MD5 Data

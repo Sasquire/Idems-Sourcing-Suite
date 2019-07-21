@@ -1,14 +1,9 @@
-function $qa(query, node = document){
-	return Array.from(node.querySelectorAll(query));
-}
-
-function $q(query, node = document){
-	return node.querySelector(query);
-}
-
-function $i(id, node = document){
-	return node.getElementById(id);
-}
+// eslint-disable-next-line max-len
+function $qa(query, node = document){ return Array.from(node.querySelectorAll(query)); }
+function $q(query, node = document){ return node.querySelector(query); }
+function $i(id, node = document){ return node.getElementById(id); }
+// eslint-disable-next-line max-len
+function $c(id, node = document){ return Array.from(node.getElementsByClassName(id)); }
 
 function clear_page(){
 	while(document.head.children.length > 0){
@@ -18,6 +13,10 @@ function clear_page(){
 	while(document.body.children.length > 0){
 		document.body.removeChild(document.body.children[0]);
 	}
+}
+
+function body_append(string){
+	document.body.appendChild(string_to_node(string));
 }
 
 /* How to use this
@@ -162,28 +161,31 @@ function query_append(query, item){
 	document.querySelector(query).appendChild(item);
 }
 
-function pretty_md5(hash_arr, joiner = '<br>', enclose = false, raw = false){
+// eslint-disable-next-line max-len
+function pretty_md5(hash_arr, joiner = '<br>', id = '', enclose = true, raw = false){
 	const to_html = obj => `
 		<a href="${obj.url}" target="_blank"><b>${obj.type} hash:</b></a>
 		<a
-			href="https://e621.net/post/show?md5=${obj.hash}" style="font-weight:normal;"
+			href="https://e621.net/post/show?md5=${obj.hash}"
+			style="font-weight:normal;"
 			target="_blank"
 		>
 			${obj.hash}
 		</a>
 	`;
+
 	const html = hash_arr.map(to_html).join(joiner);
-	return raw ? html : string_to_node(html, '', enclose);
+	return raw ? html : string_to_node(html, id, enclose);
 }
 
-function string_to_node(string, id = '', first = false){
+function string_to_node(string, id = '', enclose = false){
 	const temp = document.createElement('div');
 	temp.innerHTML = string;
 	if(typeof id == 'string' && id != ''){
 		temp.id = id;
 	}
 
-	return first ? temp.children.item(0) : temp;
+	return enclose ? temp : temp.children.item(0);
 }
 
 async function download_image(url, _headers = {}){
