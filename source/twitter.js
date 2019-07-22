@@ -1,3 +1,6 @@
+// Todo
+// Copy Description
+
 /* eslint-disable no-undef */
 if(new URL(window.location.href).host.includes('twitter.com')){
 	twitter();

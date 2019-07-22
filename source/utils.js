@@ -15,6 +15,27 @@ function clear_page(){
 	}
 }
 
+// Type could be removedNodes
+async function wait_for_query(query){
+	return new Promise(resolve => {
+		// eslint-disable-next-line no-undef
+		const observer = new MutationObserver(exists);
+		observer.observe(document.body, {
+			childList: true,
+			subtree: true
+		});
+
+		exists();
+
+		function exists(){
+			if($q(query) !== null){
+				observer.disconnect();
+				resolve();
+			}
+		}
+	});
+}
+
 function body_append(string){
 	document.body.appendChild(string_to_node(string));
 }
