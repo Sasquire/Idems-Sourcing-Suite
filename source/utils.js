@@ -93,18 +93,18 @@ ${description}
 function html_to_dtext(entry){
 	switch (entry.nodeName) {
 		case 'B':
-		case 'STRONG': return `[b]${inner_text(entry)}[/b]`;
+		case 'STRONG': return `[b] ${inner_text(entry)} [/b]`;
 		case 'EM':
-		case 'I': return `[i]${inner_text(entry)}[/i]`;
-		case 'U': return `[u]${inner_text(entry)}[/u]`;
-		case 'O': return `[o]${inner_text(entry)}[/o]`;
-		case 'S': return `[s]${inner_text(entry)}[/s]`;
-		case 'SUP': return `[sup]${inner_text(entry)}[/sup]`;
-		case 'SUB': return `[sub]${inner_text(entry)}[/sub]`;
+		case 'I': return `[i] ${inner_text(entry)} [/i]`;
+		case 'U': return `[u] ${inner_text(entry)} [/u]`;
+		case 'O': return `[o] ${inner_text(entry)} [/o]`;
+		case 'S': return `[s] ${inner_text(entry)} [/s]`;
+		case 'SUP': return `[sup] ${inner_text(entry)} [/sup]`;
+		case 'SUB': return `[sub] ${inner_text(entry)} [/sub]`;
 
 		case 'A': return get_link(entry);
 
-		case 'PRE': return `[code]${inner_text(entry)}[/code]`;
+		case 'PRE': return `[code] ${inner_text(entry)} [/code]`;
 
 		case 'H1': return `h1. ${inner_text(entry).replace(/\n/gu, ' ')}`;
 		case 'H2': return `h2. ${inner_text(entry).replace(/\n/gu, ' ')}`;
@@ -166,8 +166,15 @@ function safety_link(text){
 		'ko-fi.com'
 	];
 
-	// eslint-disable-next-line no-undef
-	const url = new URL(text);
+	let url = null;
+	try {
+		// eslint-disable-next-line no-undef
+		url = new URL(text);
+	} catch(e) {
+		// Invalid URL
+		return text;
+	}
+
 	if(url.protocol == 'https:'){
 		return text;
 	} else if(safe_domains.some(e => url.hostname.includes(e))){
