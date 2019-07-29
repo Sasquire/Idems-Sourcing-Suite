@@ -1,3 +1,7 @@
+// Todo
+// Like furrynetwork, the page must be reloaded on
+// the specific image for the extension to work.
+
 /* eslint-disable no-undef */
 if(new URL(window.location.href).host.includes('pixiv.net')){
 	pixiv();

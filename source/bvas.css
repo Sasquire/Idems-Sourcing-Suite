@@ -1,0 +1,69 @@
+:root {
+	--dark-blue: #031131;
+	--blue: #284a81;
+	--other-blue: #174891;
+	--more-blue: #152f56;
+	--grey-blue: #213a5f;
+
+	--yellow: #fdba31;
+	--light-yellow: #ffde9b;
+	--dark-yellow: #d8b162;
+}
+
+.hidden { display:none; }
+
+body {
+	background-color: var(--dark-blue);
+	color: #ddd;
+}
+
+#action_selection, #notification_selection {
+	border: 1px solid var(--yellow);
+	margin-right: 10px;
+}
+#action_selection > span, #notification_selection > span {
+	border-left: 1px solid var(--light-yellow);
+	padding-left: 5px;
+}
+
+#post_container {
+	display:grid;
+	grid-template-columns: calc(50% - 10px) calc(50% - 10px);
+	grid-gap: 20px;
+	width:100%;
+	height:100%
+}
+
+#old_post, #new_post {
+	display: grid;
+	grid-template-columns: 250px 1fr;
+	grid-template-rows: 250px auto;
+}
+
+#old_stats, #new_stats {
+	background-color: var(--blue);
+	height: 100%;
+}
+#old_fields, #new_fields {
+	grid-column: 1/3; grid-row: 2/3;
+	background-color: var(--blue);
+}
+
+#old_img, #new_img { background-color: var(--grey-blue); }
+
+#old_fields {
+	display: block;
+	overflow-x: auto;
+	border-collapse: collapse;
+}
+#old_fields td { border: 2px solid black; }
+#old_sources { white-space: pre; }
+#old_md5, #new_md5 { font-size: 0.5rem; }
+
+table { line-height: 16px; }
+table * { font-size: 13px; }
+#new_fields table { width:95% }
+table textarea { width: 90%; }
+#new_stats tr > td:first-child { width:150px; }
+#new_fields tr > td:first-child { width:20px; }
+table textarea { height: 5em; }
