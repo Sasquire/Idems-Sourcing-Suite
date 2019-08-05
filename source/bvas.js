@@ -5,11 +5,9 @@ if(
 	new URL(window.location.href).host.includes('e621.net') &&
 	new URL(window.location.href).pathname.includes('/extensions/upload_bvas')
 ){
-	const auth_token = $q('input[name="authenticity_token"]').value;
 	clear_page();
 	document.body.innerHTML = GM_getResourceText('bvas_html');
 	GM_addStyle(GM_getResourceText('bvas_css'));
-	bvas(auth_token);
 }
 
 async function bvas(auth_token){

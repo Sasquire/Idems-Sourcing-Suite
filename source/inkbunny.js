@@ -33,7 +33,7 @@ function inkbunny(){
 		.href.split('=')[1];
 	description_button(
 		$q('.elephant_bottom > .content > div'), // Where to place description
-		$q('.elephant_bottom > .content > div'), // Description node
+		$q('.elephant_bottom > .content > div > span'), // Description node
 		`${title} - by ${artist}` // Title
 	);
 }
