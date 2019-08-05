@@ -2,11 +2,11 @@
 
 <div id="settings">
 	<input id="username" placeholder="username"></input>
-	<input id="api_key" placeholder="api key"></input>
+	<input id="api_key" type="password" placeholder="api key"></input>
 	<span id="action_selection">
-		<input type="radio" name="action" value="delete">Delete</input>
-		<input type="radio" name="action" value="flag">Flag</input>
-		<input type="radio" name="action" value="nothing">Nothing</input>
+		<input type="radio" name="action" value="delete" id="action_delete">Delete</input>
+		<input type="radio" name="action" value="flag" id="action_flag">Flag</input>
+		<input type="radio" name="action" value="nothing" id="action_nothing">Nothing</input>
 		<span>The post</span>
 	</span>
 
@@ -14,6 +14,10 @@
 		<input type="checkbox" name="selection" id="notification_comment">Comment</input>
 		<input type="checkbox" name="selection" id="notification_description">Description</input>
 		<span>For superior version</span>
+	</span>
+
+	<span>
+		<input type="checkbox" id="copy_notes">Copy Notes</input>
 	</span>
 </div>
 <hr>
@@ -24,7 +28,7 @@
 		<div id="old_img"></div>
 		<table id="old_stats">
 			<tr>
-				<td><input type="number" id="e6_post_id" placeholder="e6 post"></input></td>
+				<td><input type="number" id="e6_post_id" placeholder="e621 post id"></input></td>
 				<td><button id="load_post_btn">Load</button></td>
 			</tr>
 			<tr><td>Post Id: </td><td id="old_id"> </td></tr>

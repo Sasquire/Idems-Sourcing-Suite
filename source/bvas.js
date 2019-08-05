@@ -13,23 +13,67 @@ if(
 }
 
 async function bvas(auth_token){
-	listener('load_post_btn', 'click', () => {
-		const id = parseInt($i('e6_post_id').value, 10);
-		download_post(id).then(fill_old_data);
-	});
+	// Init
+	(() => {
+		listener('load_post_btn', 'click', () => {
+			const id = parseInt($i('e6_post_id').value, 10);
+			e621_api.post_show(id)
+				.then(fill_old_data)
+				.catch(e => {
+					message(`Post likely destroyed - ${e}`);
+				});
+		});
 
-	listener('load_new_post', 'click', () => {
-		$c('hidden').forEach(e => e.classList.remove('hidden'));
-		load_new_image();
-	});
+		listener('load_new_post', 'click', () => {
+			$c('hidden').forEach(e => e.classList.remove('hidden'));
+			load_new_image();
+		});
 
-	listener('upload_button', 'click', () => {
-		console.log('yes');
-	});
+		listener('upload_button', 'click', bvas_whole);
 
-	function listener(id, type, func){
-		$i(id).addEventListener(type, func);
+		listener('username', 'input', () => {
+			const username = $i('username').value;
+			GM.setValue('username', username);
+		});
+		listener('api_key', 'input', () => {
+			const api_key = $i('api_key').value;
+			GM.setValue('api_key', api_key);
+		});
+
+		listener('action_delete', 'click', save_action);
+		listener('action_flag', 'click', save_action);
+		listener('action_nothing', 'click', save_action);
+		function save_action(){
+			// eslint-disable-next-line max-len
+			const current_selection = $q('#action_selection > input:checked').value;
+			GM.setValue('bvas_action', current_selection);
+		}
+
+		listener('notification_comment', 'click', () => {
+			const checked = $i('notification_comment').checked;
+			GM.setValue('bvas_comment', checked);
+		});
+		listener('notification_description', 'click', () => {
+			const checked = $i('notification_description').checked;
+			GM.setValue('bvas_description', checked);
+		});
+		listener('copy_notes', 'click', () => {
+			const checked = $i('copy_notes').checked;
+			GM.setValue('bvas_notes', checked);
+		});
+
+		load_settings();
+
+		function listener(id, type, func){
+			$i(id).addEventListener(type, func);
+		}
+	})();
+
+	function message(html){
+		$i('message').innerText = html;
+		console.log(html);
 	}
+
 
 	const filter_tags = [
 		"better_version_at_source",
@@ -39,13 +83,145 @@ async function bvas(auth_token){
 		"upscale"
 	];
 
+	async function load_settings(){
+		const username = await GM.getValue('username');
+		if(username){
+			$i('username').value = username;
+		}
+
+		const api_key = await GM.getValue('api_key');
+		if(api_key){
+			$i('api_key').value = api_key;
+		}
+
+		const action = await GM.getValue('bvas_action');
+		$qa('#action_selection > input').forEach(e => (e.checked = false));
+		($i(`action_${action}`) || $i('action_flag')).checked = true;
+
+		const comment = await GM.getValue('bvas_comment');
+		if(comment == true){
+			$i('notification_comment').checked = true;
+		}
+
+		const description = await GM.getValue('bvas_description');
+		if(description == true){
+			$i('notification_description').checked = true;
+		}
+
+		const notes = await GM.getValue('bvas_notes');
+		if(notes == true){
+			$i('copy_notes').checked = true;
+		}
+	}
+
 	async function bvas_whole(){
-		// Upload
-		// Comment
-		// Set old's parent_id to this
-		// Set old's children to this
-		// Copy notes
-		// Flag/delete old
+		try {
+			const old_id = $i('old_id').innerText;
+
+			// Upload
+			const new_post = await do_upload();
+			const new_id = new_post.post_id;
+
+			// Comment
+			if($i('notification_comment').checked){
+				message(`Posting comment to post ${new_id}`);
+				const msg = `Superior version of post #${old_id}`;
+				const result = await e621_api.comment_create(new_id, msg);
+				message(`Comment posted ${JSON.stringify(result)}`);
+			}
+
+			// Changing the children's parent to this
+			await set_children_parents(new_id);
+
+			// Copy notes
+			const had_notes = $i('old_has_notes').innerText == 'true';
+			const do_notes = $i('copy_notes').checked;
+			if(had_notes && do_notes){
+				message('Transferring notes');
+				await transfer_notes(old_id, new_id);
+				message('Done transferring notes');
+			}
+
+			// Flag/delete old
+			const post_action = $q('input[name=action]:checked').value;
+			if(post_action == 'deleted'){
+				message(`Deleting ${old_id} as inferior to ${new_id}`);
+				const res = await e621_api.$inferior_delete(old_id, new_id);
+				message(`Done deleting ${old_id} - ${JSON.stringify(res)}`);
+			} else if(post_action == 'flag'){
+				message(`Flagging ${old_id} as inferior to ${new_id}`);
+				const res = await e621_api.$inferior_flag(old_id, new_id);
+				message(`Done flagging ${old_id} - ${JSON.stringify(res)}`);
+			} else {
+				message('Not flagging or deleting');
+				// Supposed to do nothing
+			}
+
+			$i('message').innerHTML = 'Post uploaded successfully #';
+			$i('message').innerHTML += `<a href="https://e621.net/post/show/${new_id}">${new_id}</a>`;
+		} catch(e) {
+			console.log(e);
+			const msg = 'Something went wrong send a message to idem on e621';
+			$i('message').innerText += `\n${msg}\n${e}`;
+		}
+
+		async function do_upload(){
+			message('Starting to upload new post');
+			const result = await e621_api.post_create({
+				tags: $i('new_tags').value,
+				rating: $q('input[name=rating]:checked').value,
+				url: $i('new_url').value,
+				source: $i('new_sources').value,
+				description: $i('new_description').value,
+				parent: $i('new_parent_id').value
+			});
+
+			const post_info = `${result.post_id}\n${JSON.stringify(result)}`;
+			message(`Post uploaded at ${post_info}`);
+
+			return result;
+		}
+
+		async function set_children_parents(new_id){
+			const children = $i('new_children').value
+				.split(/[^\d]/u)
+				.filter(e => e);
+
+			for(const child_id of children){
+				message(`Setting parent of ${child_id} to ${new_id}`);
+				await e621_api.$set_parent(child_id, new_id);
+				message(`Done setting parent of ${child_id} to ${new_id}`);
+			}
+		}
+
+		async function transfer_notes(old_id, new_id){
+			const sizes = (id) => $i(id).innerText
+				.split('x')
+				.map(e => parseInt(e, 10));
+			const [new_width, new_height] = sizes('new_size');
+			const [old_width, old_height] = sizes('old_size');
+			const width_scale = new_width / old_width;
+			const height_scale = new_height / old_height;
+
+			const old_notes = await e621_api.note_list(old_id);
+			const fixed_notes = old_notes.map(e => ({
+				post_id: new_id,
+				text: e.body,
+				x: Math.floor(e.x * width_scale),
+				y: Math.floor(e.y * height_scale),
+				width: Math.floor(e.width * width_scale),
+				height: Math.floor(e.height * height_scale),
+				visible: e.is_active
+			}));
+
+			let i = 1;
+			for(const note of fixed_notes){
+				message(`Transferring note ${i} of ${fixed_notes.length}`);
+				await e621_api.note_create(note);
+				message(`Done transferring note ${i}`);
+				i += 1;
+			}
+		}
 	}
 
 	function clear_old_data(){
@@ -70,9 +246,11 @@ async function bvas(auth_token){
 	}
 
 	function fill_old_data(data){
+		message('Filling data for post');
 		clear_old_data();
 		clear_new_data();
 		if(data.status == 'deleted'){
+			message('Post was deleted. Will not continue');
 			return;
 		}
 
@@ -89,7 +267,7 @@ async function bvas(auth_token){
 				node.innerText = value;
 			}
 		});
-		$i('old_size').textContent = `${data.width} x ${data.height}`;
+		$i('old_size').textContent = `${data.width}x${data.height}`;
 
 		$i('new_children').value = `${data.children},${data.id}`;
 		$i('new_parent_id').value = data.parent_id;
@@ -99,19 +277,22 @@ async function bvas(auth_token){
 			.filter(e => filter_tags.includes(e) == false)
 			.filter(e => e)
 			.join(' ');
-		$i('new_sources').value = data.sources.join('\n');
-		// eslint-disable-next-line max-len
-		$i('new_description').value = `Superior version of post #${data.id}\n${data.description}`;
+		$i('new_sources').value = data.sources.map(safety_link).join('\n');
+
+		const edit = $i('notification_description').checked;
+		const text = edit ? `Superior version of post #${data.id}\n\n` : '';
+		$i('new_description').value = `${text}${data.description}`;
 
 		$i('load_new_post').parentNode.classList.remove('hidden');
+		message('Post loaded');
 	}
 
 	async function load_new_image(){
+		message('Loading new image');
 		const new_img_url = $i('new_url').value;
 		const img_blob = await download_image(new_img_url);
 		const hash = await blob_to_md5(img_blob);
-		const new_img = new Image();
-		new_img.src = URL.createObjectURL(img_blob);
+		const new_img = await wait_for_image(img_blob);
 
 		// eslint-disable-next-line max-len
 		$i('new_img').style.background = `var(--grey-blue) url(${URL.createObjectURL(img_blob)}) no-repeat center/150px`;
@@ -119,20 +300,17 @@ async function bvas(auth_token){
 		$i('new_size').textContent = `${new_img.width}x${new_img.height}`;
 		$i('new_file_ext').textContent = new_img_url.split('.').reverse()[0];
 
-		$i('new_sources').value = `${new_img_url}\n${$i('new_sources').value}`;
+		// eslint-disable-next-line max-len
+		$i('new_sources').value = `${safety_link(new_img_url)}\n${$i('new_sources').value}`;
+
+		message('New image loaded');
 	}
 
-	async function download_url(url, method = 'GET'){
-		return fetch(new Request(url), {method: method})
-			.then(res => res.text())
-			.then(e => JSON.parse(e));
-	}
-
-	async function download_post(id){
-		const url = new URL('https://e621.net/post/show.json');
-		url.searchParams.set('id', id);
-		const post_data = download_url(url.href);
-		post_data.sources = post_data.sources || [];
-		return post_data;
+	async function wait_for_image(img_blob){
+		return new Promise(resolve => {
+			const new_img = new Image();
+			new_img.onload = () => resolve(new_img);
+			new_img.src = URL.createObjectURL(img_blob);
+		});
 	}
 }

@@ -8,20 +8,24 @@
 	--yellow: #fdba31;
 	--light-yellow: #ffde9b;
 	--dark-yellow: #d8b162;
+
+	--text-color: #ddd;
 }
 
 .hidden { display:none; }
 
 body {
 	background-color: var(--dark-blue);
-	color: #ddd;
+	color: var(--text-color);
 }
 
-#action_selection, #notification_selection {
+#message > a { color: var(--text-color); }
+
+#settings > span {
 	border: 1px solid var(--yellow);
 	margin-right: 10px;
 }
-#action_selection > span, #notification_selection > span {
+#settings > span > span {
 	border-left: 1px solid var(--light-yellow);
 	padding-left: 5px;
 }
