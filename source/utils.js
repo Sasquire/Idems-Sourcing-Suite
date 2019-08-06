@@ -140,7 +140,7 @@ function html_to_dtext(entry){
 				.join(' ')
 				.replace(/\n /ug, '\n');
 		} else {
-			const trimmed = node.textContent.replace(/^\s*([^]*?)\s*$/us, '$1');
+			const trimmed = node.textContent.replace(/^\s*([^]*?)\s*$/u, '$1');
 			return trimmed;
 		}
 	}
