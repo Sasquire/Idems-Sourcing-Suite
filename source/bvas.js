@@ -8,9 +8,10 @@ if(
 	clear_page();
 	document.body.innerHTML = GM_getResourceText('bvas_html');
 	GM_addStyle(GM_getResourceText('bvas_css'));
+	bvas();
 }
 
-async function bvas(auth_token){
+async function bvas(){
 	// Init
 	(() => {
 		listener('load_post_btn', 'click', () => {
