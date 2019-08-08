@@ -181,20 +181,7 @@ e621_api.$set_parent = async (post, parent) => {
 		parent_id: parent
 	});
 };
-/* A
-async function set_note(post_id, x, y, width, height, text, is_active){
-	message(`Setting note of post ${post_id}`);
-	const url = new URL('https://e621.net/note/update.json');
-	url.searchParams.set('note[post_id]', post_id);
-	url.searchParams.set('note[x]', x);
-	url.searchParams.set('note[y]', y);
-	url.searchParams.set('note[width]', width);
-	url.searchParams.set('note[height]', height);
-	url.searchParams.set('note[is_active]', is_active ? 1 : 0);
-	url.searchParams.set('note[body]', text);
-	return download_url(url.href, 'POST');
-}
-*/
+
 e621_api.post_show = async (id) => {
 	if(!id){
 		throw new Error('post_id is not defined');
@@ -203,6 +190,22 @@ e621_api.post_show = async (id) => {
 	// eslint-disable-next-line no-undef
 	const url = new URL('https://e621.net/post/show.json');
 	url.searchParams.set('id', id);
+	const data = await e621_api.download(url.href);
+
+	// Very nice QOL, worthy of this sin.
+	data.sources = data.sources || [];
+
+	return data;
+};
+
+e621_api.post_show_md5 = async (md5) => {
+	if(!md5){
+		throw new Error('md5 is not defined');
+	}
+
+	// eslint-disable-next-line no-undef
+	const url = new URL('https://e621.net/post/show.json');
+	url.searchParams.set('md5', md5);
 	const data = await e621_api.download(url.href);
 
 	// Very nice QOL, worthy of this sin.

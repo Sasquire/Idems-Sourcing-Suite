@@ -62,7 +62,8 @@ body {
 }
 #old_fields td { border: 2px solid black; }
 #old_sources { white-space: pre; }
-#old_md5, #new_md5 { font-size: 0.5rem; }
+#old_md5, #new_md5, #new_md5 > a { font-size: 0.5rem; }
+#new_md5 > a { color: #f66; }
 
 table { line-height: 16px; }
 table * { font-size: 13px; }

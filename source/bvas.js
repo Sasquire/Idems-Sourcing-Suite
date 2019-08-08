@@ -143,7 +143,7 @@ async function bvas(){
 
 			// Flag/delete old
 			const post_action = $q('input[name=action]:checked').value;
-			if(post_action == 'deleted'){
+			if(post_action == 'delete'){
 				message(`Deleting ${old_id} as inferior to ${new_id}`);
 				const res = await e621_api.$inferior_delete(old_id, new_id);
 				message(`Done deleting ${old_id} - ${JSON.stringify(res)}`);
@@ -301,6 +301,14 @@ async function bvas(){
 
 		// eslint-disable-next-line max-len
 		$i('new_sources').value = `${safety_link(new_img_url)}\n${$i('new_sources').value}`;
+
+		await e621_api.post_show_md5(hash)
+			.then(() => {
+				const md5 = $i('new_md5').textContent;
+				const link = `https://e621.net/post/show?md5=${md5}`;
+				$i('new_md5').innerHTML = `<a href="${link}">${md5}</a>`;
+			})
+			.catch(() => true);
 
 		message('New image loaded');
 	}

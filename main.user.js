@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name        Idem's Sourcing Suite local
+// @name        Idem's Sourcing Suite
 // @description Adds a whole bunch of utilities, helpful for sourcing images
-// @version     1.00015
+// @version     1.00016
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
