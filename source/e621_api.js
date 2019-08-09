@@ -75,16 +75,26 @@ e621_api.post_create = async (obj) => {
 	const url = 'https://e621.net/post/create.json';
 	const { username, api_key } = await e621_api.credentials();
 
+	if(!obj.url && !obj.file){
+		throw new Error('Either url or file must be defined');
+	} else if(obj.url && obj.file){
+		throw new Error('Both url and file can not be defined');
+	}
+
 	// eslint-disable-next-line no-undef
 	const form = new FormData();
 	form.set('login', username);
 	form.set('password_hash', api_key);
-
 	form.set('post[tags]', obj.tags);
 	form.set('post[rating]', obj.rating);
-	form.set('post[upload_url]', obj.url);
 	form.set('post[source]', obj.source);
 	form.set('post[description]', obj.description);
+
+	if(obj.url){
+		form.set('post[upload_url]', obj.url);
+	} else {
+		form.set('post[file]', obj.file);
+	}
 
 	const new_parent = Number(obj.parent);
 	if(Number.isNaN(new_parent) == false && Number > 0){

@@ -25,7 +25,16 @@ async function bvas(){
 
 		listener('load_new_post', 'click', () => {
 			$c('hidden').forEach(e => e.classList.remove('hidden'));
-			load_new_image();
+			$i('upload_medium').innerText = 'URL';
+			image_url_data().then(e => load_new_image(...e));
+		});
+
+		listener('load_new_file', 'change', () => {
+			$c('hidden').forEach(e => e.classList.remove('hidden'));
+			const img = $i('load_new_file').files[0];
+			const ext = img.name.split('.').reverse()[0];
+			$i('upload_medium').innerText = 'local file';
+			load_new_image(undefined, img, ext);
 		});
 
 		listener('upload_button', 'click', bvas_whole);
@@ -72,7 +81,6 @@ async function bvas(){
 		$i('message').innerText = html;
 		console.log(html);
 	}
-
 
 	const filter_tags = [
 		"better_version_at_source",
@@ -166,14 +174,23 @@ async function bvas(){
 
 		async function do_upload(){
 			message('Starting to upload new post');
-			const result = await e621_api.post_create({
+			const options = {
 				tags: $i('new_tags').value,
 				rating: $q('input[name=rating]:checked').value,
-				url: $i('new_url').value,
 				source: $i('new_sources').value,
 				description: $i('new_description').value,
 				parent: $i('new_parent_id').value
-			});
+			};
+
+			if($i('upload_medium').innerText == 'URL'){
+				options.url = $i('new_url').value;
+			} else if($i('upload_medium').innerText == 'local file'){
+				options.file = $i('load_new_file').files[0];
+			} else {
+				throw new Error('Couldn\'t find url or local file');
+			}
+
+			const result = await e621_api.post_create(options);
 
 			const post_info = `${result.post_id}\n${JSON.stringify(result)}`;
 			message(`Post uploaded at ${post_info}`);
@@ -241,6 +258,7 @@ async function bvas(){
 			.forEach(e => (e.value = ''));
 
 		$i('new_img').style.background = '';
+		$i('load_new_file').value = '';
 		$c('hidable').forEach(e => e.classList.add('hidden'));
 	}
 
@@ -283,24 +301,25 @@ async function bvas(){
 		$i('new_description').value = `${text}${data.description}`;
 
 		$i('load_new_post').parentNode.classList.remove('hidden');
+		$i('load_new_file').parentNode.classList.remove('hidden');
 		message('Post loaded');
 	}
 
-	async function load_new_image(){
+	async function load_new_image(url, blob, file_ext){
 		message('Loading new image');
-		const new_img_url = $i('new_url').value;
-		const img_blob = await download_image(new_img_url);
-		const hash = await blob_to_md5(img_blob);
-		const new_img = await wait_for_image(img_blob);
+		const hash = await blob_to_md5(blob);
+		const img = await wait_for_image(blob);
 
 		// eslint-disable-next-line max-len
-		$i('new_img').style.background = `var(--grey-blue) url(${URL.createObjectURL(img_blob)}) no-repeat center/150px`;
+		$i('new_img').style.background = `var(--grey-blue) url(${URL.createObjectURL(blob)}) no-repeat center/150px`;
 		$i('new_md5').textContent = hash;
-		$i('new_size').textContent = `${new_img.width}x${new_img.height}`;
-		$i('new_file_ext').textContent = new_img_url.split('.').reverse()[0];
+		$i('new_size').textContent = `${img.width}x${img.height}`;
+		$i('new_file_ext').textContent = file_ext;
 
-		// eslint-disable-next-line max-len
-		$i('new_sources').value = `${safety_link(new_img_url)}\n${$i('new_sources').value}`;
+		if(url !== undefined){
+			// eslint-disable-next-line max-len
+			$i('new_sources').value = `${safety_link(url)}\n${$i('new_sources').value}`;
+		}
 
 		await e621_api.post_show_md5(hash)
 			.then(() => {
@@ -311,6 +330,15 @@ async function bvas(){
 			.catch(() => true);
 
 		message('New image loaded');
+	}
+
+	async function image_url_data(){
+		message('Getting image data from URL');
+		const new_img_url = $i('new_url').value;
+		const img_blob = await download_image(new_img_url);
+		const file_ext = new_img_url.split('.').reverse()[0];
+		message('Got image data from URL');
+		return [new_img_url, img_blob, file_ext];
 	}
 
 	async function wait_for_image(img_blob){

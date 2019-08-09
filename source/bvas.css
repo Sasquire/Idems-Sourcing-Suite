@@ -19,6 +19,8 @@ body {
 	color: var(--text-color);
 }
 
+input, button { border:none; }
+
 #message > a { color: var(--text-color); }
 
 #settings > span {
@@ -64,6 +66,7 @@ body {
 #old_sources { white-space: pre; }
 #old_md5, #new_md5, #new_md5 > a { font-size: 0.5rem; }
 #new_md5 > a { color: #f66; }
+#load_new_file { width: 100%; }
 
 table { line-height: 16px; }
 table * { font-size: 13px; }
