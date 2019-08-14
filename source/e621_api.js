@@ -97,7 +97,7 @@ e621_api.post_create = async (obj) => {
 	}
 
 	const new_parent = Number(obj.parent);
-	if(Number.isNaN(new_parent) == false && Number > 0){
+	if(Number.isNaN(new_parent) == false && new_parent > 0){
 		form.set('post[parent_id]', new_parent);
 	}
 
@@ -293,7 +293,7 @@ e621_api.post_destroy = async (id, reason, permanent) => {
 		throw new Error('post_id or del_reason is not defined');
 	}
 
-	const url = 'https://e621.net/post/flag.json';
+	const url = 'https://e621.net/post/destroy.json';
 	const { username, api_key } = await e621_api.credentials();
 	// eslint-disable-next-line no-undef
 	const form = new FormData();
