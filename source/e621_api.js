@@ -2,9 +2,9 @@ const e621_api = {};
 e621_api.user_agent = 'Set this to a more meaningful useragent';
 e621_api.credentials = async () => {
 	// eslint-disable-next-line no-undef
-	const username = await GM.getValue('username');
+	const username = await get_value('username');
 	// eslint-disable-next-line no-undef
-	const api_key = await GM.getValue('api_key');
+	const api_key = await get_value('api_key');
 
 	if(!username || !api_key){
 		throw new Error('Username or API key is not set');

@@ -216,10 +216,36 @@ function string_to_node(string, id = '', enclose = false){
 	return enclose ? temp : temp.children.item(0);
 }
 
+async function get_value(key){
+	return new Promise(resolve => {
+		if(window.GM && window.GM.getValue){
+			GM.getValue(key).then(resolve);
+		} else {
+			resolve(GM_getValue(key));
+		}
+	});
+}
+
+async function set_value(key, value){
+	return new Promise(resolve => {
+		if(window.GM && window.GM.getValue){
+			GM.setValue(key, value).then(resolve);
+		} else {
+			resolve(GM_setValue(key, value));
+		}
+	});
+}
+
 async function download_image(url, _headers = {}){
 	return new Promise((resolve, reject) => {
-		// eslint-disable-next-line no-undef
-		GM.xmlHttpRequest({
+		let request = null;
+		if(window.GM && window.GM.xmlHttpRequest){
+			request = window.GM.xmlHttpRequest;
+		} else {
+			request = window.GM_xmlhttpRequest;
+		}
+
+		request({
 			method: 'GET',
 			url: url,
 			headers: _headers,
