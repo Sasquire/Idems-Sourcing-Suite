@@ -43,6 +43,11 @@ async function pixiv(){
 			const html = pretty_md5(hash_data);
 			html.classList.add('md5_hash');
 			node.appendChild(html);
+
+			const md5sums = $c('md5sum', html);
+			for(const link of md5sums){
+				await color_link(link);
+			}
 		}
 	}
 

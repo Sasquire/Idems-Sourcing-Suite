@@ -3,7 +3,7 @@ if(new URL(window.location.href).host.includes('inkbunny.net')){
 	inkbunny();
 }
 
-function inkbunny(){
+async function inkbunny(){
 	// eslint-disable-next-line new-cap
 	GM_addStyle('#md5box { font-size: 12px; }');
 	showMD5(); // Function on IB's page
@@ -36,4 +36,9 @@ function inkbunny(){
 		$q('.elephant_bottom > .content > div > span'), // Description node
 		`${title} - by ${artist}` // Title
 	);
+
+	const md5sums = $c('md5sum');
+	for(const link of md5sums){
+		await color_link(link);
+	}
 }

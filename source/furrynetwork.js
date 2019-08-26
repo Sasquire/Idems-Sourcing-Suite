@@ -50,4 +50,9 @@ async function furry_network(){
 	const html = pretty_md5(hash_data, '<br>', 'hashes');
 	const tags = $q('.submission__description');
 	tags.parentNode.insertBefore(html, tags.nextSibling);
+
+	const md5sums = $c('md5sum');
+	for(const link of md5sums){
+		await color_link(link);
+	}
 }

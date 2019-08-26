@@ -40,6 +40,43 @@ function body_append(string){
 	document.body.appendChild(string_to_node(string));
 }
 
+async function good_request(options){
+	return new Promise((resolve, reject) => {
+		let request = null;
+		if(window.GM && window.GM.xmlHttpRequest){
+			request = window.GM.xmlHttpRequest;
+		} else {
+			request = window.GM.xmlhttpRequest;
+		}
+		options.onload = resolve;
+		options.onerror = reject;
+		request(options);
+	});
+}
+
+async function cross_site_md5(md5){
+	// eslint-disable-next-line no-undef
+	console.log(`Trying to get md5 ${md5} from e621`);
+	const data = await good_request({
+		method: 'GET',
+		url: `https://e621.net/post/show?md5=${md5}`,
+		headers: {
+			"User-Agent": 'Idem\'s sourcing suite/Cross site md5 checker'
+		}
+	});
+	return data;
+}
+
+
+async function color_link(node){
+	const md5 = node.textContent.replace(/\W/ug, '');
+	const on_e6 = await cross_site_md5(md5)
+		.then(result => result.status == 200)
+		.catch(err => false);
+	const color = on_e6 ? '#f33' : '#3f3';
+	node.style.color = color;
+}
+
 /* How to use this
 md5_append(
 	'.stats-container', // Where to place md5s
@@ -197,6 +234,7 @@ function pretty_md5(hash_arr, joiner = '<br>', id = '', enclose = true, raw = fa
 			href="https://e621.net/post/show?md5=${obj.hash}"
 			style="font-weight:normal;"
 			target="_blank"
+			class="md5sum"
 		>
 			${obj.hash}
 		</a>

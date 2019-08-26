@@ -12,7 +12,12 @@ async function fur_affinity(){
 		'.stats-container', // Where to place md5s
 		[full_url, 'full image'], // MD5 Data
 		[thumb_url, 'sample']
-	);
+	).then(async () => {
+		const md5sums = $c('md5sum');
+		for(const link of md5sums){
+			await color_link(link);
+		}
+	});
 
 	const title = $q('.information h2').innerText;
 	const artist = $q('.information a').innerText;

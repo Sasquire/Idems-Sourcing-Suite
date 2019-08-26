@@ -11,7 +11,12 @@ function sofurry(){
 		'#sf-viewcontent-content > div', // Where to place md5s
 		[img.parentNode.href, 'full image'], // MD5 Data
 		[img.src, 'sample']
-	);
+	).then(async () => {
+		const md5sums = $c('md5sum');
+		for(const link of md5sums){
+			await color_link(link);
+		}
+	});
 
 	const title = $q('#sfContentTitle').innerText;
 	const artist = $q('.sf-username').innerText;
