@@ -53,7 +53,8 @@ async function pixiv(){
 
 	function setup_description(){
 		const box = $q('figcaption');
-		const title = $q('h1', box).textContent;
+		const title_elem = $q('h1', box);
+		const title = title_elem ? title_elem.textContent : 'Untitled';
 		const artist = $q('aside > section > h2 > div > div').textContent;
 		description_button(
 			$q('footer', box), // Where to place description
