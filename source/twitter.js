@@ -62,6 +62,7 @@ function twitter(){
 		const hash_data = await Promise.all([
 			add_md5(new_url_type(image_url.href, 'orig'), 'full'),
 			add_md5(new_url_type(image_url.href, '4096x4096'), '4096x4096'),
+			add_md5(new_url_type(image_url.href, 'large'), 'large'),
 			add_md5(new_url_type(image_url.href, 'thumb'), 'thumb')
 		]);
 
