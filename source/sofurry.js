@@ -6,7 +6,11 @@ if(new URL(window.location.href).host.includes('sofurry.com')){
 function sofurry(){
 	$q('#sf-viewcontent-content > div').innerHTML += '<hr>';
 
-	const img = $q('#sfContentImage img');
+	const img = (() => {
+		const regular_view = $q('#sfContentImage img');
+		const large_view = $q('#sfContentImageFull img');
+		return (regular_view || large_view);
+	})();
 	md5_append(
 		'#sf-viewcontent-content > div', // Where to place md5s
 		[img.parentNode.href, 'full image'], // MD5 Data
