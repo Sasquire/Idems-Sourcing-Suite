@@ -12,7 +12,7 @@ async function pixiv(){
 	GM_addStyle('#md5_hash { z-index: 1000; }');
 
 	// Figure containing images
-	await wait_for_query('main figure > div[role="presentation"]');
+	await wait_for_query('aside > section > h2 > div > div');
 	setup_description();
 
 	const button = $qa('button').find(e => e.innerText.includes('See all'));
