@@ -186,6 +186,7 @@ function html_to_dtext(entry){
 function safety_link(text){
 	const safe_domains = [
 		'furaffinity.net',
+		'facdn.net',
 		'deviantart.com',
 		'twitter.com',
 		'inkbunny.net',
