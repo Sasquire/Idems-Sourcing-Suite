@@ -52,14 +52,19 @@
 // @match       *://*.inkbunny.net/submissionview.php*
 // @require     https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/source/inkbunny.js
 
-// Some userscript managers still use the deprecated fucntions
+// Some userscript managers still use the deprecated functions
 // like GM_* requiring both is the only workaround that I know of
+// @grant       GM.addStyle
+// @grant       GM_addStyle
+
 // @grant       GM.xmlHttpRequest
 // @grant       GM_xmlhttpRequest
-// @grant       GM_addStyle
+
 // @grant       GM_getResourceText
+
 // @grant       GM.setValue
 // @grant       GM_setValue
+
 // @grant       GM.getValue
 // @grant       GM_getValue
 // @noframes

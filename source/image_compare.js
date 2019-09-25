@@ -133,7 +133,7 @@ async function image_compare(){
 
 	function init(){
 		clear_page();
-		GM_addStyle(`
+		add_style(`
 		#can1, #can2, #can_compare {
 			border: 2px solid;
 			background-color:black;

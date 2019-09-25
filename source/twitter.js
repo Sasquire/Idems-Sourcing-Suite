@@ -8,7 +8,7 @@ if(new URL(window.location.href).host.includes('twitter.com')){
 
 function twitter(){
 	// eslint-disable-next-line new-cap
-	GM_addStyle(`
+	add_style(`
 	.Gallery-content{
 		margin-top: 1em;
 	}

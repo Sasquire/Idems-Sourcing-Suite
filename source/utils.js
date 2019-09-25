@@ -43,10 +43,10 @@ function body_append(string){
 async function good_request(options){
 	return new Promise((resolve, reject) => {
 		let request = null;
-		if(window.GM && window.GM.xmlHttpRequest){
-			request = window.GM.xmlHttpRequest;
+		if(GM && GM.xmlHttpRequest){
+			request = GM.xmlHttpRequest;
 		} else {
-			request = window.GM.xmlhttpRequest;
+			request = GM.xmlhttpRequest;
 		}
 		options.onload = resolve;
 		options.onerror = reject;
@@ -72,7 +72,7 @@ async function color_link(node){
 	const md5 = node.textContent.replace(/\W/ug, '');
 	const on_e6 = await cross_site_md5(md5)
 		.then(result => result.status == 200)
-		.catch(err => false);
+		.catch(() => false);
 	const color = on_e6 ? '#f33' : '#3f3';
 	node.style.color = color;
 }
@@ -256,7 +256,7 @@ function string_to_node(string, id = '', enclose = false){
 
 async function get_value(key){
 	return new Promise(resolve => {
-		if(window.GM && window.GM.getValue){
+		if(GM && GM.getValue){
 			GM.getValue(key).then(resolve);
 		} else {
 			resolve(GM_getValue(key));
@@ -266,7 +266,7 @@ async function get_value(key){
 
 async function set_value(key, value){
 	return new Promise(resolve => {
-		if(window.GM && window.GM.getValue){
+		if(GM && GM.getValue){
 			GM.setValue(key, value).then(resolve);
 		} else {
 			resolve(GM_setValue(key, value));
@@ -274,20 +274,30 @@ async function set_value(key, value){
 	});
 }
 
-async function download_image(url, _headers = {}){
+async function add_style(style){
+	return new Promise(resolve => {
+		if(GM && GM.addStyle){
+			GM.addStyle(style).then(resolve);
+		} else {
+			resolve(GM_addStyle(style));
+		}
+	});
+}
+
+async function download_image(url, _headers = {}, response = 'blob'){
 	return new Promise((resolve, reject) => {
 		let request = null;
-		if(window.GM && window.GM.xmlHttpRequest){
-			request = window.GM.xmlHttpRequest;
+		if(GM && GM.xmlHttpRequest){
+			request = GM.xmlHttpRequest;
 		} else {
-			request = window.GM_xmlhttpRequest;
+			request = GM_xmlhttpRequest;
 		}
 
 		request({
 			method: 'GET',
 			url: url,
 			headers: _headers,
-			responseType: 'blob',
+			responseType: response,
 			onload: e => (e.status == 200 ? resolve(e.response) : reject(e))
 		});
 	});

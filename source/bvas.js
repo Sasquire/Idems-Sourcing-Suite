@@ -7,7 +7,7 @@ if(
 ){
 	clear_page();
 	document.body.innerHTML = GM_getResourceText('bvas_html');
-	GM_addStyle(GM_getResourceText('bvas_css'));
+	add_style(GM_getResourceText('bvas_css'));
 	bvas();
 }
 
