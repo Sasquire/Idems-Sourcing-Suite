@@ -28,7 +28,7 @@
 // @connect     facdn.net
 // @require     https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/source/furaffinity.js
 
-// @match       *://*.pixiv.net/member_illust.php*
+// @match       *://*.pixiv.net/en/artworks/
 // @connect     pximg.net
 // @require     https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/source/pixiv.js
 
