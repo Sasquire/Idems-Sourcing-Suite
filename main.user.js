@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Idem's Sourcing Suite
 // @description Adds a whole bunch of utilities, helpful for sourcing images
-// @version     1.00025
+// @version     1.00026
 // @author      Meras
 
 // @namespace   https://github.com/Sasquire/
@@ -9,6 +9,9 @@
 // @updateURL   https://github.com/Sasquire/Idems-Sourcing-Suite/raw/master/main.user.js
 // @downloadURL https://github.com/Sasquire/Idems-Sourcing-Suite/raw/master/main.user.js
 // @icon        https://github.com/Sasquire/Idems-Sourcing-Suite/raw/master/icon32.png
+
+// Polyfils for GM.* functions to fix compatability issues
+// @require     https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 
 // @require     https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/source/utils.js
 // @require     https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/source/e621_api.js

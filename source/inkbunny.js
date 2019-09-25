@@ -5,7 +5,7 @@ if(new URL(window.location.href).host.includes('inkbunny.net')){
 
 async function inkbunny(){
 	// eslint-disable-next-line new-cap
-	add_style('#md5box { font-size: 12px; }');
+	GM.addStyle('#md5box { font-size: 12px; }');
 	showMD5(); // Function on IB's page
 	const md5box = $i('md5box');
 	md5box.parentNode.removeChild(md5box.previousSibling);

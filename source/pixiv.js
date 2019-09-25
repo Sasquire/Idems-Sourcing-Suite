@@ -9,7 +9,7 @@ if(new URL(window.location.href).host.includes('pixiv.net')){
 
 async function pixiv(){
 	// eslint-disable-next-line new-cap
-	add_style('#md5_hash { z-index: 1000; }');
+	GM.addStyle('#md5_hash { z-index: 1000; }');
 
 	// Figure containing images
 	await wait_for_query('aside > section > h2 > div > div');

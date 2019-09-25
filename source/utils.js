@@ -40,24 +40,10 @@ function body_append(string){
 	document.body.appendChild(string_to_node(string));
 }
 
-async function good_request(options){
-	return new Promise((resolve, reject) => {
-		let request = null;
-		if(GM && GM.xmlHttpRequest){
-			request = GM.xmlHttpRequest;
-		} else {
-			request = GM.xmlhttpRequest;
-		}
-		options.onload = resolve;
-		options.onerror = reject;
-		request(options);
-	});
-}
-
 async function cross_site_md5(md5){
 	// eslint-disable-next-line no-undef
 	console.log(`Trying to get md5 ${md5} from e621`);
-	const data = await good_request({
+	const data = await GM.xmlHttpRequest({
 		method: 'GET',
 		url: `https://e621.net/post/show?md5=${md5}`,
 		headers: {
@@ -66,7 +52,6 @@ async function cross_site_md5(md5){
 	});
 	return data;
 }
-
 
 async function color_link(node){
 	const md5 = node.textContent.replace(/\W/ug, '');
@@ -255,46 +240,9 @@ function string_to_node(string, id = '', enclose = false){
 	return enclose ? temp : temp.children.item(0);
 }
 
-async function get_value(key){
-	return new Promise(resolve => {
-		if(GM && GM.getValue){
-			GM.getValue(key).then(resolve);
-		} else {
-			resolve(GM_getValue(key));
-		}
-	});
-}
-
-async function set_value(key, value){
-	return new Promise(resolve => {
-		if(GM && GM.getValue){
-			GM.setValue(key, value).then(resolve);
-		} else {
-			resolve(GM_setValue(key, value));
-		}
-	});
-}
-
-async function add_style(style){
-	return new Promise(resolve => {
-		if(GM && GM.addStyle){
-			GM.addStyle(style).then(resolve);
-		} else {
-			resolve(GM_addStyle(style));
-		}
-	});
-}
-
 async function download_image(url, _headers = {}, response = 'blob'){
 	return new Promise((resolve, reject) => {
-		let request = null;
-		if(GM && GM.xmlHttpRequest){
-			request = GM.xmlHttpRequest;
-		} else {
-			request = GM_xmlhttpRequest;
-		}
-
-		request({
+		GM.xmlHttpRequest({
 			method: 'GET',
 			url: url,
 			headers: _headers,

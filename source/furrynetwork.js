@@ -11,7 +11,7 @@ if(new URL(window.location.href).host.includes('furrynetwork.com')){
 
 async function furry_network(){
 	// eslint-disable-next-line new-cap
-	add_style(`
+	GM.addStyle(`
 	#copy_description {
 		color: black;
 		background-color: #ccc;
