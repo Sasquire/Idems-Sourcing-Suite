@@ -1,0 +1,47 @@
+{
+	"name": "idems_sourcing_suite",
+	"version": "1.0.0",
+	"description": "A collection of utilities on various sites to make sourcing for e621 easier",
+	"scripts": {
+		"build": "node build.js"
+	},
+	"author": "",
+	"license": "UNLICENSED",
+	"private": true,
+	"devDependencies": {
+		"browserify": "^16.5.0",
+		"stringify": "^5.2.0"
+	},
+	"eslintConfig": {
+		"extends": "standard",
+		"parserOptions": {
+			"ecmaVersion": 9,
+			"sourceType": "module"
+		},
+		"env": {
+			"browser": true
+		},
+		"rules": {
+			"semi": [
+				"error",
+				"always"
+			],
+			"no-console": "off",
+			"indent": [
+				"error",
+				"tab",
+				{
+					"SwitchCase": 1,
+					"ignoreComments": true
+				}
+			],
+			"no-tabs": "off",
+			"camelcase": "off"
+		}
+	},
+	"dependencies": {},
+	"main": "main.js",
+	"eslintIgnore": [
+		"distribution/*"
+	]
+}

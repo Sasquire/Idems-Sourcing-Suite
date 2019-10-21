@@ -1,0 +1,7 @@
+{
+	"match": [
+		"*://*.furaffinity.net/view/*",
+		"*://*.furaffinity.net/full/*"
+	],
+	"connect": ["facdn.net"]
+}
