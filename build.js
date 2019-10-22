@@ -35,6 +35,7 @@ function build_header () {
 ${build_match_connects()}
 
 // @grant        GM.addStyle
+// @grant        GM.xmlHttpRequest
 
 // ==/UserScript==
 

@@ -20,6 +20,7 @@
 // @connect      facdn.net
 
 // @grant        GM.addStyle
+// @grant        GM.xmlHttpRequest
 
 // ==/UserScript==
 
