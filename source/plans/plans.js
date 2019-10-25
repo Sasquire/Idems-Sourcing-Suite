@@ -6,7 +6,7 @@
 //   test: f(current_url),
 //
 //   A function that will execute the current plan of the site
-//   execute: f()
+//   exec: f()
 // }
 
 // Additionally each plan should have a header.json file that is
@@ -15,5 +15,7 @@
 //   connect: <string[]>, Array of required connect statements
 //   match: <string[]> Array of urls to match
 // }
+
 module.exports = [
+	require('./furaffinity/main.js')
 ];

@@ -32,6 +32,8 @@ function build_header () {
 
 // @license      Unlicense
 
+// @connect      e621.net
+
 ${build_match_connects()}
 
 // @grant        GM.addStyle
@@ -46,10 +48,13 @@ function build_match_connects () {
 	const plan_dir = path.join('source', 'plans');
 	return fs.readdirSync(plan_dir)
 		.filter(e => e !== 'plans.js') // Removes the entry point
-		.map(e => path.join(plan_dir, e, 'header.json'))
+		.map(e => path.join('.', plan_dir, e, 'header.js'))
+		.map(e => `./${e}`)
 		.map(e => {
 			try {
-				return JSON.parse(fs.readFileSync(e));
+				const header = require(e);
+				console.log(`Found ${e}`);
+				return header;
 			} catch (error) {
 				console.error(error.toString());
 				return undefined;
@@ -61,6 +66,7 @@ function build_match_connects () {
 
 	function build_single_header (options) {
 		return [
+			`//               ${options.title} v${options.version}`,
 			build_row('match', options.match),
 			build_row('connect', options.connect)
 		].join('\n');

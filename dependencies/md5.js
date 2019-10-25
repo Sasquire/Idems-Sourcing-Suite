@@ -244,10 +244,11 @@ function MD5 (data) {
 	return digest(data);
 }
 
-// Testing
+/* Testing
 const a = new ArrayBuffer(5);
 const view = new Uint8Array(a);
 view.set([104, 101, 108, 108, 111]); // `hello` as an array buffer
 console.log(MD5(a));
+*/
 
 module.exports = MD5;

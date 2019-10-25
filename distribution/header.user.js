@@ -12,9 +12,9 @@
 
 // @license      Unlicense
 
-// @match        *://*.e621.net/extensions/upload_bvas
-// @connect      *
+// @connect      e621.net
 
+//               FurAffinity v1
 // @match        *://*.furaffinity.net/view/*
 // @match        *://*.furaffinity.net/full/*
 // @connect      facdn.net
