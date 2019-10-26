@@ -55,14 +55,24 @@ function check_hash (hash) {
 	}
 }
 
+function replace_hash (old_hash) {
+	const new_hash = document.createElement('span');
+	new_hash.textContent = old_hash.textContent;
+	Array.from(old_hash.classList)
+		.forEach(e => new_hash.classList.add(e));
+	old_hash.parentNode.replaceChild(new_hash, old_hash);
+	return new_hash;
+}
+
 async function color_hash (node) {
 	// Color the node depending on its upload status to e621
 	return e621.post_show_md5(node.textContent).then(post => {
 		if (post.status === 'destroyed') {
-			console.log(post);
+			node = replace_hash(node);
 			node.classList.add('iss_hash_notfound'); // e621 red
 		} else {
 			node.classList.add('iss_hash_found');
+			node.href = `https://e621.net/post/show/${post.post_id}`;
 		}
 	});
 }

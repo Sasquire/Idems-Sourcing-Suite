@@ -228,7 +228,6 @@ function validate_settings (settings) {
 
 function handle_post_show_error (error) {
 	// Todo
-	console.log(error);
 	throw error;
 }
 
@@ -755,7 +754,6 @@ function validate_settings (settings) {
 
 function handle_post_show_error (error) {
 	// Todo
-	console.log(error);
 	throw error;
 }
 
@@ -1096,43 +1094,132 @@ const site = plans.find(e => e.test(here));
 console.log(`idem's Sourcing Suite: Running ${site.title} v${site.version}`);
 site.exec();
 
-console.log(plans);
-
-},{"./plans/plans.js":7}],5:[function(require,module,exports){
-const info = {
-	test: (url) => {
-		const this_url = url.hostname.split('.').slice(-2).join('.');
-		return this_url === 'furaffinity.net';
-	},
-
-	match: [
-		'*://*.furaffinity.net/view/*',
-		'*://*.furaffinity.net/full/*'
-	],
-
-	connect: ['facdn.net'],
-
-	title: 'FurAffinity',
-	version: 1
-};
-
-module.exports = info;
-
-},{}],6:[function(require,module,exports){
+},{"./plans/plans.js":10}],5:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
 	upload_button,
 	data_to_nodes,
+	common_styles,
 	GM
 } = require('./../../utils/utils.js');
-const header = require('./header.js');
+const { full_to_thumb } = require('./links.js');
 
 function style () {
-	GM.addStyle(`
-	.iss_hash_notfound { color: #333 !important; }
-	.iss_hash_found { color: #4cf !important; }
+	common_styles();
 
+	GM.addStyle(`
+	#iss_span {
+		display: flex;
+    	flex-direction: column;
+    	overflow: hidden;
+	}
+
+	#iss_span > * { white-space: nowrap; }
+	.iss_hash { font-weight: 700; }
+	.iss_image_link { margin-right: 0.4rem; }
+
+	#iss_upload_link {
+		text-align: center;
+    	font-size: 1.1rem;
+    	background: #ddd;
+    	border: 1px solid #bbb;
+    	border-radius: 0.2rem;
+    	color: black !important;
+	}
+/*
+	#iss_buttons, #iss_links { display: flex; flex-direction: column; }
+	.information { margin-right: auto; }
+	#iss_upload_link {
+		border: 1px solid black;
+		padding: 0px 4px;
+		font-size: 0.9rem;
+		margin-top: auto;
+	}
+	#iss_links { font-size: 1.3em; padding: 0.3rem; }
+	
+	#iss_links > .iss_hash_span ~ .iss_hash_span { margin-top: 0.5rem; }
+	
+	*/
+`);
+}
+
+function get_artist () {
+	return document.querySelector('.submission-artist-container > a ~ a');
+}
+
+function get_full_url () {
+	// It appears that you can only be on the beta site while logged
+	// in. This does not concern me about this node being hidden
+	return document.querySelector('.download-logged-in').href;
+}
+
+function get_description () {
+	const artist = get_artist();
+	const title = document.querySelector('.submission-title > h2');
+
+	const description = document.querySelector('.submission-description-container').cloneNode(true);
+	const bad_title = description.querySelector('.submission-title');
+	description.removeChild(bad_title);
+
+	return artist_commentary(artist, title, description);
+}
+
+function commentary () {
+	return commentary_button(get_description());
+}
+
+function upload () {
+	const sources = [
+		get_artist().href,
+		window.location.href,
+		get_full_url()
+	];
+
+	// no tags because they are meaningless from FA
+	return upload_button(get_full_url(), sources, get_description());
+}
+
+async function exec () {
+	const container = document.querySelector('.submission-sidebar');
+
+	const commentary_button = commentary();
+	const upload_button = upload();
+
+	const span = document.createElement('span');
+	span.id = 'iss_span';
+	span.appendChild(commentary_button);
+	span.appendChild(upload_button);
+
+	container.appendChild(span);
+
+	const hashes = await data_to_nodes([
+		[get_full_url(), 'full image'],
+		[full_to_thumb(get_full_url()), 'thumb image']
+	]);
+
+	hashes.forEach(e => span.appendChild(e));
+
+	style();
+}
+
+module.exports = exec;
+
+},{"./../../utils/utils.js":18,"./links.js":8}],6:[function(require,module,exports){
+const {
+	commentary_button,
+	artist_commentary,
+	upload_button,
+	data_to_nodes,
+	common_styles,
+	GM
+} = require('./../../utils/utils.js');
+const { full_to_thumb } = require('./links.js');
+
+function style () {
+	common_styles();
+
+	GM.addStyle(`
 	.container { display: flex; }
 	#iss_buttons, #iss_links { display: flex; flex-direction: column; }
 	.information { margin-right: auto; }
@@ -1145,6 +1232,7 @@ function style () {
 	#iss_links { font-size: 1.3em; padding: 0.3rem; }
 	.iss_image_link { margin-right: 0.4rem; }
 	#iss_links > .iss_hash_span ~ .iss_hash_span { margin-top: 0.5rem; }
+	.iss_hash { font-weight: 700; }
 `);
 }
 
@@ -1154,13 +1242,6 @@ function get_artist () {
 
 function get_full_url () {
 	return document.querySelector('a[href^="//d.facdn.net"]').href;
-}
-
-function get_thumb_url () {
-	const full_url = get_full_url();
-	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
-	const post_id = new URL(window.location.href).pathname.split('/')[2];
-	return `https://t.facdn.net/${post_id}@${400}-${timestamp}.jpg`;
 }
 
 function get_description () {
@@ -1188,7 +1269,7 @@ function upload () {
 async function get_hashes () {
 	const hashes = await data_to_nodes([
 		[get_full_url(), 'full image'],
-		[get_thumb_url(), 'thumb image']
+		[full_to_thumb(get_full_url()), 'thumb image']
 	]);
 
 	const span = document.createElement('span');
@@ -1216,12 +1297,62 @@ async function exec () {
 	style();
 }
 
+module.exports = exec;
+
+},{"./../../utils/utils.js":18,"./links.js":8}],7:[function(require,module,exports){
+const info = {
+	test: (url) => {
+		const this_url = url.hostname.split('.').slice(-2).join('.');
+		return this_url === 'furaffinity.net';
+	},
+
+	match: [
+		'*://*.furaffinity.net/view/*',
+		'*://*.furaffinity.net/full/*'
+	],
+
+	connect: ['facdn.net'],
+
+	title: 'FurAffinity',
+	version: 1
+};
+
+module.exports = info;
+
+},{}],8:[function(require,module,exports){
+function full_to_thumb (full_url) {
+	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
+	const post_id = new URL(window.location.href).pathname.split('/')[2];
+	return `https://t.facdn.net/${post_id}@${400}-${timestamp}.jpg`;
+}
+
+module.exports = {
+	full_to_thumb: full_to_thumb
+};
+
+},{}],9:[function(require,module,exports){
+const run_classic = require('./classic.js');
+const run_beta = require('./beta.js');
+const header = require('./header.js');
+
+async function exec () {
+	const is_classic = document.body.dataset.staticPath === '/themes/classic';
+
+	if (is_classic) {
+		console.log(`${header.title} classic version`);
+		run_classic();
+	} else {
+		console.log(`${header.title} beta version`);
+		run_beta();
+	}
+}
+
 module.exports = {
 	...header,
 	exec: exec
 };
 
-},{"./../../utils/utils.js":15,"./header.js":5}],7:[function(require,module,exports){
+},{"./beta.js":5,"./classic.js":6,"./header.js":7}],10:[function(require,module,exports){
 // Array of requires from the other folders in this directory
 // Each export should look like this
 // {
@@ -1244,7 +1375,7 @@ module.exports = [
 	require('./furaffinity/main.js')
 ];
 
-},{"./furaffinity/main.js":6}],8:[function(require,module,exports){
+},{"./furaffinity/main.js":9}],11:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -1294,7 +1425,7 @@ module.exports = {
 	commentary_button: commentary_button
 };
 
-},{"./node_to_dtext.js":11}],9:[function(require,module,exports){
+},{"./node_to_dtext.js":14}],12:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -1303,7 +1434,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":1}],10:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":1}],13:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -1361,13 +1492,24 @@ function check_hash (hash) {
 	}
 }
 
+function replace_hash (old_hash) {
+	const new_hash = document.createElement('span');
+	new_hash.textContent = old_hash.textContent;
+	Array.from(old_hash.classList)
+		.forEach(e => new_hash.classList.add(e));
+	old_hash.parentNode.replaceChild(new_hash, old_hash);
+	return new_hash;
+}
+
 async function color_hash (node) {
 	// Color the node depending on its upload status to e621
 	return e621.post_show_md5(node.textContent).then(post => {
 		if (post.status === 'destroyed') {
+			node = replace_hash(node);
 			node.classList.add('iss_hash_notfound'); // e621 red
 		} else {
 			node.classList.add('iss_hash_found');
+			node.href = `https://e621.net/post/show/${post.post_id}`;
 		}
 	});
 }
@@ -1414,7 +1556,7 @@ module.exports = {
 	data_to_nodes: data_to_nodes
 };
 
-},{"./../../dependencies/gm_functions.js":2,"./../../dependencies/md5.js":3,"./e621_api.js":9}],11:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":2,"./../../dependencies/md5.js":3,"./e621_api.js":12}],14:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -1479,7 +1621,9 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":13}],12:[function(require,module,exports){
+},{"./safe_link.js":16}],15:[function(require,module,exports){
+const GM = require('./../../dependencies/gm_functions.js');
+
 function clear_page () {
 	clear_children(document.head);
 	clear_children(document.body);
@@ -1533,14 +1677,22 @@ async function leave (query) {
 	});
 };
 
+function apply_common_styles () {
+	GM.addStyle(`
+		.iss_hash_notfound { color: #333 !important; }
+		.iss_hash_found { color: #4cf !important; }
+	`);
+}
+
 module.exports = {
 	clear_children: clear_children,
 	clear_page: clear_page,
 	arrive: arrive,
-	leave: leave
+	leave: leave,
+	common_styles: apply_common_styles
 };
 
-},{}],13:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":2}],16:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -1583,7 +1735,7 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],14:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -1608,7 +1760,7 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],15:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 const { arrive, leave } = require('./nodes.js');
 const GM = require('./../../dependencies/gm_functions.js');
 
@@ -1626,4 +1778,4 @@ module.exports = {
 	GM: GM
 };
 
-},{"./../../dependencies/gm_functions.js":2,"./artist_commentary.js":8,"./e621_api.js":9,"./hash_image.js":10,"./node_to_dtext.js":11,"./nodes.js":12,"./safe_link.js":13,"./upload_url.js":14}]},{},[4]);
+},{"./../../dependencies/gm_functions.js":2,"./artist_commentary.js":11,"./e621_api.js":12,"./hash_image.js":13,"./node_to_dtext.js":14,"./nodes.js":15,"./safe_link.js":16,"./upload_url.js":17}]},{},[4]);

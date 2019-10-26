@@ -1,3 +1,5 @@
+const GM = require('./../../dependencies/gm_functions.js');
+
 function clear_page () {
 	clear_children(document.head);
 	clear_children(document.body);
@@ -51,9 +53,17 @@ async function leave (query) {
 	});
 };
 
+function apply_common_styles () {
+	GM.addStyle(`
+		.iss_hash_notfound { color: #333 !important; }
+		.iss_hash_found { color: #4cf !important; }
+	`);
+}
+
 module.exports = {
 	clear_children: clear_children,
 	clear_page: clear_page,
 	arrive: arrive,
-	leave: leave
+	leave: leave,
+	common_styles: apply_common_styles
 };
