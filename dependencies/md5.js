@@ -220,7 +220,7 @@ function pad_input (data) {
 	// 1 is added to it because 0b10000000 must be appended to the
 	// end of the buffer before it is passed on.
 	const tail = (original_len + 1) % 64;
-	const zero_pad = tail > 56 ? (tail - 8) : (56 - tail);
+	const zero_pad = tail > 56 ? (120 - tail) : (56 - tail);
 
 	// 0b10000000 + to 512 bit block + original length
 	const total_pad = 1 + zero_pad + 8;
