@@ -19,6 +19,10 @@
 // @match        *://*.furaffinity.net/full/*
 // @connect      facdn.net
 
+//               Twitter v1
+// @match        *://*.twitter.com/*
+// @connect      https://pbs.twimg.com
+
 // @grant        GM.addStyle
 // @grant        GM.xmlHttpRequest
 
@@ -1055,7 +1059,6 @@ function pad_input (data) {
 	// end of the buffer before it is passed on.
 	const tail = (original_len + 1) % 64;
 	const zero_pad = tail > 56 ? (120 - tail) : (56 - tail);
-	console.log(tail, zero_pad);
 
 	// 0b10000000 + to 512 bit block + original length
 	const total_pad = 1 + zero_pad + 8;
@@ -1089,13 +1092,48 @@ console.log(MD5(a));
 module.exports = MD5;
 
 },{}],4:[function(require,module,exports){
+// Unlisence (2019)
+
+// For sites like twitter it is very useful to tell when the
+// URL has changed. Normally you would use the `popstate` event
+// and add it with an event listener to `window`. The issue with
+// that is this will only fire events when the browsers internal
+// history is changed with the forward and back buttons. What we
+// can do is modify how the actual functions to change the current
+// url function. We can then send our own events whenever we want.
+// https://stackoverflow.com/a/52809105
+
+// A named function is probably necessary to prevent breaking
+// other sites.
+
+function create_alter (old_func, custom_event_string) {
+	return function () {
+		// Run this first and save the value because things may
+		// rely on the new url. This prevents things from being
+		// notified of a new url before there is one.
+		const return_value = old_func.apply(this, arguments);
+		window.dispatchEvent(new Event(custom_event_string));
+		window.dispatchEvent(new Event('locationchange'));
+		return return_value;
+	};
+}
+
+history.pushState = create_alter(history.pushState, 'pushState');
+history.replaceState = create_alter(history.replaceState, 'replaceState');
+window.addEventListener('popstate', e => {
+	window.dispatchEvent(new Event('locationchange'));
+});
+
+},{}],5:[function(require,module,exports){
 const plans = require('./plans/plans.js');
 const here = new URL(window.location.href);
 const site = plans.find(e => e.test(here));
-console.log(`idem's Sourcing Suite: Running ${site.title} v${site.version}`);
-site.exec();
+if (site !== undefined) {
+	console.log(`idem's Sourcing Suite: Running ${site.title} v${site.version}`);
+	site.exec();
+}
 
-},{"./plans/plans.js":10}],5:[function(require,module,exports){
+},{"./plans/plans.js":11}],6:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1206,7 +1244,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":18,"./links.js":8}],6:[function(require,module,exports){
+},{"./../../utils/utils.js":21,"./links.js":9}],7:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1300,7 +1338,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":18,"./links.js":8}],7:[function(require,module,exports){
+},{"./../../utils/utils.js":21,"./links.js":9}],8:[function(require,module,exports){
 const info = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1320,7 +1358,7 @@ const info = {
 
 module.exports = info;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 function full_to_thumb (full_url) {
 	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
 	const post_id = new URL(window.location.href).pathname.split('/')[2];
@@ -1331,7 +1369,7 @@ module.exports = {
 	full_to_thumb: full_to_thumb
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 const run_classic = require('./classic.js');
 const run_beta = require('./beta.js');
 const header = require('./header.js');
@@ -1353,30 +1391,59 @@ module.exports = {
 	exec: exec
 };
 
-},{"./beta.js":5,"./classic.js":6,"./header.js":7}],10:[function(require,module,exports){
-// Array of requires from the other folders in this directory
-// Each export should look like this
-// {
-//   A function to test if the current plan should be run
-//   All plans are checked until the first runnable one
-//   test: f(current_url),
-//
-//   A function that will execute the current plan of the site
-//   exec: f()
-// }
-
-// Additionally each plan should have a header.json file that is
-// used in building the complete userscript. This should look like
-// {
-//   connect: <string[]>, Array of required connect statements
-//   match: <string[]> Array of urls to match
-// }
-
+},{"./beta.js":6,"./classic.js":7,"./header.js":8}],11:[function(require,module,exports){
 module.exports = [
-	require('./furaffinity/main.js')
+	require('./furaffinity/main.js'),
+	require('./twitter/main.js')
 ];
 
-},{"./furaffinity/main.js":9}],11:[function(require,module,exports){
+},{"./furaffinity/main.js":10,"./twitter/main.js":13}],12:[function(require,module,exports){
+const info = {
+	test: (url) => {
+		const this_url = url.hostname.split('.').slice(-2).join('.');
+		return this_url === 'twitter.com';
+	},
+
+	match: [
+		'*://*.twitter.com/*'
+	],
+
+	connect: ['https://pbs.twimg.com'],
+
+	title: 'Twitter',
+	version: 1
+};
+
+module.exports = info;
+
+},{}],13:[function(require,module,exports){
+const header = require('./header.js');
+
+async function find_site () {
+	const status = /^\/[A-z0-9_]+\/status\/\d+$/;
+	const photo = /^\/[A-z0-9_]+\/status\/\d+\/photo\/\d$/;
+
+	const here = new URL(window.location.href);
+	if (status.test(here.pathname)) {
+		console.log('status');
+	} else if (photo.test(here.pathname)) {
+		console.log('photo');
+	} else {
+		console.log(here);
+	}
+}
+
+async function exec () {
+	find_site();
+	window.addEventListener('locationchange', find_site);
+}
+
+module.exports = {
+	...header,
+	exec: exec
+};
+
+},{"./header.js":12}],14:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -1426,7 +1493,7 @@ module.exports = {
 	commentary_button: commentary_button
 };
 
-},{"./node_to_dtext.js":14}],12:[function(require,module,exports){
+},{"./node_to_dtext.js":17}],15:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -1435,7 +1502,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":1}],13:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":1}],16:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -1557,7 +1624,7 @@ module.exports = {
 	data_to_nodes: data_to_nodes
 };
 
-},{"./../../dependencies/gm_functions.js":2,"./../../dependencies/md5.js":3,"./e621_api.js":12}],14:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":2,"./../../dependencies/md5.js":3,"./e621_api.js":15}],17:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -1622,7 +1689,7 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":16}],15:[function(require,module,exports){
+},{"./safe_link.js":19}],18:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 function clear_page () {
@@ -1693,7 +1760,7 @@ module.exports = {
 	common_styles: apply_common_styles
 };
 
-},{"./../../dependencies/gm_functions.js":2}],16:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":2}],19:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -1736,7 +1803,7 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],17:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -1761,9 +1828,12 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],18:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 const { arrive, leave } = require('./nodes.js');
 const GM = require('./../../dependencies/gm_functions.js');
+
+// custom events for url change
+require('./../../dependencies/on_url_change.js');
 
 HTMLElement.prototype.arrive = arrive;
 HTMLElement.prototype.leave = leave;
@@ -1779,4 +1849,4 @@ module.exports = {
 	GM: GM
 };
 
-},{"./../../dependencies/gm_functions.js":2,"./artist_commentary.js":11,"./e621_api.js":12,"./hash_image.js":13,"./node_to_dtext.js":14,"./nodes.js":15,"./safe_link.js":16,"./upload_url.js":17}]},{},[4]);
+},{"./../../dependencies/gm_functions.js":2,"./../../dependencies/on_url_change.js":4,"./artist_commentary.js":14,"./e621_api.js":15,"./hash_image.js":16,"./node_to_dtext.js":17,"./nodes.js":18,"./safe_link.js":19,"./upload_url.js":20}]},{},[5]);

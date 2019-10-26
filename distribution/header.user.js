@@ -19,6 +19,10 @@
 // @match        *://*.furaffinity.net/full/*
 // @connect      facdn.net
 
+//               Twitter v1
+// @match        *://*.twitter.com/*
+// @connect      https://pbs.twimg.com
+
 // @grant        GM.addStyle
 // @grant        GM.xmlHttpRequest
 
