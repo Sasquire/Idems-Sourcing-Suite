@@ -8,7 +8,7 @@ const info = {
 		'*://*.twitter.com/*'
 	],
 
-	connect: ['https://pbs.twimg.com'],
+	connect: ['pbs.twimg.com'],
 
 	title: 'Twitter',
 	version: 1

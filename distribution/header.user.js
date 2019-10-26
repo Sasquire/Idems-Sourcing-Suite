@@ -21,7 +21,7 @@
 
 //               Twitter v1
 // @match        *://*.twitter.com/*
-// @connect      https://pbs.twimg.com
+// @connect      pbs.twimg.com
 
 // @grant        GM.addStyle
 // @grant        GM.xmlHttpRequest

@@ -12,15 +12,17 @@ function clear_children (node) {
 }
 
 async function arrive (query) {
-	if (this.querySelector(query)) {
-		return Promise.resolve();
+	const node = this.querySelector(query);
+	if (node) {
+		return Promise.resolve(node);
 	}
 
 	return new Promise((resolve, reject) => {
 		const observer = new MutationObserver((mutations, _observer) => {
-			if (this.querySelector(query)) {
+			const node = this.querySelector(query);
+			if (node) {
 				_observer.disconnect();
-				resolve();
+				resolve(node);
 			}
 		});
 
@@ -57,6 +59,7 @@ function apply_common_styles () {
 	GM.addStyle(`
 		.iss_hash_notfound { color: #333 !important; }
 		.iss_hash_found { color: #4cf !important; }
+		.iss_image_link { color: #d50 !important; }
 	`);
 }
 
