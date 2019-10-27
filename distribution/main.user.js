@@ -1509,6 +1509,16 @@ function find_site () {
 	}
 }
 
+// This runs too quickly. As in, It is run before
+// twitter has updated its page. It will return a
+// element that no longer exists
+async function do_description () {
+	const query = '[role=article] > div > div:first-child + div > div:first-child > div:only-child';
+	const first_unquoted_icon = await document.body.arrive(query);
+	const first_unquoted = first_unquoted_icon.parentNode.parentNode.parentNode;
+	console.log(first_unquoted);
+}
+
 async function get_sources () {
 	const image_id = parseInt((/\d+$/).exec(window.location.href)[0], 10);
 	const list_elems = new Array(image_id).fill('li').join(' ~ ');
