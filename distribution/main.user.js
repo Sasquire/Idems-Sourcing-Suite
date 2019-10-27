@@ -1245,20 +1245,6 @@ function style () {
     	border-radius: 0.2rem;
     	color: black !important;
 	}
-/*
-	#iss_buttons, #iss_links { display: flex; flex-direction: column; }
-	.information { margin-right: auto; }
-	#iss_upload_link {
-		border: 1px solid black;
-		padding: 0px 4px;
-		font-size: 0.9rem;
-		margin-top: auto;
-	}
-	#iss_links { font-size: 1.3em; padding: 0.3rem; }
-	
-	#iss_links > .iss_hash_span ~ .iss_hash_span { margin-top: 0.5rem; }
-	
-	*/
 `);
 }
 
@@ -1740,17 +1726,6 @@ async function hash_url (url, headers = {}) {
 	return download_image(url, headers).then(md5_blob);
 }
 
-async function md5_obj (url, type, headers = {}) {
-	const hash = await hash_url(url, headers);
-	check_hash(hash);
-
-	return {
-		url: url,
-		type: type,
-		hash: hash
-	};
-}
-
 function check_hash (hash) {
 	const bad_hashes = [
 		'd41d8cd98f00b204e9800998ecf8427e', // Empty
@@ -1763,47 +1738,95 @@ function check_hash (hash) {
 	if (bad_hashes.includes(hash)) {
 		throw new Error('Hash included in list of known faulty hashes');
 	}
+
+	return hash;
 }
 
-function replace_hash (old_hash) {
-	const new_hash = document.createElement('span');
-	new_hash.textContent = old_hash.textContent;
-	Array.from(old_hash.classList)
-		.forEach(e => new_hash.classList.add(e));
-	old_hash.parentNode.replaceChild(new_hash, old_hash);
-	return new_hash;
-}
+async function lookup_hash (container_node) {
+	const url = container_node.querySelector('.iss_image_link').href;
+	const hash_node = container_node.getElementsByClassName('iss_hash')[0];
 
-async function color_hash (node) {
-	// Color the node depending on its upload status to e621
-	return e621.post_show_md5(node.textContent).then(post => {
+	hash_url(url).then(hash => {
+		return check_hash(hash);
+	}).then(hash => {
+		hash_node.textContent = hash;
+		hash_node.classList.add('iss_hash_checking');
+		return e621.post_show_md5(hash);
+	}).then(post => {
+		hash_node.classList.remove('iss_hash_checking');
+
 		if (post.status === 'destroyed') {
-			node = replace_hash(node);
-			node.classList.add('iss_hash_notfound'); // e621 red
+			hash_node.classList.add('iss_hash_notfound');
 		} else {
-			node.classList.add('iss_hash_found');
-			node.href = `https://e621.net/post/show/${post.post_id}`;
+			const new_hash = document.createElement('a');
+			new_hash.classList.add('iss_hash_found');
+			Array.from(hash_node.classList)
+				.forEach(e => new_hash.classList.add(e));
+
+			new_hash.href = `https://e621.net/post/show/${post.post_id}`;
+			new_hash.textContent = post.file.md5;
+			hash_node.parentNode.replaceChild(new_hash, hash_node);
 		}
+	}).catch(e => {
+		hash_node.textContent = hash_lookup_error(e);
 	});
 }
 
-function md5_obj_to_node (object) {
+function hash_lookup_error (error) {
+	if (error.message === 'Hash included in list of known faulty hashes') {
+		console.log([
+			'The hash provided was in a list of known faulty hashes.',
+			'This error is being thrown so that you do not mistake',
+			'the hash as a valid one. Consider reporting this at',
+			'https://github.com/Sasquire/Idems-Sourcing-Suite',
+			'or',
+			'https://e621.net/forum/show/270739'
+		].join('\n'));
+		return 'Error. Known faulty hash.';
+	} else if (error.status !== undefined) {
+		console.log([
+			'When attempting to download',
+			error.finalUrl,
+			`An unexpected response code of ${error.status} was given.`,
+			'For more info on the specific code, Look at',
+			'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status',
+			'If this result is persistent, consider reporting this at',
+			'https://github.com/Sasquire/Idems-Sourcing-Suite',
+			'or',
+			'https://e621.net/forum/show/270739'
+		].join('\n'));
+		return 'Error. Unexpected response.';
+	} else {
+		//                      'Downloading image please wait...'
+		console.log([
+			'When attempting to check this hash an unexpected error',
+			'from e621 was thrown. Please report this bug at',
+			'https://github.com/Sasquire/Idems-Sourcing-Suite',
+			'or',
+			'https://e621.net/forum/show/270739',
+			'Make sure to record the text directly following this message'
+		].join('\n'));
+		console.log(error);
+		return 'Error. Unexpected e621 error';
+	}
+}
+
+function object_to_node (url, type) {
 	const image = document.createElement('a');
-	image.href = object.url;
-	image.textContent = object.type;
+	image.href = url;
+	image.textContent = type;
 	image.classList.add('iss_image_link');
 
-	const hash = document.createElement('a');
-	hash.href = `https://e621.net/post/show?md5=${object.hash}`;
-	hash.textContent = object.hash;
-	hash.classList.add('iss_hash');
+	const hash_node = document.createElement('span');
+	hash_node.textContent = 'Downloading image please wait...';
+	hash_node.classList.add('iss_hash');
 
 	const container = document.createElement('span');
 	container.classList.add('iss_hash_span');
 	container.appendChild(image);
-	container.appendChild(hash);
+	container.appendChild(hash_node);
 
-	color_hash(hash);
+	lookup_hash(container);
 
 	return container;
 }
@@ -1813,19 +1836,13 @@ function md5_obj_to_node (object) {
 //  [thumb_url, 'thumb image'],
 //  [full_url,  'full image' ]]
 async function data_to_nodes (data) {
-	const quick_md5 = (url, type) => md5_obj(url, type);
-
-	return Promise.all(data.map(e => quick_md5(...e)))
-		.then(e => e.map(md5_obj_to_node));
+	return Promise.all(data.map(([url, type]) => object_to_node(url, type)));
 }
 
 module.exports = {
 	download_image: download_image,
 	md5_blob: md5_blob,
 	hash_url: hash_url,
-	md5_obj: md5_obj,
-	color_hash: color_hash,
-	md5_obj_to_node: md5_obj_to_node,
 	data_to_nodes: data_to_nodes
 };
 
@@ -1914,9 +1931,11 @@ function clear_children (node) {
 
 function apply_common_styles () {
 	GM.addStyle(`
-		.iss_hash_notfound { color: #333 !important; }
-		.iss_hash_found { color: #4cf !important; }
-		.iss_image_link { color: #fff !important; }
+		span.iss_hash_checking { color: #830; }	
+		span.iss_hash_notfound { color: #333; }
+		a.iss_hash_found, a.iss_hash_found:visited { color: #4cf; }
+		a.iss_image_link, a.iss_image_link:visited { color: #fff; }
+		.iss_hash { font-family: monospace; }
 	`);
 }
 

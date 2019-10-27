@@ -13,9 +13,11 @@ function clear_children (node) {
 
 function apply_common_styles () {
 	GM.addStyle(`
-		.iss_hash_notfound { color: #333 !important; }
-		.iss_hash_found { color: #4cf !important; }
-		.iss_image_link { color: #fff !important; }
+		span.iss_hash_checking { color: #830; }	
+		span.iss_hash_notfound { color: #333; }
+		a.iss_hash_found, a.iss_hash_found:visited { color: #4cf; }
+		a.iss_image_link, a.iss_image_link:visited { color: #fff; }
+		.iss_hash { font-family: monospace; }
 	`);
 }
 

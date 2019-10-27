@@ -30,20 +30,6 @@ function style () {
     	border-radius: 0.2rem;
     	color: black !important;
 	}
-/*
-	#iss_buttons, #iss_links { display: flex; flex-direction: column; }
-	.information { margin-right: auto; }
-	#iss_upload_link {
-		border: 1px solid black;
-		padding: 0px 4px;
-		font-size: 0.9rem;
-		margin-top: auto;
-	}
-	#iss_links { font-size: 1.3em; padding: 0.3rem; }
-	
-	#iss_links > .iss_hash_span ~ .iss_hash_span { margin-top: 0.5rem; }
-	
-	*/
 `);
 }
 
