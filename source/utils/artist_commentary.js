@@ -15,7 +15,7 @@ function artist_commentary (artist_node, title_node, description_node) {
 	const lines = description.split('\n').length;
 	const should_expand = lines <= 5 || description.length <= 500;
 
-	const title = node_to_dtext(title_node);
+	const title = title_node !== null ? node_to_dtext(title_node) : 'Untitled';
 	const fixed_title = title
 		.replace(/\[/gu, '(')
 		.replace(/\]/gu, ')');

@@ -29,6 +29,85 @@
 // ==/UserScript==
 
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+// Based on the popular package arrive https://github.com/uzairfarooq/arrive
+// Redone to how I think it should be done, in a license that I like
+// Unlicense (2019)
+
+async function arrive (query) {
+	const node = this.querySelector(query);
+	if (node) {
+		return Promise.resolve(node);
+	}
+
+	return new Promise((resolve, reject) => {
+		const observer = new MutationObserver((mutations, _observer) => {
+			const node = this.querySelector(query);
+			if (node) {
+				delete this.arrives.find(e => e === observer);
+				_observer.disconnect();
+				resolve(node);
+			}
+		});
+
+		if (this.arrives === undefined) {
+			this.arrives = [];
+		}
+
+		this.arrives.push(observer);
+
+		observer.observe(this, {
+			attributes: true,
+			childList: true,
+			subtree: true
+		});
+	});
+};
+
+async function leave (query) {
+	if (this.querySelector(query) === null) {
+		return Promise.resolve();
+	}
+
+	return new Promise((resolve, reject) => {
+		const observer = new MutationObserver((mutations, _observer) => {
+			if (this.querySelector(query) === null) {
+				_observer.disconnect();
+				resolve();
+			}
+		});
+
+		if (this.leaves === undefined) {
+			this.leaves = [];
+		}
+
+		this.leaves.push(observer);
+
+		observer.observe(this, {
+			attributes: true,
+			childList: true,
+			subtree: true
+		});
+	});
+};
+
+function destroy () {
+	const arrives = this.arrives;
+	if (arrives) {
+		arrives.forEach(e => e.disconnect());
+		this.arrives = [];
+	}
+
+	const leaves = this.leaves;
+	if (leaves) {
+		leaves.forEach(e => e.disconnect());
+	}
+}
+
+HTMLElement.prototype.arrive = arrive;
+HTMLElement.prototype.leave = leave;
+HTMLElement.prototype.forget_arrives = destroy;
+
+},{}],2:[function(require,module,exports){
 module.exports =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -827,7 +906,7 @@ function handle_error (error) {
 
 /***/ })
 /******/ ])["default"];
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 // If changes have to be made to the GM object, this is where
 // those changes should happen. Otherwise return that
 // object as is
@@ -835,7 +914,7 @@ function handle_error (error) {
 // eslint-disable-next-line no-undef
 module.exports = GM;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /*
 Javascript MD5 library - version 0.4
 Coded (2011) by Luigi Galli - LG@4e71.org - http://faultylabs.com
@@ -1091,7 +1170,7 @@ console.log(MD5(a));
 
 module.exports = MD5;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 // Unlisence (2019)
 
 // For sites like twitter it is very useful to tell when the
@@ -1124,7 +1203,7 @@ window.addEventListener('popstate', e => {
 	window.dispatchEvent(new Event('locationchange'));
 });
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 const plans = require('./plans/plans.js');
 const here = new URL(window.location.href);
 const site = plans.find(e => e.test(here));
@@ -1133,7 +1212,7 @@ if (site !== undefined) {
 	site.exec();
 }
 
-},{"./plans/plans.js":11}],6:[function(require,module,exports){
+},{"./plans/plans.js":12}],7:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1244,7 +1323,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":21,"./links.js":9}],7:[function(require,module,exports){
+},{"./../../utils/utils.js":22,"./links.js":10}],8:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1338,7 +1417,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":21,"./links.js":9}],8:[function(require,module,exports){
+},{"./../../utils/utils.js":22,"./links.js":10}],9:[function(require,module,exports){
 const info = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1358,7 +1437,7 @@ const info = {
 
 module.exports = info;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 function full_to_thumb (full_url) {
 	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
 	const post_id = new URL(window.location.href).pathname.split('/')[2];
@@ -1369,7 +1448,7 @@ module.exports = {
 	full_to_thumb: full_to_thumb
 };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 const run_classic = require('./classic.js');
 const run_beta = require('./beta.js');
 const header = require('./header.js');
@@ -1391,13 +1470,13 @@ module.exports = {
 	exec: exec
 };
 
-},{"./beta.js":6,"./classic.js":7,"./header.js":8}],11:[function(require,module,exports){
+},{"./beta.js":7,"./classic.js":8,"./header.js":9}],12:[function(require,module,exports){
 module.exports = [
 	require('./furaffinity/main.js'),
 	require('./twitter/main.js')
 ];
 
-},{"./furaffinity/main.js":10,"./twitter/main.js":13}],12:[function(require,module,exports){
+},{"./furaffinity/main.js":11,"./twitter/main.js":14}],13:[function(require,module,exports){
 const info = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1416,7 +1495,7 @@ const info = {
 
 module.exports = info;
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 const header = require('./header.js');
 const {
 	commentary_button,
@@ -1435,30 +1514,33 @@ function find_site () {
 
 	const here = new URL(window.location.href);
 	if (status.test(here.pathname)) {
-		console.log('status');
+		console.log('ISS: Status URL detected');
+		// links to upload all images
+		// copy description
 	} else if (photo.test(here.pathname)) {
-		console.log('photo');
-		hash_photo();
+		console.log('ISS: Photo URL detected');
+		photo_hashes().then(upload);
 	}
 }
 
-async function hash_photo () {
+async function get_sources () {
 	const image_id = parseInt((/\d+$/).exec(window.location.href)[0], 10);
 	const list_elems = new Array(image_id).fill('li').join(' ~ ');
 	const query = `ul[role=list] > ${list_elems} img`;
-	const image_node = await document.body.arrive(query);
 
-	const sources = produce_sources(image_node.src);
-	const nodes = await data_to_nodes(sources);
-	const span = document.createElement('span');
-	span.id = 'iss_span';
-	nodes.forEach(e => span.appendChild(e));
+	// The structure for displaying multiple images and single
+	// images is different. This attempt to find each style and
+	// then return the first one that is found. The other's event
+	// listeners are then discarded and those promises are left
+	// never resolving. Perhaps this is not the best idea.
+	const image_node = await Promise.race([
+		document.getElementById('react-root').arrive(query),
+		document.getElementById('react-root').arrive('div > div > div > div > div > img[alt=Image]')
+	]);
+	document.getElementById('react-root').forget_arrives();
 
-	// Because of the async nature of stuff, a user might
-	// have gone through things rather quickly. This will
-	// make sure that there is always a clean slate
-	clear_all_setup();
-	document.body.appendChild(span);
+	const all_sources = produce_sources(image_node.src);
+	return all_sources;
 }
 
 function produce_sources (starting_url) {
@@ -1471,15 +1553,64 @@ function produce_sources (starting_url) {
 
 	function url_type (new_type) {
 		const url = new URL(starting_url);
-		url.searchParams.set('name', new_type)
+		url.searchParams.set('name', new_type);
 		return url.href;
 	}
+}
+
+async function photo_hashes () {
+	const sources = await get_sources();
+	const nodes = await data_to_nodes(sources);
+
+	const span = document.createElement('span');
+	span.id = 'iss_span';
+	nodes.forEach(e => span.appendChild(e));
+
+	// Because of the async nature of stuff, a user might
+	// have gone through things rather quickly. This will
+	// make sure that there is always a clean slate
+	clear_all_setup();
+
+	document.body.appendChild(span);
+}
+
+async function get_description () {
+	const artist = await document.body.arrive('[data-testid=tweet] [dir=ltr] > span');
+	const title = null;
+	const description = await document.body.arrive('[data-testid=tweet] ~ [dir=auto] > span');
+	return artist_commentary(artist, title, description);
+}
+
+async function upload () {
+	const full_url = await get_sources().then(e => e[0][0]);
+	const description = await get_description();
+
+	const sources = [
+		document.querySelector('[data-testid=tweet] a').href,
+		window.location.href,
+		full_url
+	];
+
+	// Fix visual bug where upload would be crammed against
+	// the other share buttons
+	const quick_buttons = document.querySelector('[aria-label$=Reply]')
+		.parentNode
+		.parentNode;
+	quick_buttons.querySelector('div ~ div ~ div ~ div').style.flexGrow = 1;
+
+	const button = upload_button(full_url, sources, description);
+	quick_buttons.appendChild(button);
 }
 
 function clear_all_setup () {
 	const hashes = document.getElementById('iss_span');
 	if (hashes) {
 		hashes.parentNode.removeChild(hashes);
+	}
+
+	const upload_link = document.getElementById('iss_upload_link');
+	if (upload_link) {
+		upload_link.parentNode.removeChild(upload_link);
 	}
 }
 
@@ -1498,6 +1629,11 @@ function add_style () {
 		}
 		.iss_hash_span { margin: auto; }
 		.iss_image_link { margin-right: 0.2rem; }
+
+		#iss_upload_link {
+			color: white;
+			margin: auto;
+		}
 	`);
 }
 
@@ -1512,7 +1648,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":21,"./header.js":12}],14:[function(require,module,exports){
+},{"./../../utils/utils.js":22,"./header.js":13}],15:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -1530,7 +1666,7 @@ function artist_commentary (artist_node, title_node, description_node) {
 	const lines = description.split('\n').length;
 	const should_expand = lines <= 5 || description.length <= 500;
 
-	const title = node_to_dtext(title_node);
+	const title = title_node !== null ? node_to_dtext(title_node) : 'Untitled';
 	const fixed_title = title
 		.replace(/\[/gu, '(')
 		.replace(/\]/gu, ')');
@@ -1562,7 +1698,7 @@ module.exports = {
 	commentary_button: commentary_button
 };
 
-},{"./node_to_dtext.js":17}],15:[function(require,module,exports){
+},{"./node_to_dtext.js":18}],16:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -1571,7 +1707,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":1}],16:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],17:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -1693,7 +1829,7 @@ module.exports = {
 	data_to_nodes: data_to_nodes
 };
 
-},{"./../../dependencies/gm_functions.js":2,"./../../dependencies/md5.js":3,"./e621_api.js":15}],17:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":16}],18:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -1721,6 +1857,10 @@ function inner_text (node) {
 }
 
 function html_to_dtext (entry) {
+	if (entry === null) {
+		return '';
+	}
+
 	switch (entry.nodeName) {
 		case 'B':
 		case 'STRONG': return `[b] ${inner_text(entry)} [/b]`;
@@ -1758,7 +1898,7 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":19}],18:[function(require,module,exports){
+},{"./safe_link.js":20}],19:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 function clear_page () {
@@ -1772,67 +1912,21 @@ function clear_children (node) {
 	}
 }
 
-async function arrive (query) {
-	const node = this.querySelector(query);
-	if (node) {
-		return Promise.resolve(node);
-	}
-
-	return new Promise((resolve, reject) => {
-		const observer = new MutationObserver((mutations, _observer) => {
-			const node = this.querySelector(query);
-			if (node) {
-				_observer.disconnect();
-				resolve(node);
-			}
-		});
-
-		observer.observe(this, {
-			attributes: true,
-			childList: true,
-			subtree: true
-		});
-	});
-};
-
-async function leave (query) {
-	if (this.querySelector(query) === null) {
-		return Promise.resolve();
-	}
-
-	return new Promise((resolve, reject) => {
-		const observer = new MutationObserver((mutations, _observer) => {
-			if (this.querySelector(query) === null) {
-				_observer.disconnect();
-				resolve();
-			}
-		});
-
-		observer.observe(this, {
-			attributes: true,
-			childList: true,
-			subtree: true
-		});
-	});
-};
-
 function apply_common_styles () {
 	GM.addStyle(`
 		.iss_hash_notfound { color: #333 !important; }
 		.iss_hash_found { color: #4cf !important; }
-		.iss_image_link { color: #d50 !important; }
+		.iss_image_link { color: #fff !important; }
 	`);
 }
 
 module.exports = {
 	clear_children: clear_children,
 	clear_page: clear_page,
-	arrive: arrive,
-	leave: leave,
 	common_styles: apply_common_styles
 };
 
-},{"./../../dependencies/gm_functions.js":2}],19:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3}],20:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -1875,7 +1969,7 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -1900,15 +1994,14 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],21:[function(require,module,exports){
-const { arrive, leave } = require('./nodes.js');
+},{}],22:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 // custom events for url change
 require('./../../dependencies/on_url_change.js');
 
-HTMLElement.prototype.arrive = arrive;
-HTMLElement.prototype.leave = leave;
+// custom prototypes for waiting on new nodes
+require('./../../dependencies/arrive.js');
 
 module.exports = {
 	...require('./artist_commentary.js'),
@@ -1921,4 +2014,4 @@ module.exports = {
 	GM: GM
 };
 
-},{"./../../dependencies/gm_functions.js":2,"./../../dependencies/on_url_change.js":4,"./artist_commentary.js":14,"./e621_api.js":15,"./hash_image.js":16,"./node_to_dtext.js":17,"./nodes.js":18,"./safe_link.js":19,"./upload_url.js":20}]},{},[5]);
+},{"./../../dependencies/arrive.js":1,"./../../dependencies/gm_functions.js":3,"./../../dependencies/on_url_change.js":5,"./artist_commentary.js":15,"./e621_api.js":16,"./hash_image.js":17,"./node_to_dtext.js":18,"./nodes.js":19,"./safe_link.js":20,"./upload_url.js":21}]},{},[6]);

@@ -25,6 +25,10 @@ function inner_text (node) {
 }
 
 function html_to_dtext (entry) {
+	if (entry === null) {
+		return '';
+	}
+
 	switch (entry.nodeName) {
 		case 'B':
 		case 'STRONG': return `[b] ${inner_text(entry)} [/b]`;

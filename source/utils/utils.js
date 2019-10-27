@@ -1,11 +1,10 @@
-const { arrive, leave } = require('./nodes.js');
 const GM = require('./../../dependencies/gm_functions.js');
 
 // custom events for url change
 require('./../../dependencies/on_url_change.js');
 
-HTMLElement.prototype.arrive = arrive;
-HTMLElement.prototype.leave = leave;
+// custom prototypes for waiting on new nodes
+require('./../../dependencies/arrive.js');
 
 module.exports = {
 	...require('./artist_commentary.js'),

@@ -16,34 +16,33 @@ function find_site () {
 
 	const here = new URL(window.location.href);
 	if (status.test(here.pathname)) {
-		console.log('status');
+		console.log('ISS: Status URL detected');
 		// links to upload all images
 		// copy description
 	} else if (photo.test(here.pathname)) {
 		console.log('ISS: Photo URL detected');
-		photo_hashes();
-		// upload link
-		// copy description
+		photo_hashes().then(upload);
 	}
 }
 
-async function photo_hashes () {
+async function get_sources () {
 	const image_id = parseInt((/\d+$/).exec(window.location.href)[0], 10);
 	const list_elems = new Array(image_id).fill('li').join(' ~ ');
 	const query = `ul[role=list] > ${list_elems} img`;
-	const image_node = await document.body.arrive(query);
 
-	const sources = produce_sources(image_node.src);
-	const nodes = await data_to_nodes(sources);
-	const span = document.createElement('span');
-	span.id = 'iss_span';
-	nodes.forEach(e => span.appendChild(e));
+	// The structure for displaying multiple images and single
+	// images is different. This attempt to find each style and
+	// then return the first one that is found. The other's event
+	// listeners are then discarded and those promises are left
+	// never resolving. Perhaps this is not the best idea.
+	const image_node = await Promise.race([
+		document.getElementById('react-root').arrive(query),
+		document.getElementById('react-root').arrive('div > div > div > div > div > img[alt=Image]')
+	]);
+	document.getElementById('react-root').forget_arrives();
 
-	// Because of the async nature of stuff, a user might
-	// have gone through things rather quickly. This will
-	// make sure that there is always a clean slate
-	clear_all_setup();
-	document.body.appendChild(span);
+	const all_sources = produce_sources(image_node.src);
+	return all_sources;
 }
 
 function produce_sources (starting_url) {
@@ -61,10 +60,59 @@ function produce_sources (starting_url) {
 	}
 }
 
+async function photo_hashes () {
+	const sources = await get_sources();
+	const nodes = await data_to_nodes(sources);
+
+	const span = document.createElement('span');
+	span.id = 'iss_span';
+	nodes.forEach(e => span.appendChild(e));
+
+	// Because of the async nature of stuff, a user might
+	// have gone through things rather quickly. This will
+	// make sure that there is always a clean slate
+	clear_all_setup();
+
+	document.body.appendChild(span);
+}
+
+async function get_description () {
+	const artist = await document.body.arrive('[data-testid=tweet] [dir=ltr] > span');
+	const title = null;
+	const description = await document.body.arrive('[data-testid=tweet] ~ [dir=auto] > span');
+	return artist_commentary(artist, title, description);
+}
+
+async function upload () {
+	const full_url = await get_sources().then(e => e[0][0]);
+	const description = await get_description();
+
+	const sources = [
+		document.querySelector('[data-testid=tweet] a').href,
+		window.location.href,
+		full_url
+	];
+
+	// Fix visual bug where upload would be crammed against
+	// the other share buttons
+	const quick_buttons = document.querySelector('[aria-label$=Reply]')
+		.parentNode
+		.parentNode;
+	quick_buttons.querySelector('div ~ div ~ div ~ div').style.flexGrow = 1;
+
+	const button = upload_button(full_url, sources, description);
+	quick_buttons.appendChild(button);
+}
+
 function clear_all_setup () {
 	const hashes = document.getElementById('iss_span');
 	if (hashes) {
 		hashes.parentNode.removeChild(hashes);
+	}
+
+	const upload_link = document.getElementById('iss_upload_link');
+	if (upload_link) {
+		upload_link.parentNode.removeChild(upload_link);
 	}
 }
 
@@ -83,6 +131,11 @@ function add_style () {
 		}
 		.iss_hash_span { margin: auto; }
 		.iss_image_link { margin-right: 0.2rem; }
+
+		#iss_upload_link {
+			color: white;
+			margin: auto;
+		}
 	`);
 }
 
