@@ -5,6 +5,7 @@ const {
 	upload_button,
 	data_to_nodes,
 	common_styles,
+	remove_node,
 	GM
 } = require('./../../utils/utils.js');
 
@@ -115,15 +116,8 @@ async function upload () {
 }
 
 function clear_all_setup () {
-	const hashes = document.getElementById('iss_span');
-	if (hashes) {
-		hashes.parentNode.removeChild(hashes);
-	}
-
-	const upload_link = document.getElementById('iss_upload_link');
-	if (upload_link) {
-		upload_link.parentNode.removeChild(upload_link);
-	}
+	remove_node(document.getElementById('iss_span'));
+	remove_node(document.getElementById('iss_upload_link'));
 }
 
 function add_style () {

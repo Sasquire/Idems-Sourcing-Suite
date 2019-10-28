@@ -10,17 +10,21 @@ function set_clipboard (str) {
 }
 
 function artist_commentary (artist_node, title_node, description_node) {
-	const description = node_to_dtext(description_node)
-		.replace('[/section]', '(/section)');
+	const artist = artist_node.textContent;
+	const title = title_node !== null ? node_to_dtext(title_node) : 'Untitled';
+	const description = node_to_dtext(description_node);
+	return commentary_from_text(artist, title, description);
+}
+
+function commentary_from_text (artist, title, description) {
+	description = description.replace('[/section]', '(/section)');
 	const lines = description.split('\n').length;
 	const should_expand = lines <= 5 || description.length <= 500;
 
-	const title = title_node !== null ? node_to_dtext(title_node) : 'Untitled';
 	const fixed_title = title
 		.replace(/\[/gu, '(')
 		.replace(/\]/gu, ')');
 
-	const artist = artist_node.textContent;
 	const full_title = `${fixed_title} - by ${artist}`;
 
 	const header = `[section${should_expand ? ',expanded' : ''}=${full_title}]`;

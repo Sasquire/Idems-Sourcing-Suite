@@ -14,6 +14,10 @@
 
 // @connect      e621.net
 
+//               DeviantArt v1
+// @match        *://*.deviantart.com/*
+// @connect      wixmp.com
+
 //               FurAffinity v1
 // @match        *://*.furaffinity.net/view/*
 // @match        *://*.furaffinity.net/full/*

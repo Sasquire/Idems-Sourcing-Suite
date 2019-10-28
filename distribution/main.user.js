@@ -14,6 +14,10 @@
 
 // @connect      e621.net
 
+//               DeviantArt v1
+// @match        *://*.deviantart.com/*
+// @connect      wixmp.com
+
 //               FurAffinity v1
 // @match        *://*.furaffinity.net/view/*
 // @match        *://*.furaffinity.net/full/*
@@ -1212,7 +1216,179 @@ if (site !== undefined) {
 	site.exec();
 }
 
-},{"./plans/plans.js":12}],7:[function(require,module,exports){
+},{"./plans/plans.js":14}],7:[function(require,module,exports){
+const info = {
+	test: (url) => {
+		const this_url = url.hostname.split('.').slice(-2).join('.');
+		return this_url === 'deviantart.com';
+	},
+
+	match: ['*://*.deviantart.com/*'],
+
+	connect: ['wixmp.com'],
+
+	title: 'DeviantArt',
+	version: 1
+};
+
+module.exports = info;
+
+},{}],8:[function(require,module,exports){
+const header = require('./header.js');
+const {
+	commentary_button,
+	artist_commentary,
+	string_to_node,
+	upload_button,
+	data_to_nodes,
+	common_styles,
+	remove_node,
+	GM
+} = require('./../../utils/utils.js');
+
+let last_url = null;
+
+async function find_site () {
+	const here = new URL(window.location.href);
+
+	if (here.href === last_url) {
+		console.log('ISS: Duplicate URL detected');
+		return; // Why are we loading twice on the same page?
+	} else {
+		last_url = here.href;
+	}
+
+	clear_all_setup();
+
+	const artwork_regex = /^\/[A-z0-9_-]+\/art\/.*$/;
+	if (artwork_regex.test(here.pathname)) {
+		console.log('ISS: Artwork URL detected');
+		run_artwork();
+	}
+}
+
+async function run_artwork () {
+	const here_path = new URL(window.location.href).pathname;
+	const post_id = parseInt(here_path.split('-').splice(-1)[0], 10);
+	const info = await get_info(post_id);
+
+	const post_info = document.querySelector('[data-hook=deviation_meta]');
+	post_info.style.flexDirection = 'column';
+	const container = document.createElement('div');
+	container.id = 'iss_container';
+	post_info.appendChild(container);
+
+	const upload_button = create_upload_button(info.sources[0][0], info.description);
+	container.appendChild(upload_button);
+
+	const description_button = commentary_button(info.description);
+	container.appendChild(description_button);
+
+	const hashes = await data_to_nodes(info.sources);
+	hashes.forEach(e => container.appendChild(e));
+}
+
+function add_style () {
+	common_styles();
+
+	GM.addStyle(`
+		.iss_image_link {
+			color: inherit !important;
+			font-size: 1.1rem;
+			margin-right: 0.3rem;
+		}
+
+		#iss_container {
+			display: flex;
+			flex-direction: column;
+			margin-top: 1rem;
+		}
+
+		#iss_artist_commentary { width: 8rem; }
+	`);
+}
+
+function clear_all_setup () {
+	remove_node(document.getElementById('iss_container'));
+}
+
+function create_upload_button (best_url, description) {
+	const is_from_da = new URL(best_url).hostname === 'www.deviantart.com';
+
+	return upload_button(
+		is_from_da ? best_url : `Manual upload is required ${best_url}`,
+		[window.location.href],
+		description
+	);
+}
+
+function exec () {
+	add_style();
+	find_site();
+	window.addEventListener('locationchange', find_site);
+}
+
+function get_info (post_id) {
+	const url = new URL('https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch');
+	url.searchParams.set('deviationid', post_id);
+	url.searchParams.set('type', 'art');
+	url.searchParams.set('include_session', false);
+	return fetch(url)
+		.then(e => e.text())
+		.then(e => JSON.parse(e))
+		.then(e => ({
+			sources: get_sources(e),
+			description: get_description(e)
+		}));
+}
+
+// I believe creating new nodes and then just passing that to
+// the artist commentary function is simpler than requiring
+// the nodes_to_dtext function to parse this one thing and then
+// require another function to build it all.
+function get_description (da_object) {
+	const artist = string_to_node(da_object.deviation.author.username);
+	const title = string_to_node(da_object.deviation.title);
+	const description = string_to_node(da_object.deviation.extended.description);
+
+	return artist_commentary(artist, title, description);
+}
+
+// While it may seem it, the download hash and the large view
+// are not always the same md5. There is likely some optimization
+// going on at DeviantArt where they choose which setup is the
+// best. For an example of mismatching hashes, 467929547 is a
+// post that exhibits this feature. Many others are well behaved.
+// 669522728 - Only download and large
+// 754495989 - Only large
+// 644901973 - Only large and social
+function get_sources (da_object) {
+	const download_url = (() => {
+		const download = da_object.deviation.extended.download;
+		if (download) {
+			return [{ type: 'download', src: download.url }];
+		} else {
+			return [];
+		}
+	})();
+
+	const other_sources = ['fullview', 'social_preview', 'preview']
+		.map(e => da_object.deviation.files.find(p => p.type === e))
+		.filter(e => e); // Perhaps one of the results from above is null
+
+	return download_url
+		.concat(other_sources)
+		.filter(e => e.src !== 'https://st.deviantart.net/misc/noentrythumb-200.png')
+		.filter((e, i, a) => i === a.findIndex(p => p.src === e.src))
+		.map(e => ([e.src, e.type.replace('full', 'large ').replace('_', ' ')]));
+}
+
+module.exports = {
+	...header,
+	exec: exec
+};
+
+},{"./../../utils/utils.js":24,"./header.js":7}],9:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1309,7 +1485,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":22,"./links.js":10}],8:[function(require,module,exports){
+},{"./../../utils/utils.js":24,"./links.js":12}],10:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1403,7 +1579,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":22,"./links.js":10}],9:[function(require,module,exports){
+},{"./../../utils/utils.js":24,"./links.js":12}],11:[function(require,module,exports){
 const info = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1423,7 +1599,7 @@ const info = {
 
 module.exports = info;
 
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 function full_to_thumb (full_url) {
 	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
 	const post_id = new URL(window.location.href).pathname.split('/')[2];
@@ -1434,7 +1610,7 @@ module.exports = {
 	full_to_thumb: full_to_thumb
 };
 
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 const run_classic = require('./classic.js');
 const run_beta = require('./beta.js');
 const header = require('./header.js');
@@ -1456,13 +1632,14 @@ module.exports = {
 	exec: exec
 };
 
-},{"./beta.js":7,"./classic.js":8,"./header.js":9}],12:[function(require,module,exports){
+},{"./beta.js":9,"./classic.js":10,"./header.js":11}],14:[function(require,module,exports){
 module.exports = [
 	require('./furaffinity/main.js'),
-	require('./twitter/main.js')
+	require('./twitter/main.js'),
+	require('./deviantart/main.js')
 ];
 
-},{"./furaffinity/main.js":11,"./twitter/main.js":14}],13:[function(require,module,exports){
+},{"./deviantart/main.js":8,"./furaffinity/main.js":13,"./twitter/main.js":16}],15:[function(require,module,exports){
 const info = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1481,7 +1658,7 @@ const info = {
 
 module.exports = info;
 
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 const header = require('./header.js');
 const {
 	commentary_button,
@@ -1489,6 +1666,7 @@ const {
 	upload_button,
 	data_to_nodes,
 	common_styles,
+	remove_node,
 	GM
 } = require('./../../utils/utils.js');
 
@@ -1599,15 +1777,8 @@ async function upload () {
 }
 
 function clear_all_setup () {
-	const hashes = document.getElementById('iss_span');
-	if (hashes) {
-		hashes.parentNode.removeChild(hashes);
-	}
-
-	const upload_link = document.getElementById('iss_upload_link');
-	if (upload_link) {
-		upload_link.parentNode.removeChild(upload_link);
-	}
+	remove_node(document.getElementById('iss_span'));
+	remove_node(document.getElementById('iss_upload_link'));
 }
 
 function add_style () {
@@ -1644,7 +1815,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":22,"./header.js":13}],15:[function(require,module,exports){
+},{"./../../utils/utils.js":24,"./header.js":15}],17:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -1657,17 +1828,21 @@ function set_clipboard (str) {
 }
 
 function artist_commentary (artist_node, title_node, description_node) {
-	const description = node_to_dtext(description_node)
-		.replace('[/section]', '(/section)');
+	const artist = artist_node.textContent;
+	const title = title_node !== null ? node_to_dtext(title_node) : 'Untitled';
+	const description = node_to_dtext(description_node);
+	return commentary_from_text(artist, title, description);
+}
+
+function commentary_from_text (artist, title, description) {
+	description = description.replace('[/section]', '(/section)');
 	const lines = description.split('\n').length;
 	const should_expand = lines <= 5 || description.length <= 500;
 
-	const title = title_node !== null ? node_to_dtext(title_node) : 'Untitled';
 	const fixed_title = title
 		.replace(/\[/gu, '(')
 		.replace(/\]/gu, ')');
 
-	const artist = artist_node.textContent;
 	const full_title = `${fixed_title} - by ${artist}`;
 
 	const header = `[section${should_expand ? ',expanded' : ''}=${full_title}]`;
@@ -1694,7 +1869,7 @@ module.exports = {
 	commentary_button: commentary_button
 };
 
-},{"./node_to_dtext.js":18}],16:[function(require,module,exports){
+},{"./node_to_dtext.js":20}],18:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -1703,7 +1878,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],17:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],19:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -1856,7 +2031,7 @@ module.exports = {
 	data_to_nodes: data_to_nodes
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":16}],18:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":18}],20:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -1925,7 +2100,7 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":20}],19:[function(require,module,exports){
+},{"./safe_link.js":22}],21:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 function clear_page () {
@@ -1949,13 +2124,25 @@ function apply_common_styles () {
 	`);
 }
 
+function string_to_node (string) {
+	return new DOMParser().parseFromString(string, 'text/html').documentElement;
+}
+
+function remove_node (node) {
+	if (node) {
+		node.parentNode.removeChild(node);
+	}
+}
+
 module.exports = {
 	clear_children: clear_children,
 	clear_page: clear_page,
-	common_styles: apply_common_styles
+	common_styles: apply_common_styles,
+	string_to_node: string_to_node,
+	remove_node: remove_node
 };
 
-},{"./../../dependencies/gm_functions.js":3}],20:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3}],22:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -1998,7 +2185,7 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],21:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -2023,7 +2210,7 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 // custom events for url change
@@ -2043,4 +2230,4 @@ module.exports = {
 	GM: GM
 };
 
-},{"./../../dependencies/arrive.js":1,"./../../dependencies/gm_functions.js":3,"./../../dependencies/on_url_change.js":5,"./artist_commentary.js":15,"./e621_api.js":16,"./hash_image.js":17,"./node_to_dtext.js":18,"./nodes.js":19,"./safe_link.js":20,"./upload_url.js":21}]},{},[6]);
+},{"./../../dependencies/arrive.js":1,"./../../dependencies/gm_functions.js":3,"./../../dependencies/on_url_change.js":5,"./artist_commentary.js":17,"./e621_api.js":18,"./hash_image.js":19,"./node_to_dtext.js":20,"./nodes.js":21,"./safe_link.js":22,"./upload_url.js":23}]},{},[6]);

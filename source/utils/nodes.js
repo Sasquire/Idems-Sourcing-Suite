@@ -21,8 +21,20 @@ function apply_common_styles () {
 	`);
 }
 
+function string_to_node (string) {
+	return new DOMParser().parseFromString(string, 'text/html').documentElement;
+}
+
+function remove_node (node) {
+	if (node) {
+		node.parentNode.removeChild(node);
+	}
+}
+
 module.exports = {
 	clear_children: clear_children,
 	clear_page: clear_page,
-	common_styles: apply_common_styles
+	common_styles: apply_common_styles,
+	string_to_node: string_to_node,
+	remove_node: remove_node
 };
