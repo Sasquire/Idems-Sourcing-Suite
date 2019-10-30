@@ -9,7 +9,8 @@ async function download_image (url, headers = {}) {
 			url: url,
 			headers: headers,
 			responseType: 'blob',
-			onload: e => (e.status === 200 ? resolve(e.response) : reject(e))
+			onload: e => (e.status === 200 ? resolve(e.response) : reject(e)),
+			onerror: e => reject(e)
 		});
 	});
 }

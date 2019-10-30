@@ -6,10 +6,10 @@ async function exec () {
 	const is_classic = document.body.dataset.staticPath === '/themes/classic';
 
 	if (is_classic) {
-		console.log(`${header.title} classic version`);
+		console.log(`ISS: ${header.title} classic version`);
 		run_classic();
 	} else {
-		console.log(`${header.title} beta version`);
+		console.log(`ISS: ${header.title} beta version`);
 		run_beta();
 	}
 }

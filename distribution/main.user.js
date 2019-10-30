@@ -1216,58 +1216,20 @@ if (site !== undefined) {
 	site.exec();
 }
 
-},{"./plans/plans.js":14}],7:[function(require,module,exports){
-const info = {
-	test: (url) => {
-		const this_url = url.hostname.split('.').slice(-2).join('.');
-		return this_url === 'deviantart.com';
-	},
-
-	match: ['*://*.deviantart.com/*'],
-
-	connect: ['wixmp.com'],
-
-	title: 'DeviantArt',
-	version: 1
-};
-
-module.exports = info;
-
-},{}],8:[function(require,module,exports){
-const header = require('./header.js');
+},{"./plans/plans.js":17}],7:[function(require,module,exports){
+const { description, upload } = require('./shared.js');
 const {
-	commentary_button,
 	artist_commentary,
 	string_to_node,
-	upload_button,
 	data_to_nodes,
 	common_styles,
 	remove_node,
 	GM
 } = require('./../../utils/utils.js');
 
-let last_url = null;
-
-async function find_site () {
-	const here = new URL(window.location.href);
-
-	if (here.href === last_url) {
-		console.log('ISS: Duplicate URL detected');
-		return; // Why are we loading twice on the same page?
-	} else {
-		last_url = here.href;
-	}
-
+async function run_artwork () {
 	clear_all_setup();
 
-	const artwork_regex = /^\/[A-z0-9_-]+\/art\/.*$/;
-	if (artwork_regex.test(here.pathname)) {
-		console.log('ISS: Artwork URL detected');
-		run_artwork();
-	}
-}
-
-async function run_artwork () {
 	const here_path = new URL(window.location.href).pathname;
 	const post_id = parseInt(here_path.split('-').splice(-1)[0], 10);
 	const info = await get_info(post_id);
@@ -1278,11 +1240,8 @@ async function run_artwork () {
 	container.id = 'iss_container';
 	post_info.appendChild(container);
 
-	const upload_button = create_upload_button(info.sources[0][0], info.description);
-	container.appendChild(upload_button);
-
-	const description_button = commentary_button(info.description);
-	container.appendChild(description_button);
+	container.appendChild(upload(info));
+	container.appendChild(description(info));
 
 	const hashes = await data_to_nodes(info.sources);
 	hashes.forEach(e => container.appendChild(e));
@@ -1312,30 +1271,14 @@ function clear_all_setup () {
 	remove_node(document.getElementById('iss_container'));
 }
 
-function create_upload_button (best_url, description) {
-	const is_from_da = new URL(best_url).hostname === 'www.deviantart.com';
-
-	return upload_button(
-		is_from_da ? best_url : `Manual upload is required ${best_url}`,
-		[window.location.href],
-		description
-	);
-}
-
-function exec () {
-	add_style();
-	find_site();
-	window.addEventListener('locationchange', find_site);
-}
-
-function get_info (post_id) {
+async function get_info (post_id) {
 	const url = new URL('https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch');
 	url.searchParams.set('deviationid', post_id);
 	url.searchParams.set('type', 'art');
 	url.searchParams.set('include_session', false);
+
 	return fetch(url)
-		.then(e => e.text())
-		.then(e => JSON.parse(e))
+		.then(e => e.json())
 		.then(e => ({
 			sources: get_sources(e),
 			description: get_description(e)
@@ -1384,11 +1327,210 @@ function get_sources (da_object) {
 }
 
 module.exports = {
+	init: add_style,
+	exec: run_artwork
+};
+
+},{"./../../utils/utils.js":27,"./shared.js":11}],8:[function(require,module,exports){
+const info = {
+	test: (url) => {
+		const this_url = url.hostname.split('.').slice(-2).join('.');
+		return this_url === 'deviantart.com';
+	},
+
+	match: ['*://*.deviantart.com/*'],
+
+	connect: ['wixmp.com'],
+
+	title: 'DeviantArt',
+	version: 1
+};
+
+module.exports = info;
+
+},{}],9:[function(require,module,exports){
+const old = require('./old.js');
+const eclipse = require('./eclipse.js');
+const header = require('./header.js');
+
+let last_url = null;
+let version = null;
+
+async function find_site () {
+	const here = new URL(window.location.href);
+
+	if (here.href === last_url) {
+		console.log('ISS: Duplicate URL detected');
+		return; // Why are we loading twice on the same page?
+	} else {
+		last_url = here.href;
+	}
+
+	const artwork_regex = /^\/[A-z0-9_-]+\/art\/.*$/;
+	if (artwork_regex.test(here.pathname)) {
+		console.log('ISS: Artwork URL detected');
+		version.exec();
+	}
+}
+
+async function exec () {
+	const is_old = document.getElementById('oh-menu-eclipse-toggle');
+
+	if (is_old) {
+		console.log(`ISS: ${header.title} old version`);
+		version = old;
+	} else {
+		console.log(`ISS: ${header.title} eclipse version`);
+		version = eclipse;
+	}
+
+	version.init();
+	find_site();
+	window.addEventListener('locationchange', find_site);
+}
+
+module.exports = {
 	...header,
 	exec: exec
 };
 
-},{"./../../utils/utils.js":24,"./header.js":7}],9:[function(require,module,exports){
+},{"./eclipse.js":7,"./header.js":8,"./old.js":10}],10:[function(require,module,exports){
+const { description, upload } = require('./shared.js');
+const {
+	commentary_from_text,
+	string_to_node,
+	data_to_nodes,
+	node_to_dtext,
+	common_styles,
+	remove_node,
+	GM
+} = require('./../../utils/utils.js');
+
+async function run_artwork () {
+	clear_all_setup();
+
+	const here_path = new URL(window.location.href).pathname;
+	const post_id = parseInt(here_path.split('-').splice(-1)[0], 10);
+	const info = await get_info(post_id);
+
+	await document.body.arrive(`[data-modalsrc^="https://www.deviantart.com/deviation/report/${post_id}"]`);
+	const post_info = document.querySelector('.dev-title-container');
+	const container = document.createElement('div');
+	container.id = 'iss_container';
+	post_info.appendChild(container);
+
+	container.appendChild(upload(info));
+	container.appendChild(description(info));
+
+	const hashes = await data_to_nodes(info.sources);
+	hashes.forEach(e => container.appendChild(e));
+}
+
+function add_style () {
+	common_styles();
+
+	GM.addStyle(`
+		.iss_image_link {
+			color: inherit !important;
+			font-size: 1.1rem;
+			margin-right: 0.3rem;
+		}
+
+		#iss_container {
+			display: flex;
+			flex-direction: column;
+			margin-left: 5rem;
+		}
+
+		#iss_artist_commentary { width: 8rem; }
+		#iss_upload_link { font-size: 1rem; }
+	`);
+}
+
+function clear_all_setup () {
+	remove_node(document.getElementById('iss_container'));
+}
+
+async function get_info (post_id) {
+	const user_info = document.cookie
+		.split(';')
+		.map(e => e
+			.split('=')
+			.map(e => decodeURIComponent(e))
+		)
+		.find(([name, value]) => name.replace(' ', '') === 'userinfo')[1];
+
+	const url = new URL('https://www.deviantart.com/global/difi/');
+	url.searchParams.set('t', 'json');
+	url.searchParams.set('ui', user_info);
+	url.searchParams.set('c[]', `"DeviationView","getExtrasHTML",["${post_id}","",{},{}]`);
+
+	return fetch(url, { method: 'POST' })
+		.then(e => e.text())
+		.then(e => JSON.parse(e))
+		.then(e => e.DiFi.response.calls[0].response.content)
+		.then(e => ({
+			description: get_commentary(e, string_to_node(e.html_col1)),
+			sources: get_sources(string_to_node(e.html_col2))
+		}));
+}
+
+function get_commentary (da_object, html1) {
+	const description_node = html1.querySelector('.dev-description .text.block');
+	const description = node_to_dtext(description_node);
+
+	return commentary_from_text(null, da_object.title, description);
+}
+
+function get_sources (html2) {
+	const sources = [];
+
+	const download_link = html2.querySelector('.dev-page-download');
+	if (download_link) {
+		sources.push([download_link.href, 'download']);
+	}
+
+	const image = html2.querySelector('.preview a');
+	sources.push([image.dataset.superFullImg, 'large view']);
+	sources.push([image.dataset.superImg, 'social preview']);
+
+	return sources.filter((e, i, a) => i === a.findIndex(p => p[0] === e[0]));
+}
+
+module.exports = {
+	init: add_style,
+	exec: run_artwork
+};
+
+},{"./../../utils/utils.js":27,"./shared.js":11}],11:[function(require,module,exports){
+const { commentary_button, upload_button } = require('./../../utils/utils.js');
+
+function create_description_button (info) {
+	return commentary_button(info.description);
+}
+
+function create_upload_button (info) {
+	const best_url = info.sources[0][0];
+	const is_from_da = new URL(best_url).hostname === 'www.deviantart.com';
+
+	const button = upload_button(
+		is_from_da ? best_url : `Manual upload is required ${best_url}`,
+		[window.location.href],
+		info.description
+	);
+
+	const container = document.createElement('span');
+	container.appendChild(button);
+
+	return container;
+}
+
+module.exports = {
+	description: create_description_button,
+	upload: create_upload_button
+};
+
+},{"./../../utils/utils.js":27}],12:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1485,7 +1627,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":24,"./links.js":12}],10:[function(require,module,exports){
+},{"./../../utils/utils.js":27,"./links.js":15}],13:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1579,7 +1721,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":24,"./links.js":12}],11:[function(require,module,exports){
+},{"./../../utils/utils.js":27,"./links.js":15}],14:[function(require,module,exports){
 const info = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1599,7 +1741,7 @@ const info = {
 
 module.exports = info;
 
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 function full_to_thumb (full_url) {
 	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
 	const post_id = new URL(window.location.href).pathname.split('/')[2];
@@ -1610,7 +1752,7 @@ module.exports = {
 	full_to_thumb: full_to_thumb
 };
 
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 const run_classic = require('./classic.js');
 const run_beta = require('./beta.js');
 const header = require('./header.js');
@@ -1619,10 +1761,10 @@ async function exec () {
 	const is_classic = document.body.dataset.staticPath === '/themes/classic';
 
 	if (is_classic) {
-		console.log(`${header.title} classic version`);
+		console.log(`ISS: ${header.title} classic version`);
 		run_classic();
 	} else {
-		console.log(`${header.title} beta version`);
+		console.log(`ISS: ${header.title} beta version`);
 		run_beta();
 	}
 }
@@ -1632,14 +1774,14 @@ module.exports = {
 	exec: exec
 };
 
-},{"./beta.js":9,"./classic.js":10,"./header.js":11}],14:[function(require,module,exports){
+},{"./beta.js":12,"./classic.js":13,"./header.js":14}],17:[function(require,module,exports){
 module.exports = [
 	require('./furaffinity/main.js'),
 	require('./twitter/main.js'),
 	require('./deviantart/main.js')
 ];
 
-},{"./deviantart/main.js":8,"./furaffinity/main.js":13,"./twitter/main.js":16}],15:[function(require,module,exports){
+},{"./deviantart/main.js":9,"./furaffinity/main.js":16,"./twitter/main.js":19}],18:[function(require,module,exports){
 const info = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1658,7 +1800,7 @@ const info = {
 
 module.exports = info;
 
-},{}],16:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 const header = require('./header.js');
 const {
 	commentary_button,
@@ -1815,7 +1957,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":24,"./header.js":15}],17:[function(require,module,exports){
+},{"./../../utils/utils.js":27,"./header.js":18}],20:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -1843,7 +1985,7 @@ function commentary_from_text (artist, title, description) {
 		.replace(/\[/gu, '(')
 		.replace(/\]/gu, ')');
 
-	const full_title = `${fixed_title} - by ${artist}`;
+	const full_title = artist === null ? title : `${fixed_title} - by ${artist}`;
 
 	const header = `[section${should_expand ? ',expanded' : ''}=${full_title}]`;
 	return `${header}\n${description}\n[/section]`;
@@ -1866,10 +2008,11 @@ function commentary_button (description) {
 module.exports = {
 	set_clipboard: set_clipboard,
 	artist_commentary: artist_commentary,
-	commentary_button: commentary_button
+	commentary_button: commentary_button,
+	commentary_from_text: commentary_from_text
 };
 
-},{"./node_to_dtext.js":20}],18:[function(require,module,exports){
+},{"./node_to_dtext.js":23}],21:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -1878,7 +2021,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],19:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],22:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -1890,7 +2033,8 @@ async function download_image (url, headers = {}) {
 			url: url,
 			headers: headers,
 			responseType: 'blob',
-			onload: e => (e.status === 200 ? resolve(e.response) : reject(e))
+			onload: e => (e.status === 200 ? resolve(e.response) : reject(e)),
+			onerror: e => reject(e)
 		});
 	});
 }
@@ -2031,7 +2175,7 @@ module.exports = {
 	data_to_nodes: data_to_nodes
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":18}],20:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":21}],23:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -2100,7 +2244,7 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":22}],21:[function(require,module,exports){
+},{"./safe_link.js":25}],24:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 function clear_page () {
@@ -2142,7 +2286,7 @@ module.exports = {
 	remove_node: remove_node
 };
 
-},{"./../../dependencies/gm_functions.js":3}],22:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3}],25:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -2185,7 +2329,7 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],23:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -2210,7 +2354,7 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],24:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 // custom events for url change
@@ -2230,4 +2374,4 @@ module.exports = {
 	GM: GM
 };
 
-},{"./../../dependencies/arrive.js":1,"./../../dependencies/gm_functions.js":3,"./../../dependencies/on_url_change.js":5,"./artist_commentary.js":17,"./e621_api.js":18,"./hash_image.js":19,"./node_to_dtext.js":20,"./nodes.js":21,"./safe_link.js":22,"./upload_url.js":23}]},{},[6]);
+},{"./../../dependencies/arrive.js":1,"./../../dependencies/gm_functions.js":3,"./../../dependencies/on_url_change.js":5,"./artist_commentary.js":20,"./e621_api.js":21,"./hash_image.js":22,"./node_to_dtext.js":23,"./nodes.js":24,"./safe_link.js":25,"./upload_url.js":26}]},{},[6]);

@@ -25,7 +25,7 @@ function commentary_from_text (artist, title, description) {
 		.replace(/\[/gu, '(')
 		.replace(/\]/gu, ')');
 
-	const full_title = `${fixed_title} - by ${artist}`;
+	const full_title = artist === null ? title : `${fixed_title} - by ${artist}`;
 
 	const header = `[section${should_expand ? ',expanded' : ''}=${full_title}]`;
 	return `${header}\n${description}\n[/section]`;
@@ -48,5 +48,6 @@ function commentary_button (description) {
 module.exports = {
 	set_clipboard: set_clipboard,
 	artist_commentary: artist_commentary,
-	commentary_button: commentary_button
+	commentary_button: commentary_button,
+	commentary_from_text: commentary_from_text
 };
