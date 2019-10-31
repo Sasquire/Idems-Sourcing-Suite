@@ -119,7 +119,7 @@ function hash_lookup_error (error) {
 function object_to_node (url, type) {
 	const image = document.createElement('a');
 	image.href = url;
-	image.textContent = type;
+	image.textContent = type + '\u200b'; // zero width space
 	image.classList.add('iss_image_link');
 
 	const hash_node = document.createElement('span');
