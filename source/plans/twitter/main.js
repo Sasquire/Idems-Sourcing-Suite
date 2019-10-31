@@ -3,7 +3,7 @@ const {
 	commentary_button,
 	artist_commentary,
 	upload_button,
-	data_to_nodes,
+	data_to_span,
 	common_styles,
 	remove_node,
 	GM
@@ -73,11 +73,9 @@ function produce_sources (starting_url) {
 
 async function photo_hashes () {
 	const sources = await get_sources();
-	const nodes = await data_to_nodes(sources);
-
-	const span = document.createElement('span');
-	span.id = 'iss_span';
-	nodes.forEach(e => span.appendChild(e));
+	const span = data_to_span(sources);
+	console.log(document.getElementById('iss_span'));
+	console.log(span);
 
 	// Because of the async nature of stuff, a user might
 	// have gone through things rather quickly. This will
@@ -124,7 +122,7 @@ function add_style () {
 	common_styles();
 
 	GM.addStyle(`
-		#iss_span {
+		#iss_hashes {
 			position: fixed;
 			top: 0px;
 			z-index: 3000;

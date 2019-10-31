@@ -1,4 +1,4 @@
-const info = {
+module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
 		return this_url === 'furaffinity.net';
@@ -14,5 +14,3 @@ const info = {
 	title: 'FurAffinity',
 	version: 1
 };
-
-module.exports = info;

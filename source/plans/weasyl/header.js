@@ -1,15 +1,15 @@
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
-		return this_url === 'twitter.com';
+		return this_url === 'weasyl.com';
 	},
 
 	match: [
-		'*://*.twitter.com/*'
+		'*://*.weasyl.com/*/submissions/*'
 	],
 
-	connect: ['pbs.twimg.com'],
+	connect: ['cdn.weasyl.com'],
 
-	title: 'Twitter',
+	title: 'Weasyl',
 	version: 1
 };

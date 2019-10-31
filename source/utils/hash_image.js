@@ -140,13 +140,24 @@ function object_to_node (url, type) {
 // [[small_url, 'small image'],
 //  [thumb_url, 'thumb image'],
 //  [full_url,  'full image' ]]
-async function data_to_nodes (data) {
-	return Promise.all(data.map(([url, type]) => object_to_node(url, type)));
+function data_to_nodes (data) {
+	return data.map(([url, type]) => object_to_node(url, type));
+}
+
+function data_to_span (data) {
+	const hashes = data_to_nodes(data);
+
+	const span = document.createElement('span');
+	span.id = 'iss_hashes';
+	hashes.forEach(e => span.appendChild(e));
+
+	return span;
 }
 
 module.exports = {
 	download_image: download_image,
 	md5_blob: md5_blob,
 	hash_url: hash_url,
-	data_to_nodes: data_to_nodes
+	data_to_nodes: data_to_nodes,
+	data_to_span: data_to_span
 };

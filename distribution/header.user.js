@@ -27,6 +27,10 @@
 // @match        *://*.twitter.com/*
 // @connect      pbs.twimg.com
 
+//               Weasyl v1
+// @match        *://*.weasyl.com/*/submissions/*
+// @connect      cdn.weasyl.com
+
 // @grant        GM.addStyle
 // @grant        GM.xmlHttpRequest
 

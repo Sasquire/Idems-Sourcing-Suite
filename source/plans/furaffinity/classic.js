@@ -2,7 +2,7 @@ const {
 	commentary_button,
 	artist_commentary,
 	upload_button,
-	data_to_nodes,
+	data_to_span,
 	common_styles,
 	GM
 } = require('./../../utils/utils.js');
@@ -13,7 +13,7 @@ function style () {
 
 	GM.addStyle(`
 	.container { display: flex; }
-	#iss_buttons, #iss_links { display: flex; flex-direction: column; }
+	#iss_buttons, #iss_hashes { display: flex; flex-direction: column; }
 	.information { margin-right: auto; }
 	#iss_upload_link {
 		border: 1px solid black;
@@ -21,9 +21,9 @@ function style () {
 		font-size: 0.9rem;
 		margin-top: auto;
 	}
-	#iss_links { font-size: 1.3em; padding: 0.3rem; }
+	#iss_hashes { font-size: 1.3em; padding: 0.3rem; }
 	.iss_image_link { margin-right: 0.4rem; }
-	#iss_links > .iss_hash_span ~ .iss_hash_span { margin-top: 0.5rem; }
+	#iss_hashes > .iss_hash_span ~ .iss_hash_span { margin-top: 0.5rem; }
 	.iss_hash { font-weight: 700; }
 `);
 }
@@ -58,33 +58,22 @@ function upload () {
 	return upload_button(get_full_url(), sources, get_description());
 }
 
-async function get_hashes () {
-	const hashes = await data_to_nodes([
+function get_hashes () {
+	return data_to_span([
 		[get_full_url(), 'full image'],
 		[full_to_thumb(get_full_url()), 'thumb image']
 	]);
-
-	const span = document.createElement('span');
-	span.id = 'iss_links';
-	hashes.forEach(e => span.appendChild(e));
-
-	return span;
 }
 
 async function exec () {
-	const container = document.querySelector('.container');
-
-	const commentary_button = commentary();
-	const upload_button = upload();
-
 	const span = document.createElement('span');
 	span.id = 'iss_buttons';
-	span.appendChild(commentary_button);
-	span.appendChild(upload_button);
-	container.appendChild(span);
+	span.appendChild(commentary());
+	span.appendChild(upload());
 
-	const hashes = await get_hashes();
-	container.insertBefore(hashes, span);
+	const container = document.querySelector('.container');
+	container.appendChild(get_hashes());
+	container.appendChild(span);
 
 	style();
 }

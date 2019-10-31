@@ -70,24 +70,19 @@ function upload () {
 }
 
 async function exec () {
-	const container = document.querySelector('.submission-sidebar');
-
-	const commentary_button = commentary();
-	const upload_button = upload();
-
 	const span = document.createElement('span');
 	span.id = 'iss_span';
-	span.appendChild(commentary_button);
-	span.appendChild(upload_button);
+	span.appendChild(commentary());
+	span.appendChild(upload());
 
-	container.appendChild(span);
-
-	const hashes = await data_to_nodes([
+	data_to_nodes([
 		[get_full_url(), 'full image'],
 		[full_to_thumb(get_full_url()), 'thumb image']
-	]);
+	]).forEach(e => span.appendChild(e));
 
-	hashes.forEach(e => span.appendChild(e));
+	const more_from = document.querySelector('#columnpage .preview-gallery')
+		.previousElementSibling;
+	more_from.parentNode.insertBefore(span, more_from);
 
 	style();
 }
