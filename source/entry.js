@@ -1,3 +1,9 @@
+// custom events for url change
+require('./../dependencies/on_url_change.js');
+
+// custom prototypes for waiting on new nodes
+require('./../dependencies/arrive.js');
+
 const plans = [
 	require('./plans/furaffinity/main.js'),
 	require('./plans/twitter/main.js'),

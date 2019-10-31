@@ -1212,6 +1212,12 @@ window.addEventListener('popstate', e => {
 });
 
 },{}],6:[function(require,module,exports){
+// custom events for url change
+require('./../dependencies/on_url_change.js');
+
+// custom prototypes for waiting on new nodes
+require('./../dependencies/arrive.js');
+
 const plans = [
 	require('./plans/furaffinity/main.js'),
 	require('./plans/twitter/main.js'),
@@ -1226,7 +1232,7 @@ if (site !== undefined) {
 	site.exec();
 }
 
-},{"./plans/deviantart/main.js":9,"./plans/furaffinity/main.js":16,"./plans/twitter/main.js":18,"./plans/weasyl/main.js":20}],7:[function(require,module,exports){
+},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":5,"./plans/deviantart/main.js":9,"./plans/furaffinity/main.js":16,"./plans/twitter/main.js":18,"./plans/weasyl/main.js":20}],7:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	artist_commentary,
@@ -1341,7 +1347,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":28,"./shared.js":11}],8:[function(require,module,exports){
+},{"./../../utils/utils.js":29,"./shared.js":11}],8:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1516,7 +1522,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":28,"./shared.js":11}],11:[function(require,module,exports){
+},{"./../../utils/utils.js":29,"./shared.js":11}],11:[function(require,module,exports){
 const { commentary_button, upload_button } = require('./../../utils/utils.js');
 
 function create_description_button (info) {
@@ -1544,7 +1550,7 @@ module.exports = {
 	upload: create_upload_button
 };
 
-},{"./../../utils/utils.js":28}],12:[function(require,module,exports){
+},{"./../../utils/utils.js":29}],12:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1636,7 +1642,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":28,"./links.js":15}],13:[function(require,module,exports){
+},{"./../../utils/utils.js":29,"./links.js":15}],13:[function(require,module,exports){
 const {
 	commentary_button,
 	artist_commentary,
@@ -1719,7 +1725,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":28,"./links.js":15}],14:[function(require,module,exports){
+},{"./../../utils/utils.js":29,"./links.js":15}],14:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1942,7 +1948,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":28,"./header.js":17}],19:[function(require,module,exports){
+},{"./../../utils/utils.js":29,"./header.js":17}],19:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1960,78 +1966,34 @@ module.exports = {
 };
 
 },{}],20:[function(require,module,exports){
-const {
-	commentary_button,
-	artist_commentary,
-	upload_button,
-	data_to_nodes,
-	common_styles,
-	GM
-} = require('./../../utils/utils.js');
+const { simple_site } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
-function style () {
-	common_styles();
-
-	GM.addStyle(`
-	#iss_container, #iss_links {
-		display: flex;
-		flex-direction: column;
-	}
-	.iss_image_link { margin-right: 1rem; }
-	#iss_artist_commentary { width: 30rem; }
-	`);
-}
-
-function get_artist () {
-	return document.querySelector('#db-user > .username');
-}
-
-function get_full_url () {
-	return document.querySelector('#detail-art > a').href;
-}
-
-function get_description () {
-	const artist = get_artist();
-	const title = document.querySelector('#detail-bar-title');
-	const description = document.querySelector('#detail-description > .formatted-content');
-	return artist_commentary(artist, title, description);
-}
-
-function commentary () {
-	return commentary_button(get_description());
-}
-
-function upload () {
-	const sources = [
-		get_artist().href,
-		window.location.href,
-		get_full_url()
-	];
-
-	// no tags because they are meaningless from FA
-	return upload_button(get_full_url(), sources, get_description());
-}
-
-function get_hashes () {
-	const thumb = document.querySelector('#detail-art > a > img');
-
-	return data_to_nodes([
-		[get_full_url(), 'full image'],
-		[thumb.src, 'thumb image']
-	]);
-}
-
 async function exec () {
+	const info = simple_site({
+		artist: document.querySelector('#db-user > .username'),
+		title: document.querySelector('#detail-bar-title'),
+		description: document.querySelector('#detail-description > .formatted-content'),
+		full_url: document.querySelector('#detail-art > a').href,
+		hashes: [
+			[document.querySelector('#detail-art > a > img').src, 'thumb image']
+		],
+		css: `
+			#iss_container, #iss_hashes {
+				display: flex;
+				flex-direction: column;
+			}
+			.iss_image_link { margin-right: 1rem; }
+		`
+	});
+
 	const container = document.createElement('div');
 	container.id = 'iss_container';
 	document.querySelector('#di-info').appendChild(container);
 
-	container.appendChild(upload());
-	container.appendChild(commentary());
-	get_hashes().forEach(e => container.appendChild(e));
-
-	style();
+	container.appendChild(info.upload);
+	container.appendChild(info.description);
+	container.appendChild(info.hashes);
 }
 
 module.exports = {
@@ -2039,38 +2001,7 @@ module.exports = {
 	exec: exec
 };
 
-/*
-
-if(new URL(window.location.href).host.includes('weasyl.com')){
-	weasyl();
-}
-
-function weasyl(){
-	$i('detail-description').innerHTML += '<hr>';
-
-	const img = $q('#detail-art img');
-	md5_append(
-		'#detail-description', // Where to place md5s
-		[img.parentNode.href, 'full image'], // MD5 Data
-		[img.src, 'sample']
-	).then(async () => {
-		const md5sums = $c('md5sum');
-		for(const link of md5sums){
-			await color_link(link);
-		}
-	});
-
-	const title = $q('#detail-bar-title').innerText;
-	const artist = $q('#db-user > .username').innerText;
-	description_button(
-		$q('#detail-description'), // Where to place description
-		$q('#detail-description > .formatted-content'), // Description node
-		`${title} - by ${artist}` // Title
-	);
-}
-*/
-
-},{"./../../utils/utils.js":28,"./header.js":19}],21:[function(require,module,exports){
+},{"./../../utils/utils.js":29,"./header.js":19}],21:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -2454,6 +2385,66 @@ module.exports = {
 };
 
 },{}],27:[function(require,module,exports){
+const { artist_commentary, commentary_button } = require('./artist_commentary.js');
+const { upload_button } = require('./upload_url.js');
+const { data_to_span } = require('./hash_image.js');
+const { common_styles } = require('./nodes.js');
+const GM = require('./../../dependencies/gm_functions.js');
+
+function build_simple (options) {
+	options = transform_options(options);
+	// artist
+	// title
+	// description
+	// full_url
+	// hashes
+
+	const commentary = artist_commentary(
+		options.artist,
+		options.title,
+		options.description
+	);
+
+	const commentary_span = document.createElement('span');
+	commentary_span.appendChild(commentary_button(commentary));
+
+	const sources = [
+		options.full_url,
+		options.artist.href,
+		window.location.href
+	];
+
+	const upload_span = document.createElement('span');
+	const upload_link = upload_button(options.full_url, sources, commentary);
+	upload_span.appendChild(upload_link);
+
+	common_styles();
+	GM.addStyle(options.css);
+
+	return {
+		description: commentary_span,
+		upload: upload_span,
+		hashes: data_to_span(options.hashes)
+	};
+}
+
+function transform_options (options) {
+	Object.entries(options).forEach(([key, value]) => {
+		if (typeof value === 'function') {
+			options[key] = options[key]();
+		}
+	});
+
+	options.hashes = [[options.full_url, 'full image']].concat(options.hashes);
+
+	return options;
+}
+
+module.exports = {
+	simple_site: build_simple
+};
+
+},{"./../../dependencies/gm_functions.js":3,"./artist_commentary.js":21,"./hash_image.js":23,"./nodes.js":25,"./upload_url.js":28}],28:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -2478,14 +2469,8 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
-
-// custom events for url change
-require('./../../dependencies/on_url_change.js');
-
-// custom prototypes for waiting on new nodes
-require('./../../dependencies/arrive.js');
 
 module.exports = {
 	...require('./artist_commentary.js'),
@@ -2495,7 +2480,8 @@ module.exports = {
 	...require('./nodes.js'),
 	...require('./safe_link.js'),
 	...require('./upload_url.js'),
+	...require('./simple_site.js'),
 	GM: GM
 };
 
-},{"./../../dependencies/arrive.js":1,"./../../dependencies/gm_functions.js":3,"./../../dependencies/on_url_change.js":5,"./artist_commentary.js":21,"./e621_api.js":22,"./hash_image.js":23,"./node_to_dtext.js":24,"./nodes.js":25,"./safe_link.js":26,"./upload_url.js":27}]},{},[6]);
+},{"./../../dependencies/gm_functions.js":3,"./artist_commentary.js":21,"./e621_api.js":22,"./hash_image.js":23,"./node_to_dtext.js":24,"./nodes.js":25,"./safe_link.js":26,"./simple_site.js":27,"./upload_url.js":28}]},{},[6]);
