@@ -16,8 +16,14 @@ async function run_artwork () {
 	const post_id = parseInt(here_path.split('-').splice(-1)[0], 10);
 	const info = await get_info(post_id);
 
-	await document.body.arrive(`[data-modalsrc^="https://www.deviantart.com/deviation/report/${post_id}"]`);
-	const post_info = document.querySelector('.dev-title-container');
+	// DA has a smaller div that is changed and update for
+	// all pages loads that are not the first page load. We have
+	// to wait for this div to be updated. Not the original one
+	let post_info = document.querySelector('.dev-title-container');
+	if (document.querySelectorAll('.dev-view-about').length > 1) {
+		await document.body.arrive('.minibrowse-container .dev-view-about .avatar');
+		post_info = document.querySelector('.minibrowse-container .dev-title-container');
+	}
 	const container = document.createElement('div');
 	container.id = 'iss_container';
 	post_info.appendChild(container);
