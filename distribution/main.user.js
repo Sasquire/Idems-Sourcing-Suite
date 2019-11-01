@@ -23,6 +23,10 @@
 // @match        *://*.furaffinity.net/full/*
 // @connect      facdn.net
 
+//               Image Comparison v1
+// @match        *://*.e621.net/extensions/image_compare
+// @connect      *
+
 //               Twitter v1
 // @match        *://*.twitter.com/*
 // @connect      pbs.twimg.com
@@ -2099,7 +2103,6 @@ function hash_lookup_error (error) {
 		].join('\n'));
 		return 'Error. Unexpected response.';
 	} else {
-		//                      'Downloading image please wait...'
 		console.log([
 			'When attempting to check this hash an unexpected error',
 			'from e621 was thrown. Please report this bug at',
@@ -2189,6 +2192,8 @@ function inner_text (node) {
 function html_to_dtext (entry) {
 	if (entry === null) {
 		return '';
+	} else if (typeof entry === 'string') {
+		return entry;
 	}
 
 	switch (entry.nodeName) {
@@ -2237,8 +2242,14 @@ function clear_page () {
 }
 
 function clear_children (node) {
-	while (node.children.length > 0) {
-		node.removeChild(node.children[0]);
+	while (node.firstChild) {
+		remove_node(node.firstChild);
+	}
+}
+
+function remove_node (node) {
+	if (node) {
+		node.parentNode.removeChild(node);
 	}
 }
 
@@ -2254,12 +2265,6 @@ function apply_common_styles () {
 
 function string_to_node (string) {
 	return new DOMParser().parseFromString(string, 'text/html').documentElement;
-}
-
-function remove_node (node) {
-	if (node) {
-		node.parentNode.removeChild(node);
-	}
 }
 
 module.exports = {
@@ -2327,6 +2332,7 @@ function build_simple (options) {
 	// description
 	// full_url
 	// hashes
+	// css
 
 	const commentary = artist_commentary(
 		options.artist,

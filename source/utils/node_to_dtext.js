@@ -27,6 +27,8 @@ function inner_text (node) {
 function html_to_dtext (entry) {
 	if (entry === null) {
 		return '';
+	} else if (typeof entry === 'string') {
+		return entry;
 	}
 
 	switch (entry.nodeName) {

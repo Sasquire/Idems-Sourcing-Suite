@@ -102,7 +102,6 @@ function hash_lookup_error (error) {
 		].join('\n'));
 		return 'Error. Unexpected response.';
 	} else {
-		//                      'Downloading image please wait...'
 		console.log([
 			'When attempting to check this hash an unexpected error',
 			'from e621 was thrown. Please report this bug at',

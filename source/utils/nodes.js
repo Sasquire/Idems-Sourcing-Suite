@@ -6,8 +6,14 @@ function clear_page () {
 }
 
 function clear_children (node) {
-	while (node.children.length > 0) {
-		node.removeChild(node.children[0]);
+	while (node.firstChild) {
+		remove_node(node.firstChild);
+	}
+}
+
+function remove_node (node) {
+	if (node) {
+		node.parentNode.removeChild(node);
 	}
 }
 
@@ -23,12 +29,6 @@ function apply_common_styles () {
 
 function string_to_node (string) {
 	return new DOMParser().parseFromString(string, 'text/html').documentElement;
-}
-
-function remove_node (node) {
-	if (node) {
-		node.parentNode.removeChild(node);
-	}
 }
 
 module.exports = {

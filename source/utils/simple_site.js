@@ -11,6 +11,7 @@ function build_simple (options) {
 	// description
 	// full_url
 	// hashes
+	// css
 
 	const commentary = artist_commentary(
 		options.artist,

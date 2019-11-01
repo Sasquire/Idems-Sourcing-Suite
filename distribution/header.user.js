@@ -23,6 +23,10 @@
 // @match        *://*.furaffinity.net/full/*
 // @connect      facdn.net
 
+//               Image Comparison v1
+// @match        *://*.e621.net/extensions/image_compare
+// @connect      *
+
 //               Twitter v1
 // @match        *://*.twitter.com/*
 // @connect      pbs.twimg.com
