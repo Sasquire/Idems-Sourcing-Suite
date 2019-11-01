@@ -1,8 +1,7 @@
 const { artist_commentary, commentary_button } = require('./artist_commentary.js');
 const { upload_button } = require('./upload_url.js');
 const { data_to_span } = require('./hash_image.js');
-const { common_styles } = require('./nodes.js');
-const GM = require('./../../dependencies/gm_functions.js');
+const { common_styles, add_css } = require('./nodes.js');
 
 function build_simple (options) {
 	options = transform_options(options);
@@ -33,7 +32,7 @@ function build_simple (options) {
 	upload_span.appendChild(upload_link);
 
 	common_styles();
-	GM.addStyle(options.css);
+	add_css(options.css);
 
 	return {
 		description: commentary_span,

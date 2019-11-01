@@ -5,7 +5,7 @@ const {
 	data_to_nodes,
 	common_styles,
 	remove_node,
-	GM
+	add_css
 } = require('./../../utils/utils.js');
 
 async function run_artwork () {
@@ -31,7 +31,7 @@ async function run_artwork () {
 function add_style () {
 	common_styles();
 
-	GM.addStyle(`
+	add_css(`
 		.iss_image_link {
 			color: inherit !important;
 			font-size: 1.1rem;

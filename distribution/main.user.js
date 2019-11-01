@@ -1226,7 +1226,8 @@ const plans = [
 	require('./plans/furaffinity/main.js'),
 	require('./plans/twitter/main.js'),
 	require('./plans/deviantart/main.js'),
-	require('./plans/weasyl/main.js')
+	require('./plans/weasyl/main.js'),
+	require('./plans/image_compare/main.js')
 ];
 
 const here = new URL(window.location.href);
@@ -1236,7 +1237,7 @@ if (site !== undefined) {
 	site.exec();
 }
 
-},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":5,"./plans/deviantart/main.js":9,"./plans/furaffinity/main.js":16,"./plans/twitter/main.js":18,"./plans/weasyl/main.js":20}],7:[function(require,module,exports){
+},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":5,"./plans/deviantart/main.js":9,"./plans/furaffinity/main.js":16,"./plans/image_compare/main.js":22,"./plans/twitter/main.js":24,"./plans/weasyl/main.js":26}],7:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	artist_commentary,
@@ -1244,7 +1245,7 @@ const {
 	data_to_nodes,
 	common_styles,
 	remove_node,
-	GM
+	add_css
 } = require('./../../utils/utils.js');
 
 async function run_artwork () {
@@ -1270,7 +1271,7 @@ async function run_artwork () {
 function add_style () {
 	common_styles();
 
-	GM.addStyle(`
+	add_css(`
 		.iss_image_link {
 			color: inherit !important;
 			font-size: 1.1rem;
@@ -1351,7 +1352,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":29,"./shared.js":11}],8:[function(require,module,exports){
+},{"./../../utils/utils.js":35,"./shared.js":11}],8:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1421,7 +1422,7 @@ const {
 	node_to_dtext,
 	common_styles,
 	remove_node,
-	GM
+	add_css
 } = require('./../../utils/utils.js');
 
 async function run_artwork () {
@@ -1453,7 +1454,7 @@ async function run_artwork () {
 function add_style () {
 	common_styles();
 
-	GM.addStyle(`
+	add_css(`
 		.iss_image_link {
 			color: inherit !important;
 			font-size: 1.1rem;
@@ -1526,7 +1527,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":29,"./shared.js":11}],11:[function(require,module,exports){
+},{"./../../utils/utils.js":35,"./shared.js":11}],11:[function(require,module,exports){
 const { commentary_button, upload_button } = require('./../../utils/utils.js');
 
 function create_description_button (info) {
@@ -1554,7 +1555,7 @@ module.exports = {
 	upload: create_upload_button
 };
 
-},{"./../../utils/utils.js":29}],12:[function(require,module,exports){
+},{"./../../utils/utils.js":35}],12:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -1610,7 +1611,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":29,"./links.js":15}],13:[function(require,module,exports){
+},{"./../../utils/utils.js":35,"./links.js":15}],13:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -1656,7 +1657,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":29,"./links.js":15}],14:[function(require,module,exports){
+},{"./../../utils/utils.js":35,"./links.js":15}],14:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1708,6 +1709,245 @@ module.exports = {
 };
 
 },{"./beta.js":12,"./classic.js":13,"./header.js":14}],17:[function(require,module,exports){
+const pixel_compare = require('./compare_points.js');
+
+async function compare (options) {
+	const context1 = options.canvas1.getContext('2d');
+	const context2 = options.canvas2.getContext('2d');
+
+	const same_width = options.canvas1.width === options.canvas2.width;
+	const same_height = options.canvas1.height === options.canvas2.height;
+
+	if (!same_width || !same_height) {
+		throw new Error('Images did not have the same width and height');
+	}
+
+	const width = context1.canvas.width;
+	const height = context1.canvas.height;
+
+	const data1 = context1.getImageData(0, 0, width, height).data;
+	const data2 = context2.getImageData(0, 0, width, height).data;
+
+	if (data1.every(e => e === 0) && data2.every(e => e === 0)) {
+		throw new Error('Images have not been set');
+	}
+
+	const algorithm = pixel_compare[options.algorithm];
+	if (algorithm === undefined) {
+		throw new Error('Somehow a non-valid comparison algorithm was selected');
+	}
+
+	let some_change = 0;
+
+	const new_data = new Uint8ClampedArray(width * height * 4);
+	for (let i = 0; i < new_data.length; i += 4) {
+		// The last value for all of these if flipped. The reason is because
+		// it is the alpha channel, and an alpha of 0 means the image will
+		// not be displayed. The point of these is to return 0 if there is no
+		// change. Therefore it makes sense to flip this one value. It may not
+		// produce the best viewed outputs for things with alpha layers, but it
+		// does produce an output that reflects them.
+
+		const result = algorithm(data1, data2, i);
+		new_data[i + 0] = result[0];
+		new_data[i + 1] = result[1];
+		new_data[i + 2] = result[2];
+		new_data[i + 3] = 255 - result[3];
+
+		some_change = some_change | result[0] | result[1] | result[2] | result[3];
+
+		if (options.leave_early && some_change !== 0) {
+			break;
+		}
+
+		// Relinquish control of the event loop so other things
+		// can run, creating a smoother user experience
+		if (i % 400000 === 0) {
+			await new Promise(resolve => setTimeout(resolve, 1));
+		}
+	}
+
+	return {
+		data: new ImageData(new_data, width, height),
+		message: some_change === 0 ? 'Images are identical' : 'There is a difference!',
+		width: width,
+		height: height
+	};
+}
+
+module.exports = compare;
+
+},{"./compare_points.js":18}],18:[function(require,module,exports){
+const library = {};
+
+// https://stackoverflow.com/questions/8885323/speed-of-the-math-object-in-javascript
+// Some things are going to look odd. This is an attempt to make
+// this library run quickly. WebAssembly with webpack was looked
+// into briefly, but a good solution was not found.
+
+// The function order is named after the degrees a polynomial can take
+// because I have no shame and I must push math in everywhere
+// https://en.wikipedia.org/wiki/Degree_of_a_polynomial
+
+// d1 and d2 are the data of the images where o is the offset.
+// This is to simplify code so only an index needs to be passed
+// each time.
+library.constant = (d1, d2, o) => [
+	d1[o + 0] === d2[o + 0] ? 0 : 255, // Red
+	d1[o + 1] === d2[o + 1] ? 0 : 255, // Green
+	d1[o + 2] === d2[o + 2] ? 0 : 255, // Blue
+	d1[o + 3] === d2[o + 3] ? 0 : 255 // Alpha
+];
+
+// It is indeed faster. On a test of 100,000 elements, this
+// version outperformed Math.abs by 30% (7ms vs 4.5ms)
+library.linear = (d1, d2, o) => [
+	// Difference >= 0 ? Difference : -Difference
+	d1[o + 0] - d2[o + 0] >= 0 ? d1[o + 0] - d2[o + 0] : -(d1[o + 0] - d2[o + 0]),
+	d1[o + 1] - d2[o + 1] >= 0 ? d1[o + 1] - d2[o + 1] : -(d1[o + 1] - d2[o + 1]),
+	d1[o + 2] - d2[o + 2] >= 0 ? d1[o + 2] - d2[o + 2] : -(d1[o + 2] - d2[o + 2]),
+	d1[o + 3] - d2[o + 3] >= 0 ? d1[o + 3] - d2[o + 3] : -(d1[o + 3] - d2[o + 3])
+];
+
+library.quadratic = (d1, d2, o) => [
+	// Difference >= 0 ? Difference : -Difference
+	(d1[o + 0] - d2[o + 0]) ** 2 < 255 ? (d1[o + 0] - d2[o + 0]) ** 2 : 255,
+	(d1[o + 1] - d2[o + 1]) ** 2 < 255 ? (d1[o + 1] - d2[o + 1]) ** 2 : 255,
+	(d1[o + 2] - d2[o + 2]) ** 2 < 255 ? (d1[o + 2] - d2[o + 2]) ** 2 : 255,
+	(d1[o + 3] - d2[o + 3]) ** 2 < 255 ? (d1[o + 3] - d2[o + 3]) ** 2 : 255
+];
+
+library.in_first = (d1, d2, o) => {
+	const nr = d1[o + 0] !== d2[o + 0] ? d1[o + 0] : 0;
+	const ng = d1[o + 1] !== d2[o + 1] ? d1[o + 1] : 0;
+	const nb = d1[o + 2] !== d2[o + 2] ? d1[o + 2] : 0;
+	// skip alpha
+	return nr | ng | nb ? [d1[o + 0], d1[o + 1], d1[o + 2], 255 - d1[o + 3]] : [0, 0, 0, 255 + 255];
+};
+
+library.in_second = (d1, d2, o) => {
+	const nr = d1[o + 0] !== d2[o + 0] ? d2[o + 0] : 0;
+	const ng = d1[o + 1] !== d2[o + 1] ? d2[o + 1] : 0;
+	const nb = d1[o + 2] !== d2[o + 2] ? d2[o + 2] : 0;
+	// skip alpha
+	return nr | ng | nb ? [d2[o + 0], d2[o + 1], d2[o + 2], 255 - d2[o + 3]] : [0, 0, 0, 255 + 255];
+};
+
+module.exports = library;
+
+},{}],19:[function(require,module,exports){
+module.exports = {
+	test: (url) => {
+		return url.href === 'https://e621.net/extensions/image_compare';
+	},
+
+	match: [
+		'*://*.e621.net/extensions/image_compare'
+	],
+
+	connect: ['*'],
+
+	title: 'Image Comparison',
+	version: 1
+};
+
+},{}],20:[function(require,module,exports){
+module.exports = ":root {\n\t--dark-blue: #031131;\n\t--blue: #284a81;\n\t--other-blue: #174891;\n\t--more-blue: #152f56;\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n}\n\nbody { background-color: var(--blue); }\n\ncanvas {\n\tborder: 5px dashed var(--dark-blue);\n}\n\n#c1, #c2 {\n\tmax-width: 400px;\n\tmax-height: 400px;\n}\n\n#input {\n\tdisplay: grid;\n\tgrid-template-columns: auto auto;\n\tgrid-gap: 5px;\n\tflex-grow: 1;\n}\n\n#control {\n\tflex-grow: 5;\n}\n\n#main {\n\tdisplay: flex;\n}\n\n#messages {\n\tdisplay: flex;\n\tflex-direction: column;\n\tcolor: var(--light-yellow);\n}\n\n#leave_early ~ label {\n\tcolor: var(--light-yellow);\n}\n\nhr { color: var(--light-yellow); }";
+
+},{}],21:[function(require,module,exports){
+module.exports = "<div id=\"main\">\n\t<div id=\"control\">\n\t\t<button id=\"compare_button\">Compare images using</button>\n\t\t<select id=\"algorithm_select\" title=\"These are named after the degrees of a polynomial\">\n\t\t\t<option value=\"constant\" title=\"This is what you want\">Constant</option>\n\t\t\t<option value=\"linear\" title=\"absoluteValue of color1 - color2\">Linear</option>\n\t\t\t<option value=\"quadratic\" title=\"(color1 - color2)^2\">Quadratic</option>\n\t\t\t<option value=\"in_first\" title=\"Only pixels that are in the first image\">In First</option>\n\t\t\t<option value=\"in_second\" title=\"Only pixels that are in the second image\">In Second</option>\n\t\t</select>\n\t\t<br>\n\t\t<input type=\"checkbox\" id=\"leave_early\" name=\"leave_early\"></input>\n\t\t<label for=\"leave_early\">Quick Compare</label>\n\t\t<br>\n\t\t<div id=\"messages\">\n\t\t\t<span>Logging information should appear here<span>\n\t\t</div>\n\t</div>\n\t<div id=\"input\">\n\t\t<canvas id=\"c1\"></canvas>\n\t\t<canvas id=\"c2\"></canvas>\n\t</div>\n</div>\n<hr>\n<div>\n\t<canvas id=\"o1\"></canvas>\n</div>";
+
+},{}],22:[function(require,module,exports){
+const {
+	multi_input,
+	remove_node,
+	clear_page,
+	add_css
+} = require('./../../utils/utils.js');
+const compare_nodes = require('./compare_canvas.js');
+
+function exec () {
+	clear_page();
+	add_css(require('./main.css'));
+	document.body.innerHTML = require('./main.html');
+	add_input_canvases();
+	add_button_listener();
+}
+
+function add_button_listener () {
+	const button = document.getElementById('compare_button');
+	button.addEventListener('click', () => {
+		compare_nodes({
+			canvas1: document.getElementById('c1'),
+			canvas2: document.getElementById('c2'),
+			leave_early: document.getElementById('leave_early').checked,
+			algorithm: document.getElementById('algorithm_select').value
+		}).then(result => {
+			const output_canvas = document.getElementById('o1');
+
+			log_message(result.message);
+			output_canvas.width = result.width;
+			output_canvas.height = result.height;
+			output_canvas.getContext('2d').putImageData(result.data, 0, 0);
+		}).catch(message => {
+			log_message(message);
+		});
+	});
+}
+
+function add_input_canvases () {
+	const input = document.getElementById('input');
+	const c1 = get_element(1);
+	const c2 = get_element(2);
+
+	// insert backwards so they appear forwards
+	input.insertBefore(c2, input.firstChild);
+	input.insertBefore(c1, input.firstChild);
+
+	function get_element (type) {
+		return multi_input((data) => {
+			const canvas = document.getElementById(`c${type}`);
+			paste_data(data, canvas).then(() => {
+				log_message(`Loaded image #${type} with ${canvas.width}x${canvas.height}`);
+			});
+		});
+	}
+}
+
+async function paste_data (data, canvas_node) {
+	const ctx = canvas_node.getContext('2d');
+	const img = new Image();
+	return new Promise((resolve, reject) => {
+		img.onload = () => {
+			ctx.canvas.width = img.width;
+			ctx.canvas.height = img.height;
+			ctx.drawImage(img, 0, 0);
+			resolve(ctx);
+		};
+		img.src = URL.createObjectURL(data);
+	});
+}
+
+function log_message (text) {
+	console.log(text);
+
+	const messages = document.getElementById('messages');
+
+	const span = document.createElement('span');
+	span.textContent = text;
+	messages.appendChild(span);
+
+	if (messages.children.length > 7) {
+		remove_node(messages.firstChild);
+	}
+};
+
+module.exports = {
+	...require('./header.js'),
+	exec: exec
+};
+
+},{"./../../utils/utils.js":35,"./compare_canvas.js":17,"./header.js":19,"./main.css":20,"./main.html":21}],23:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1724,7 +1964,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],18:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 const header = require('./header.js');
 const {
 	commentary_button,
@@ -1733,7 +1973,7 @@ const {
 	data_to_span,
 	common_styles,
 	remove_node,
-	GM
+	add_css
 } = require('./../../utils/utils.js');
 
 function find_site () {
@@ -1848,7 +2088,7 @@ function clear_all_setup () {
 function add_style () {
 	common_styles();
 
-	GM.addStyle(`
+	add_css(`
 		#iss_hashes {
 			position: fixed;
 			top: 0px;
@@ -1879,7 +2119,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":29,"./header.js":17}],19:[function(require,module,exports){
+},{"./../../utils/utils.js":35,"./header.js":23}],25:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1896,7 +2136,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],20:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -1934,7 +2174,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":29,"./header.js":19}],21:[function(require,module,exports){
+},{"./../../utils/utils.js":35,"./header.js":25}],27:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -1989,7 +2229,7 @@ module.exports = {
 	commentary_from_text: commentary_from_text
 };
 
-},{"./node_to_dtext.js":24}],22:[function(require,module,exports){
+},{"./node_to_dtext.js":30}],28:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -1998,7 +2238,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],23:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],29:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -2162,7 +2402,7 @@ module.exports = {
 	data_to_span: data_to_span
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":22}],24:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":28}],30:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -2233,8 +2473,9 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":26}],25:[function(require,module,exports){
+},{"./safe_link.js":32}],31:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
+const { download_image } = require('./hash_image.js');
 
 function clear_page () {
 	clear_children(document.head);
@@ -2263,19 +2504,50 @@ function apply_common_styles () {
 	`);
 }
 
+function add_css (css) {
+	GM.addStyle(css);
+}
+
 function string_to_node (string) {
 	return new DOMParser().parseFromString(string, 'text/html').documentElement;
+}
+
+function multi_input (callback) {
+	const container = document.createElement('span');
+
+	const url_box = document.createElement('input');
+	url_box.type = 'url';
+	url_box.placeholder = 'Image URL or ...';
+	container.appendChild(url_box);
+
+	const file_box = document.createElement('input');
+	file_box.type = 'file';
+	container.appendChild(file_box);
+
+	url_box.addEventListener('change', () => {
+		file_box.value = '';
+		download_image(url_box.value).then(callback);
+	});
+
+	file_box.addEventListener('change', () => {
+		url_box.value = '';
+		callback(file_box.files[0]);
+	});
+
+	return container;
 }
 
 module.exports = {
 	clear_children: clear_children,
 	clear_page: clear_page,
+	remove_node: remove_node,
 	common_styles: apply_common_styles,
+	add_css: add_css,
 	string_to_node: string_to_node,
-	remove_node: remove_node
+	multi_input: multi_input
 };
 
-},{"./../../dependencies/gm_functions.js":3}],26:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3,"./hash_image.js":29}],32:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -2318,12 +2590,11 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],27:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 const { artist_commentary, commentary_button } = require('./artist_commentary.js');
 const { upload_button } = require('./upload_url.js');
 const { data_to_span } = require('./hash_image.js');
-const { common_styles } = require('./nodes.js');
-const GM = require('./../../dependencies/gm_functions.js');
+const { common_styles, add_css } = require('./nodes.js');
 
 function build_simple (options) {
 	options = transform_options(options);
@@ -2354,7 +2625,7 @@ function build_simple (options) {
 	upload_span.appendChild(upload_link);
 
 	common_styles();
-	GM.addStyle(options.css);
+	add_css(options.css);
 
 	return {
 		description: commentary_span,
@@ -2379,7 +2650,7 @@ module.exports = {
 	simple_site: build_simple
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./artist_commentary.js":21,"./hash_image.js":23,"./nodes.js":25,"./upload_url.js":28}],28:[function(require,module,exports){
+},{"./artist_commentary.js":27,"./hash_image.js":29,"./nodes.js":31,"./upload_url.js":34}],34:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -2404,7 +2675,7 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],29:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 module.exports = {
@@ -2419,4 +2690,4 @@ module.exports = {
 	GM: GM
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./artist_commentary.js":21,"./e621_api.js":22,"./hash_image.js":23,"./node_to_dtext.js":24,"./nodes.js":25,"./safe_link.js":26,"./simple_site.js":27,"./upload_url.js":28}]},{},[6]);
+},{"./../../dependencies/gm_functions.js":3,"./artist_commentary.js":27,"./e621_api.js":28,"./hash_image.js":29,"./node_to_dtext.js":30,"./nodes.js":31,"./safe_link.js":32,"./simple_site.js":33,"./upload_url.js":34}]},{},[6]);

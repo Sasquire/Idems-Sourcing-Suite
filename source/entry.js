@@ -8,7 +8,8 @@ const plans = [
 	require('./plans/furaffinity/main.js'),
 	require('./plans/twitter/main.js'),
 	require('./plans/deviantart/main.js'),
-	require('./plans/weasyl/main.js')
+	require('./plans/weasyl/main.js'),
+	require('./plans/image_compare/main.js')
 ];
 
 const here = new URL(window.location.href);

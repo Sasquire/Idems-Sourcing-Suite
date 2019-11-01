@@ -6,7 +6,7 @@ const {
 	data_to_span,
 	common_styles,
 	remove_node,
-	GM
+	add_css
 } = require('./../../utils/utils.js');
 
 function find_site () {
@@ -121,7 +121,7 @@ function clear_all_setup () {
 function add_style () {
 	common_styles();
 
-	GM.addStyle(`
+	add_css(`
 		#iss_hashes {
 			position: fixed;
 			top: 0px;

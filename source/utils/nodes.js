@@ -1,4 +1,5 @@
 const GM = require('./../../dependencies/gm_functions.js');
+const { download_image } = require('./hash_image.js');
 
 function clear_page () {
 	clear_children(document.head);
@@ -27,14 +28,45 @@ function apply_common_styles () {
 	`);
 }
 
+function add_css (css) {
+	GM.addStyle(css);
+}
+
 function string_to_node (string) {
 	return new DOMParser().parseFromString(string, 'text/html').documentElement;
+}
+
+function multi_input (callback) {
+	const container = document.createElement('span');
+
+	const url_box = document.createElement('input');
+	url_box.type = 'url';
+	url_box.placeholder = 'Image URL or ...';
+	container.appendChild(url_box);
+
+	const file_box = document.createElement('input');
+	file_box.type = 'file';
+	container.appendChild(file_box);
+
+	url_box.addEventListener('change', () => {
+		file_box.value = '';
+		download_image(url_box.value).then(callback);
+	});
+
+	file_box.addEventListener('change', () => {
+		url_box.value = '';
+		callback(file_box.files[0]);
+	});
+
+	return container;
 }
 
 module.exports = {
 	clear_children: clear_children,
 	clear_page: clear_page,
+	remove_node: remove_node,
 	common_styles: apply_common_styles,
+	add_css: add_css,
 	string_to_node: string_to_node,
-	remove_node: remove_node
+	multi_input: multi_input
 };

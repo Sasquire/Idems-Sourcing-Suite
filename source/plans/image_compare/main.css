@@ -1,0 +1,47 @@
+:root {
+	--dark-blue: #031131;
+	--blue: #284a81;
+	--other-blue: #174891;
+	--more-blue: #152f56;
+	--yellow: #fdba31;
+	--light-yellow: #ffde9b;
+	--dark-yellow: #d8b162;
+}
+
+body { background-color: var(--blue); }
+
+canvas {
+	border: 5px dashed var(--dark-blue);
+}
+
+#c1, #c2 {
+	max-width: 400px;
+	max-height: 400px;
+}
+
+#input {
+	display: grid;
+	grid-template-columns: auto auto;
+	grid-gap: 5px;
+	flex-grow: 1;
+}
+
+#control {
+	flex-grow: 5;
+}
+
+#main {
+	display: flex;
+}
+
+#messages {
+	display: flex;
+	flex-direction: column;
+	color: var(--light-yellow);
+}
+
+#leave_early ~ label {
+	color: var(--light-yellow);
+}
+
+hr { color: var(--light-yellow); }

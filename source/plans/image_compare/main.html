@@ -1,0 +1,27 @@
+<div id="main">
+	<div id="control">
+		<button id="compare_button">Compare images using</button>
+		<select id="algorithm_select" title="These are named after the degrees of a polynomial">
+			<option value="constant" title="This is what you want">Constant</option>
+			<option value="linear" title="absoluteValue of color1 - color2">Linear</option>
+			<option value="quadratic" title="(color1 - color2)^2">Quadratic</option>
+			<option value="in_first" title="Only pixels that are in the first image">In First</option>
+			<option value="in_second" title="Only pixels that are in the second image">In Second</option>
+		</select>
+		<br>
+		<input type="checkbox" id="leave_early" name="leave_early"></input>
+		<label for="leave_early">Quick Compare</label>
+		<br>
+		<div id="messages">
+			<span>Logging information should appear here<span>
+		</div>
+	</div>
+	<div id="input">
+		<canvas id="c1"></canvas>
+		<canvas id="c2"></canvas>
+	</div>
+</div>
+<hr>
+<div>
+	<canvas id="o1"></canvas>
+</div>
