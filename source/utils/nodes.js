@@ -12,6 +12,12 @@ function clear_children (node) {
 	}
 }
 
+function move_children (donor_node, new_node) {
+	while (donor_node.firstChild !== null) {
+		new_node.appendChild(donor_node.firstChild);
+	}
+}
+
 function remove_node (node) {
 	if (node) {
 		node.parentNode.removeChild(node);
@@ -68,5 +74,6 @@ module.exports = {
 	common_styles: apply_common_styles,
 	add_css: add_css,
 	string_to_node: string_to_node,
-	multi_input: multi_input
+	multi_input: multi_input,
+	move_children: move_children
 };

@@ -23,6 +23,10 @@
 // @match        *://*.furaffinity.net/full/*
 // @connect      facdn.net
 
+//               FurryNetwork v1
+// @match        *://*.furrynetwork.com/*
+// @connect      https://d3gz42uwgl1r1y.cloudfront.net/
+
 //               Image Comparison v1
 // @match        *://*.e621.net/extensions/image_compare
 // @connect      *
@@ -1227,7 +1231,8 @@ const plans = [
 	require('./plans/twitter/main.js'),
 	require('./plans/deviantart/main.js'),
 	require('./plans/weasyl/main.js'),
-	require('./plans/image_compare/main.js')
+	require('./plans/image_compare/main.js'),
+	require('./plans/furrynetwork/main.js')
 ];
 
 const here = new URL(window.location.href);
@@ -1237,7 +1242,7 @@ if (site !== undefined) {
 	site.exec();
 }
 
-},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":5,"./plans/deviantart/main.js":9,"./plans/furaffinity/main.js":16,"./plans/image_compare/main.js":22,"./plans/twitter/main.js":24,"./plans/weasyl/main.js":26}],7:[function(require,module,exports){
+},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":5,"./plans/deviantart/main.js":9,"./plans/furaffinity/main.js":16,"./plans/furrynetwork/main.js":18,"./plans/image_compare/main.js":24,"./plans/twitter/main.js":26,"./plans/weasyl/main.js":28}],7:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	artist_commentary,
@@ -1352,7 +1357,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":35,"./shared.js":11}],8:[function(require,module,exports){
+},{"./../../utils/utils.js":37,"./shared.js":11}],8:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1527,7 +1532,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":35,"./shared.js":11}],11:[function(require,module,exports){
+},{"./../../utils/utils.js":37,"./shared.js":11}],11:[function(require,module,exports){
 const { commentary_button, upload_button } = require('./../../utils/utils.js');
 
 function create_description_button (info) {
@@ -1555,7 +1560,7 @@ module.exports = {
 	upload: create_upload_button
 };
 
-},{"./../../utils/utils.js":35}],12:[function(require,module,exports){
+},{"./../../utils/utils.js":37}],12:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -1611,7 +1616,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":35,"./links.js":15}],13:[function(require,module,exports){
+},{"./../../utils/utils.js":37,"./links.js":15}],13:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -1657,7 +1662,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":35,"./links.js":15}],14:[function(require,module,exports){
+},{"./../../utils/utils.js":37,"./links.js":15}],14:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1709,6 +1714,139 @@ module.exports = {
 };
 
 },{"./beta.js":12,"./classic.js":13,"./header.js":14}],17:[function(require,module,exports){
+module.exports = {
+	test: (url) => {
+		const this_url = url.hostname.split('.').slice(-2).join('.');
+		return this_url === 'furrynetwork.com';
+	},
+
+	match: ['*://*.furrynetwork.com/*'],
+
+	connect: ['https://d3gz42uwgl1r1y.cloudfront.net/'],
+
+	title: 'FurryNetwork',
+	version: 1
+};
+
+},{}],18:[function(require,module,exports){
+const {
+	simple_site,
+	remove_node,
+	move_children
+} = require('./../../utils/utils.js');
+const header = require('./header.js');
+
+let last_url = null;
+
+function attempt_site () {
+	const here = new URL(window.location.href);
+	const is_direct = (/^\/artwork\/\d+\//).test(here.pathname);
+	const is_viewed = here.searchParams.get('viewType') === 'artwork';
+
+	remove_node(document.getElementById('iss_container'));
+
+	if (last_url && here.href === last_url.href) {
+		console.log('ISS: Duplicate URL detected');
+	} else if (last_url === null && is_viewed) {
+		// Do nothing because we will be redirected to
+		// the direct view shortly
+	} else if (is_direct) {
+		console.log('ISS: Direct artwork URL detected');
+		document.body.arrive('.l--app__layout .submission')
+			.then(run_site)
+			.then(load_signal);
+	} else if (is_viewed) {
+		console.log('ISS: Linked artwork URL detected');
+		// Wait for known element on first run (can be discarded on all)
+		//   runs after the first.
+		// Wait for specific element to not have a space at the end
+		//   (This should be always the case if running normally, with this
+		//   extension, when the new post data is loaded, this element is
+		//   overwritten and will no longer have a space at the end. This
+		//   signals that there is new data to be retrieved)
+		// Run site
+		// Update that element to have a space at the end to prime it for
+		//   the next time it is needed.
+
+		// This is way too complex and should be simplified
+		document.body.arrive('.submission__tags')
+			.then(wait_signal)
+			.then(run_site)
+			.then(load_signal);
+	}
+
+	last_url = here;
+}
+
+async function wait_signal () {
+	return document.body.leave('.submission-description__created[title$=" "]');
+}
+
+function load_signal () {
+	document.querySelector('.submission-description__created').title += ' ';
+}
+
+function run_site () {
+	const aside = document.querySelector('.submission__aside__inner');
+	const container = document.createElement('div');
+	container.id = 'iss_container';
+
+	const info = get_info();
+	container.appendChild(info.upload);
+	container.appendChild(info.description);
+	move_children(info.hashes, container);
+
+	const description = aside.querySelector('.submission__description');
+	aside.insertBefore(container, description);
+}
+
+function get_sources () {
+	return {
+		full: document.querySelector('.submission-actions > a.t--reset-link').href,
+		thumb: document.querySelector('.image.submission-media__img img').src
+	};
+}
+
+const get_info = () => simple_site({
+	artist: () => {
+		const node = document.querySelector('.submission-author__display-name');
+		return {
+			href: node.parentNode.href,
+			textContent: node.textContent
+		};
+	},
+	title: document.querySelector('.submission-description__title'),
+	description: document.querySelector('.submission-description__description__md'),
+	full_url: get_sources().full,
+	hashes: [
+		[get_sources().thumb, 'thumb image']
+	],
+	css: `
+	#iss_container {
+		margin: .9375rem 0;
+    	padding: .9375rem 0;
+		border-top: 1px solid #3e3e40;
+		display: flex;
+		flex-direction: column;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	.iss_image_link { margin-right: 1rem; }
+	`
+});
+
+async function exec () {
+	attempt_site();
+	window.addEventListener('locationchange', attempt_site);
+}
+
+module.exports = {
+	exec: exec,
+	...header
+};
+
+},{"./../../utils/utils.js":37,"./header.js":17}],19:[function(require,module,exports){
 const pixel_compare = require('./compare_points.js');
 
 async function compare (options) {
@@ -1777,7 +1915,7 @@ async function compare (options) {
 
 module.exports = compare;
 
-},{"./compare_points.js":18}],18:[function(require,module,exports){
+},{"./compare_points.js":20}],20:[function(require,module,exports){
 const library = {};
 
 // https://stackoverflow.com/questions/8885323/speed-of-the-math-object-in-javascript
@@ -1835,7 +1973,7 @@ library.in_second = (d1, d2, o) => {
 
 module.exports = library;
 
-},{}],19:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		return url.href === 'https://e621.net/extensions/image_compare';
@@ -1851,13 +1989,13 @@ module.exports = {
 	version: 1
 };
 
-},{}],20:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = ":root {\n\t--dark-blue: #031131;\n\t--blue: #284a81;\n\t--other-blue: #174891;\n\t--more-blue: #152f56;\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n}\n\nbody { background-color: var(--blue); }\n\ncanvas {\n\tborder: 5px dashed var(--dark-blue);\n}\n\n#c1, #c2 {\n\tmax-width: 400px;\n\tmax-height: 400px;\n}\n\n#input {\n\tdisplay: grid;\n\tgrid-template-columns: auto auto;\n\tgrid-gap: 5px;\n\tflex-grow: 1;\n}\n\n#control {\n\tflex-grow: 5;\n}\n\n#main {\n\tdisplay: flex;\n}\n\n#messages {\n\tdisplay: flex;\n\tflex-direction: column;\n\tcolor: var(--light-yellow);\n}\n\n#leave_early ~ label {\n\tcolor: var(--light-yellow);\n}\n\nhr { color: var(--light-yellow); }";
 
-},{}],21:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = "<div id=\"main\">\n\t<div id=\"control\">\n\t\t<button id=\"compare_button\">Compare images using</button>\n\t\t<select id=\"algorithm_select\" title=\"These are named after the degrees of a polynomial\">\n\t\t\t<option value=\"constant\" title=\"This is what you want\">Constant</option>\n\t\t\t<option value=\"linear\" title=\"absoluteValue of color1 - color2\">Linear</option>\n\t\t\t<option value=\"quadratic\" title=\"(color1 - color2)^2\">Quadratic</option>\n\t\t\t<option value=\"in_first\" title=\"Only pixels that are in the first image\">In First</option>\n\t\t\t<option value=\"in_second\" title=\"Only pixels that are in the second image\">In Second</option>\n\t\t</select>\n\t\t<br>\n\t\t<input type=\"checkbox\" id=\"leave_early\" name=\"leave_early\"></input>\n\t\t<label for=\"leave_early\">Quick Compare</label>\n\t\t<br>\n\t\t<div id=\"messages\">\n\t\t\t<span>Logging information should appear here<span>\n\t\t</div>\n\t</div>\n\t<div id=\"input\">\n\t\t<canvas id=\"c1\"></canvas>\n\t\t<canvas id=\"c2\"></canvas>\n\t</div>\n</div>\n<hr>\n<div>\n\t<canvas id=\"o1\"></canvas>\n</div>";
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 const {
 	multi_input,
 	remove_node,
@@ -1947,7 +2085,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":35,"./compare_canvas.js":17,"./header.js":19,"./main.css":20,"./main.html":21}],23:[function(require,module,exports){
+},{"./../../utils/utils.js":37,"./compare_canvas.js":19,"./header.js":21,"./main.css":22,"./main.html":23}],25:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1964,7 +2102,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],24:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 const header = require('./header.js');
 const {
 	commentary_button,
@@ -2119,7 +2257,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":35,"./header.js":23}],25:[function(require,module,exports){
+},{"./../../utils/utils.js":37,"./header.js":25}],27:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2136,7 +2274,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],26:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -2174,7 +2312,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":35,"./header.js":25}],27:[function(require,module,exports){
+},{"./../../utils/utils.js":37,"./header.js":27}],29:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -2229,7 +2367,7 @@ module.exports = {
 	commentary_from_text: commentary_from_text
 };
 
-},{"./node_to_dtext.js":30}],28:[function(require,module,exports){
+},{"./node_to_dtext.js":32}],30:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -2238,7 +2376,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],29:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],31:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -2402,7 +2540,7 @@ module.exports = {
 	data_to_span: data_to_span
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":28}],30:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":30}],32:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -2473,7 +2611,7 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":32}],31:[function(require,module,exports){
+},{"./safe_link.js":34}],33:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 const { download_image } = require('./hash_image.js');
 
@@ -2485,6 +2623,12 @@ function clear_page () {
 function clear_children (node) {
 	while (node.firstChild) {
 		remove_node(node.firstChild);
+	}
+}
+
+function move_children (donor_node, new_node) {
+	while (donor_node.firstChild !== null) {
+		new_node.appendChild(donor_node.firstChild);
 	}
 }
 
@@ -2544,10 +2688,11 @@ module.exports = {
 	common_styles: apply_common_styles,
 	add_css: add_css,
 	string_to_node: string_to_node,
-	multi_input: multi_input
+	multi_input: multi_input,
+	move_children: move_children
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./hash_image.js":29}],32:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":3,"./hash_image.js":31}],34:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -2590,7 +2735,7 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],33:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 const { artist_commentary, commentary_button } = require('./artist_commentary.js');
 const { upload_button } = require('./upload_url.js');
 const { data_to_span } = require('./hash_image.js');
@@ -2650,7 +2795,7 @@ module.exports = {
 	simple_site: build_simple
 };
 
-},{"./artist_commentary.js":27,"./hash_image.js":29,"./nodes.js":31,"./upload_url.js":34}],34:[function(require,module,exports){
+},{"./artist_commentary.js":29,"./hash_image.js":31,"./nodes.js":33,"./upload_url.js":36}],36:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -2675,7 +2820,7 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],35:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 module.exports = {
@@ -2690,4 +2835,4 @@ module.exports = {
 	GM: GM
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./artist_commentary.js":27,"./e621_api.js":28,"./hash_image.js":29,"./node_to_dtext.js":30,"./nodes.js":31,"./safe_link.js":32,"./simple_site.js":33,"./upload_url.js":34}]},{},[6]);
+},{"./../../dependencies/gm_functions.js":3,"./artist_commentary.js":29,"./e621_api.js":30,"./hash_image.js":31,"./node_to_dtext.js":32,"./nodes.js":33,"./safe_link.js":34,"./simple_site.js":35,"./upload_url.js":36}]},{},[6]);

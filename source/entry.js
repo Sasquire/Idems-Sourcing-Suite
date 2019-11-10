@@ -9,7 +9,8 @@ const plans = [
 	require('./plans/twitter/main.js'),
 	require('./plans/deviantart/main.js'),
 	require('./plans/weasyl/main.js'),
-	require('./plans/image_compare/main.js')
+	require('./plans/image_compare/main.js'),
+	require('./plans/furrynetwork/main.js')
 ];
 
 const here = new URL(window.location.href);

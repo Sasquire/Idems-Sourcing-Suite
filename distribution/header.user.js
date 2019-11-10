@@ -23,6 +23,10 @@
 // @match        *://*.furaffinity.net/full/*
 // @connect      facdn.net
 
+//               FurryNetwork v1
+// @match        *://*.furrynetwork.com/*
+// @connect      https://d3gz42uwgl1r1y.cloudfront.net/
+
 //               Image Comparison v1
 // @match        *://*.e621.net/extensions/image_compare
 // @connect      *
