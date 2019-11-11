@@ -4,8 +4,14 @@ const path = require('path');
 const fs = require('fs');
 const { performance } = require('perf_hooks');
 
-const info = require('./header.json');
 const apply_header = require('./dependencies/prepend-text.js');
+const info = {
+	base_version: 1,
+	authors: 'Meras',
+	updateURL: '',
+	downloadURL: '',
+	icon: ''
+};
 
 function bundle (header_string) {
 	const entry = path.join('source', 'entry.js');
@@ -21,7 +27,7 @@ function build_header () {
 	return `// ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      ${info.version}
+// @version      ${get_version()}
 // @author       ${info.authors}
 
 // @namespace    https://github.com/Sasquire/
@@ -32,35 +38,19 @@ function build_header () {
 
 // @license      Unlicense
 
+//               Common v${info.base_version}
 // @connect      e621.net
-
-${build_match_connects()}
-
 // @grant        GM.addStyle
 // @grant        GM.xmlHttpRequest
 
+${build_match_connects()}
 // ==/UserScript==
 
 `;
 }
 
 function build_match_connects () {
-	const plan_dir = path.join('source', 'plans');
-	return fs.readdirSync(plan_dir)
-		.filter(e => e !== 'plans.js') // Removes the entry point
-		.map(e => path.join('.', plan_dir, e, 'header.js'))
-		.map(e => `./${e}`)
-		.map(e => {
-			try {
-				const header = require(e);
-				console.log(`Found ${e}`);
-				return header;
-			} catch (error) {
-				console.error(error.toString());
-				return undefined;
-			}
-		})
-		.filter(e => e) // Filters out any failed headers
+	return all_plans()
 		.map(build_single_header)
 		.join('\n\n');
 
@@ -69,7 +59,7 @@ function build_match_connects () {
 			`//               ${options.title} v${options.version}`,
 			build_row('match', options.match),
 			build_row('connect', options.connect)
-		].join('\n');
+		].filter(e => e).join('\n');
 	}
 
 	function build_row (type, elements) {
@@ -92,6 +82,31 @@ function build () {
 		const end = performance.now();
 		console.log(`Built package in ${Math.floor((end - start) * 100) / 100}ms`);
 	});
+}
+
+function get_version () {
+	const base = info.base_version;
+	const plan_sum = all_plans().reduce((acc, e) => acc + e.version, 0);
+	const version_num = (base + plan_sum).toString();
+	return `1.${version_num.padStart(5, '0')}`;
+}
+
+function all_plans () {
+	const plan_dir = path.join('source', 'plans');
+	return fs.readdirSync(plan_dir)
+		.filter(e => e !== 'plans.js') // Removes the entry point
+		.map(e => path.join('.', plan_dir, e, 'header.js'))
+		.map(e => `./${e}`)
+		.map(e => {
+			try {
+				const header = require(e);
+				return header;
+			} catch (error) {
+				return undefined;
+			}
+		})
+		.filter(e => e) // Filters out any failed headers
+		.sort((a, b) => a.title.localeCompare(b.title));
 }
 
 build();

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00026
+// @version      1.00008
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -12,7 +12,10 @@
 
 // @license      Unlicense
 
+//               Common v1
 // @connect      e621.net
+// @grant        GM.addStyle
+// @grant        GM.xmlHttpRequest
 
 //               DeviantArt v1
 // @match        *://*.deviantart.com/*
@@ -31,6 +34,9 @@
 // @match        *://*.e621.net/extensions/image_compare
 // @connect      *
 
+//               Settings Page v1
+// @match        *://*.e621.net/extensions
+
 //               Twitter v1
 // @match        *://*.twitter.com/*
 // @connect      pbs.twimg.com
@@ -38,10 +44,6 @@
 //               Weasyl v1
 // @match        *://*.weasyl.com/*/submissions/*
 // @connect      cdn.weasyl.com
-
-// @grant        GM.addStyle
-// @grant        GM.xmlHttpRequest
-
 // ==/UserScript==
 
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
@@ -923,6 +925,109 @@ function handle_error (error) {
 /***/ })
 /******/ ])["default"];
 },{}],3:[function(require,module,exports){
+((base_html, base_css) => {
+	const is_correct_url = window.location.href === 'https://e621.net/extensions';
+	const is_loaded = document.body.dataset.page_loaded === true;
+	if (is_correct_url && is_loaded === false) {
+		clear_page();
+		init_css();
+		init_page();
+	}
+
+	function init_css () {
+		const node = document.createElement('style');
+		node.type = 'text/css';
+		node.textContent = base_css;
+		document.head.appendChild(node);
+	}
+
+	function clear_page () {
+		while (document.head.firstChild) {
+			document.head.removeChild(document.head.firstChild);
+		}
+		while (document.body.firstChild) {
+			document.body.removeChild(document.body.firstChild);
+		}
+	}
+
+	function init_page () {
+		document.body.innerHTML = base_html;
+		document.body.dataset.page_loaded = true;
+	}
+
+	class Setting {
+		constructor (section_name, section_url) {
+			this.name = section_name;
+
+			const container = document.createElement('div');
+			container.id = section_name;
+			container.classList.add('setting_section');
+
+			container.innerHTML = `
+			<a class="setting_title" href="${section_url}">${section_name}</a>
+			<div id="${section_name}_settings" class="setting_values"></div>
+			`;
+
+			document.getElementById('settings').appendChild(container);
+		}
+	};
+
+	const a = new Setting('Testing', 'https://e621.net/extensions');
+
+//	setting.checkbox = (name, key, description) => {
+
+//	};
+})(`
+<h1>e621 Extension Hub</h1>
+<div id="settings"></div>
+`, `
+:root {
+	--dark-blue: #031131;
+	--main-blue: #012e56;
+	--blue: #284a81;
+	--other-blue: #174891;
+	--more-blue: #152f56;
+	--yellow: #fdba31;
+	--light-yellow: #ffde9b;
+	--dark-yellow: #d8b162;
+}
+
+.hidden { display: none; }
+
+body {
+	background-color: var(--dark-blue);
+	background-image: url(https://e621.net/images/stripe.png);
+}
+
+h1 {
+	padding: 1rem 3rem;
+	color: var(--yellow);
+	background-color: var(--main-blue);
+	border-radius: 1rem;
+}
+
+.setting_section {
+	background-color: var(--main-blue);
+	margin: 1rem 0px;
+	padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+    border-radius: 1rem;
+}
+
+.setting_title {
+	color: var(--yellow);
+    margin: 0px 0px 0.5rem 1rem;
+    display: inline-block;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.setting_values {
+	height: 200px;
+	background-color: red;
+}
+`);
+
+},{}],4:[function(require,module,exports){
 // If changes have to be made to the GM object, this is where
 // those changes should happen. Otherwise return that
 // object as is
@@ -930,7 +1035,7 @@ function handle_error (error) {
 // eslint-disable-next-line no-undef
 module.exports = GM;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /*
 Javascript MD5 library - version 0.4
 Coded (2011) by Luigi Galli - LG@4e71.org - http://faultylabs.com
@@ -1186,7 +1291,7 @@ console.log(MD5(a));
 
 module.exports = MD5;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 // Unlisence (2019)
 
 // For sites like twitter it is very useful to tell when the
@@ -1219,7 +1324,7 @@ window.addEventListener('popstate', e => {
 	window.dispatchEvent(new Event('locationchange'));
 });
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 // custom events for url change
 require('./../dependencies/on_url_change.js');
 
@@ -1232,7 +1337,8 @@ const plans = [
 	require('./plans/deviantart/main.js'),
 	require('./plans/weasyl/main.js'),
 	require('./plans/image_compare/main.js'),
-	require('./plans/furrynetwork/main.js')
+	require('./plans/furrynetwork/main.js'),
+	require('./plans/settings/main.js')
 ];
 
 const here = new URL(window.location.href);
@@ -1242,7 +1348,7 @@ if (site !== undefined) {
 	site.exec();
 }
 
-},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":5,"./plans/deviantart/main.js":9,"./plans/furaffinity/main.js":16,"./plans/furrynetwork/main.js":18,"./plans/image_compare/main.js":24,"./plans/twitter/main.js":26,"./plans/weasyl/main.js":28}],7:[function(require,module,exports){
+},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":6,"./plans/deviantart/main.js":10,"./plans/furaffinity/main.js":17,"./plans/furrynetwork/main.js":19,"./plans/image_compare/main.js":25,"./plans/settings/main.js":27,"./plans/twitter/main.js":29,"./plans/weasyl/main.js":31}],8:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	artist_commentary,
@@ -1357,7 +1463,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":37,"./shared.js":11}],8:[function(require,module,exports){
+},{"./../../utils/utils.js":40,"./shared.js":12}],9:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1372,7 +1478,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 const old = require('./old.js');
 const eclipse = require('./eclipse.js');
 const header = require('./header.js');
@@ -1418,7 +1524,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./eclipse.js":7,"./header.js":8,"./old.js":10}],10:[function(require,module,exports){
+},{"./eclipse.js":8,"./header.js":9,"./old.js":11}],11:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	commentary_from_text,
@@ -1532,7 +1638,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":37,"./shared.js":11}],11:[function(require,module,exports){
+},{"./../../utils/utils.js":40,"./shared.js":12}],12:[function(require,module,exports){
 const { commentary_button, upload_button } = require('./../../utils/utils.js');
 
 function create_description_button (info) {
@@ -1560,7 +1666,7 @@ module.exports = {
 	upload: create_upload_button
 };
 
-},{"./../../utils/utils.js":37}],12:[function(require,module,exports){
+},{"./../../utils/utils.js":40}],13:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -1616,7 +1722,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":37,"./links.js":15}],13:[function(require,module,exports){
+},{"./../../utils/utils.js":40,"./links.js":16}],14:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -1662,7 +1768,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":37,"./links.js":15}],14:[function(require,module,exports){
+},{"./../../utils/utils.js":40,"./links.js":16}],15:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1680,7 +1786,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 function full_to_thumb (full_url) {
 	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
 	const post_id = new URL(window.location.href).pathname.split('/')[2];
@@ -1691,7 +1797,7 @@ module.exports = {
 	full_to_thumb: full_to_thumb
 };
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 const run_classic = require('./classic.js');
 const run_beta = require('./beta.js');
 const header = require('./header.js');
@@ -1713,7 +1819,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./beta.js":12,"./classic.js":13,"./header.js":14}],17:[function(require,module,exports){
+},{"./beta.js":13,"./classic.js":14,"./header.js":15}],18:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1728,7 +1834,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 const {
 	simple_site,
 	remove_node,
@@ -1846,7 +1952,7 @@ module.exports = {
 	...header
 };
 
-},{"./../../utils/utils.js":37,"./header.js":17}],19:[function(require,module,exports){
+},{"./../../utils/utils.js":40,"./header.js":18}],20:[function(require,module,exports){
 const pixel_compare = require('./compare_points.js');
 
 async function compare (options) {
@@ -1915,7 +2021,7 @@ async function compare (options) {
 
 module.exports = compare;
 
-},{"./compare_points.js":20}],20:[function(require,module,exports){
+},{"./compare_points.js":21}],21:[function(require,module,exports){
 const library = {};
 
 // https://stackoverflow.com/questions/8885323/speed-of-the-math-object-in-javascript
@@ -1973,7 +2079,7 @@ library.in_second = (d1, d2, o) => {
 
 module.exports = library;
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		return url.href === 'https://e621.net/extensions/image_compare';
@@ -1989,13 +2095,13 @@ module.exports = {
 	version: 1
 };
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = ":root {\n\t--dark-blue: #031131;\n\t--blue: #284a81;\n\t--other-blue: #174891;\n\t--more-blue: #152f56;\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n}\n\nbody { background-color: var(--blue); }\n\ncanvas {\n\tborder: 5px dashed var(--dark-blue);\n}\n\n#c1, #c2 {\n\tmax-width: 400px;\n\tmax-height: 400px;\n}\n\n#input {\n\tdisplay: grid;\n\tgrid-template-columns: auto auto;\n\tgrid-gap: 5px;\n\tflex-grow: 1;\n}\n\n#control {\n\tflex-grow: 5;\n}\n\n#main {\n\tdisplay: flex;\n}\n\n#messages {\n\tdisplay: flex;\n\tflex-direction: column;\n\tcolor: var(--light-yellow);\n}\n\n#leave_early ~ label {\n\tcolor: var(--light-yellow);\n}\n\nhr { color: var(--light-yellow); }";
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = "<div id=\"main\">\n\t<div id=\"control\">\n\t\t<button id=\"compare_button\">Compare images using</button>\n\t\t<select id=\"algorithm_select\" title=\"These are named after the degrees of a polynomial\">\n\t\t\t<option value=\"constant\" title=\"This is what you want\">Constant</option>\n\t\t\t<option value=\"linear\" title=\"absoluteValue of color1 - color2\">Linear</option>\n\t\t\t<option value=\"quadratic\" title=\"(color1 - color2)^2\">Quadratic</option>\n\t\t\t<option value=\"in_first\" title=\"Only pixels that are in the first image\">In First</option>\n\t\t\t<option value=\"in_second\" title=\"Only pixels that are in the second image\">In Second</option>\n\t\t</select>\n\t\t<br>\n\t\t<input type=\"checkbox\" id=\"leave_early\" name=\"leave_early\"></input>\n\t\t<label for=\"leave_early\">Quick Compare</label>\n\t\t<br>\n\t\t<div id=\"messages\">\n\t\t\t<span>Logging information should appear here<span>\n\t\t</div>\n\t</div>\n\t<div id=\"input\">\n\t\t<canvas id=\"c1\"></canvas>\n\t\t<canvas id=\"c2\"></canvas>\n\t</div>\n</div>\n<hr>\n<div>\n\t<canvas id=\"o1\"></canvas>\n</div>";
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 const {
 	multi_input,
 	remove_node,
@@ -2085,7 +2191,35 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":37,"./compare_canvas.js":19,"./header.js":21,"./main.css":22,"./main.html":23}],25:[function(require,module,exports){
+},{"./../../utils/utils.js":40,"./compare_canvas.js":20,"./header.js":22,"./main.css":23,"./main.html":24}],26:[function(require,module,exports){
+module.exports = {
+	test: (url) => {
+		return url.href === 'https://e621.net/extensions';
+	},
+
+	match: ['*://*.e621.net/extensions'],
+
+	connect: [],
+
+	title: 'Settings Page',
+	version: 1
+};
+
+},{}],27:[function(require,module,exports){
+const headers = require('./header.js');
+const utils = require('./../../../dependencies/extensions.js');
+
+function exec () {
+	// Do something with utils
+	return utils;
+}
+
+module.exports = {
+	exec: exec,
+	...headers
+};
+
+},{"./../../../dependencies/extensions.js":3,"./header.js":26}],28:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2102,7 +2236,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],26:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 const header = require('./header.js');
 const {
 	commentary_button,
@@ -2257,7 +2391,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":37,"./header.js":25}],27:[function(require,module,exports){
+},{"./../../utils/utils.js":40,"./header.js":28}],30:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2274,7 +2408,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],28:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -2312,7 +2446,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":37,"./header.js":27}],29:[function(require,module,exports){
+},{"./../../utils/utils.js":40,"./header.js":30}],32:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -2367,7 +2501,7 @@ module.exports = {
 	commentary_from_text: commentary_from_text
 };
 
-},{"./node_to_dtext.js":32}],30:[function(require,module,exports){
+},{"./node_to_dtext.js":35}],33:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -2376,7 +2510,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],31:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],34:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -2540,7 +2674,7 @@ module.exports = {
 	data_to_span: data_to_span
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./../../dependencies/md5.js":4,"./e621_api.js":30}],32:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./../../dependencies/md5.js":5,"./e621_api.js":33}],35:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -2611,7 +2745,7 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":34}],33:[function(require,module,exports){
+},{"./safe_link.js":37}],36:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 const { download_image } = require('./hash_image.js');
 
@@ -2692,7 +2826,7 @@ module.exports = {
 	move_children: move_children
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./hash_image.js":31}],34:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./hash_image.js":34}],37:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -2735,7 +2869,7 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],35:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 const { artist_commentary, commentary_button } = require('./artist_commentary.js');
 const { upload_button } = require('./upload_url.js');
 const { data_to_span } = require('./hash_image.js');
@@ -2795,7 +2929,7 @@ module.exports = {
 	simple_site: build_simple
 };
 
-},{"./artist_commentary.js":29,"./hash_image.js":31,"./nodes.js":33,"./upload_url.js":36}],36:[function(require,module,exports){
+},{"./artist_commentary.js":32,"./hash_image.js":34,"./nodes.js":36,"./upload_url.js":39}],39:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -2820,7 +2954,7 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],37:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 
 module.exports = {
@@ -2835,4 +2969,4 @@ module.exports = {
 	GM: GM
 };
 
-},{"./../../dependencies/gm_functions.js":3,"./artist_commentary.js":29,"./e621_api.js":30,"./hash_image.js":31,"./node_to_dtext.js":32,"./nodes.js":33,"./safe_link.js":34,"./simple_site.js":35,"./upload_url.js":36}]},{},[6]);
+},{"./../../dependencies/gm_functions.js":4,"./artist_commentary.js":32,"./e621_api.js":33,"./hash_image.js":34,"./node_to_dtext.js":35,"./nodes.js":36,"./safe_link.js":37,"./simple_site.js":38,"./upload_url.js":39}]},{},[7]);

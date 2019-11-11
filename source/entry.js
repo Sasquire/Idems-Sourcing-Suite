@@ -10,7 +10,8 @@ const plans = [
 	require('./plans/deviantart/main.js'),
 	require('./plans/weasyl/main.js'),
 	require('./plans/image_compare/main.js'),
-	require('./plans/furrynetwork/main.js')
+	require('./plans/furrynetwork/main.js'),
+	require('./plans/settings/main.js')
 ];
 
 const here = new URL(window.location.href);
