@@ -15,6 +15,8 @@
 //               Common v1
 // @connect      e621.net
 // @grant        GM.addStyle
+// @grant        GM.getValue
+// @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
 
 //               DeviantArt v1

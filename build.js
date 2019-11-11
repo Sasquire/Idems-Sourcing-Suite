@@ -41,6 +41,8 @@ function build_header () {
 //               Common v${info.base_version}
 // @connect      e621.net
 // @grant        GM.addStyle
+// @grant        GM.getValue
+// @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
 
 ${build_match_connects()}
