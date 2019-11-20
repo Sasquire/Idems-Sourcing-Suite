@@ -1607,6 +1607,26 @@ window.addEventListener('popstate', e => {
 });
 
 },{}],7:[function(require,module,exports){
+// This is a js file so it can be commented
+
+module.exports = {
+	// Different parts of the on-site-utilities
+	on_site_hasher_enabled: true,
+	on_site_upload_enabled: true,
+	on_site_commentary_enabled: true,
+
+	// Individual sites that control if the on-site-utilities become enabled.
+	on_site_deviantart_enabled: true,
+	on_site_furaffinity_enabled: true,
+	on_site_furrynetwork_enabled: true,
+	on_site_inkbunny_enabled: true,
+	on_site_pixiv_enabled: true,
+	on_site_sofurry_enabled: true,
+	on_site_twitter_enabled: true,
+	on_site_weasyl_enabled: true
+};
+
+},{}],8:[function(require,module,exports){
 // custom events for url change
 require('./../dependencies/on_url_change.js');
 
@@ -1623,14 +1643,22 @@ const plans = [
 	require('./plans/settings/main.js')
 ];
 
+const { get_value } = require('./utils/utils.js');
+
 const here = new URL(window.location.href);
 const site = plans.find(e => e.test(here));
 if (site !== undefined) {
-	console.log(`idem's Sourcing Suite: Running ${site.title} v${site.version}`);
-	site.exec();
+	get_value(`on_site_${site.title.toLowerCase()}_enabled`).then(e => {
+		if (e === true) {
+			console.log(`idem's Sourcing Suite: Running ${site.title} v${site.version}`);
+			site.exec();
+		} else {
+			// Found site, but not enabled
+		}
+	});
 }
 
-},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":6,"./plans/deviantart/main.js":10,"./plans/furaffinity/main.js":17,"./plans/furrynetwork/main.js":19,"./plans/image_compare/main.js":25,"./plans/settings/main.js":27,"./plans/twitter/main.js":29,"./plans/weasyl/main.js":31}],8:[function(require,module,exports){
+},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":6,"./plans/deviantart/main.js":11,"./plans/furaffinity/main.js":18,"./plans/furrynetwork/main.js":20,"./plans/image_compare/main.js":26,"./plans/settings/main.js":28,"./plans/twitter/main.js":30,"./plans/weasyl/main.js":32,"./utils/utils.js":42}],9:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	artist_commentary,
@@ -1745,7 +1773,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":40,"./shared.js":12}],9:[function(require,module,exports){
+},{"./../../utils/utils.js":42,"./shared.js":13}],10:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1760,7 +1788,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 const old = require('./old.js');
 const eclipse = require('./eclipse.js');
 const header = require('./header.js');
@@ -1806,7 +1834,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./eclipse.js":8,"./header.js":9,"./old.js":11}],11:[function(require,module,exports){
+},{"./eclipse.js":9,"./header.js":10,"./old.js":12}],12:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	commentary_from_text,
@@ -1920,7 +1948,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":40,"./shared.js":12}],12:[function(require,module,exports){
+},{"./../../utils/utils.js":42,"./shared.js":13}],13:[function(require,module,exports){
 const { commentary_button, upload_button } = require('./../../utils/utils.js');
 
 function create_description_button (info) {
@@ -1948,7 +1976,7 @@ module.exports = {
 	upload: create_upload_button
 };
 
-},{"./../../utils/utils.js":40}],13:[function(require,module,exports){
+},{"./../../utils/utils.js":42}],14:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -2004,11 +2032,11 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":40,"./links.js":16}],14:[function(require,module,exports){
-const { simple_site } = require('./../../utils/utils.js');
+},{"./../../utils/utils.js":42,"./links.js":17}],15:[function(require,module,exports){
+const { simple_site, append } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
-const get_info = (full_url) => simple_site({
+const get_info = async (full_url) => simple_site({
 	artist: document.querySelector('.information a'),
 	title: document.querySelector('.information h2'),
 	description: document.querySelector('.alt1[width="70%"]'),
@@ -2019,38 +2047,38 @@ const get_info = (full_url) => simple_site({
 	css: `
 		.container { display:flex; flex-direction: row; }
 		.information { margin-right: auto; }
-		#iss_container {
-			display: grid;
-			grid-template-columns: auto auto;
-			grid-gap: 5px;
 
+		#iss_container {
+			display: flex;
+			flex-direction: column;
 			font-weight: 700;
 			font-size: 1.3em;
 			padding: 0.3rem;
 		}
 		.iss_image_link { margin-right: 0.4rem; }
-	`
+		#iss_container > :not(.iss_hash_span) > * {
+			float: right;
+		}
+	`,
+	hashes_as_array: true
 });
 
 async function exec () {
 	const full_url = document.querySelector('a[href^="//d.facdn.net"]').href;
-	const info = get_info(full_url);
+	const info = await get_info(full_url);
 
 	const container = document.createElement('div');
 	container.id = 'iss_container';
 	document.querySelector('.container').appendChild(container);
 
-	container.appendChild(info.upload);
-	container.appendChild(info.hashes.childNodes.item(0));
-	container.appendChild(info.description);
-	// Appending the zeroth element a second time because the
-	// first append shifts the array
-	container.appendChild(info.hashes.childNodes.item(0));
+	append(container, info.upload);
+	append(container, info.description);
+	info.hashes.forEach(e => append(container, e));
 }
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":40,"./links.js":16}],15:[function(require,module,exports){
+},{"./../../utils/utils.js":42,"./links.js":17}],16:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2068,7 +2096,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 function full_to_thumb (full_url) {
 	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
 	const post_id = new URL(window.location.href).pathname.split('/')[2];
@@ -2079,7 +2107,7 @@ module.exports = {
 	full_to_thumb: full_to_thumb
 };
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 const run_classic = require('./classic.js');
 const run_beta = require('./beta.js');
 const header = require('./header.js');
@@ -2101,7 +2129,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./beta.js":13,"./classic.js":14,"./header.js":15}],18:[function(require,module,exports){
+},{"./beta.js":14,"./classic.js":15,"./header.js":16}],19:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2116,7 +2144,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 const {
 	simple_site,
 	remove_node,
@@ -2234,7 +2262,7 @@ module.exports = {
 	...header
 };
 
-},{"./../../utils/utils.js":40,"./header.js":18}],20:[function(require,module,exports){
+},{"./../../utils/utils.js":42,"./header.js":19}],21:[function(require,module,exports){
 const pixel_compare = require('./compare_points.js');
 
 async function compare (options) {
@@ -2303,7 +2331,7 @@ async function compare (options) {
 
 module.exports = compare;
 
-},{"./compare_points.js":21}],21:[function(require,module,exports){
+},{"./compare_points.js":22}],22:[function(require,module,exports){
 const library = {};
 
 // https://stackoverflow.com/questions/8885323/speed-of-the-math-object-in-javascript
@@ -2361,7 +2389,7 @@ library.in_second = (d1, d2, o) => {
 
 module.exports = library;
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		return url.href === 'https://e621.net/extensions/image_compare';
@@ -2377,13 +2405,13 @@ module.exports = {
 	version: 1
 };
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = ":root {\n\t--dark-blue: #031131;\n\t--blue: #284a81;\n\t--other-blue: #174891;\n\t--more-blue: #152f56;\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n}\n\nbody { background-color: var(--blue); }\n\ncanvas {\n\tborder: 5px dashed var(--dark-blue);\n}\n\n#c1, #c2 {\n\tmax-width: 400px;\n\tmax-height: 400px;\n}\n\n#input {\n\tdisplay: grid;\n\tgrid-template-columns: auto auto;\n\tgrid-gap: 5px;\n\tflex-grow: 1;\n}\n\n#control {\n\tflex-grow: 5;\n}\n\n#main {\n\tdisplay: flex;\n}\n\n#messages {\n\tdisplay: flex;\n\tflex-direction: column;\n\tcolor: var(--light-yellow);\n}\n\n#leave_early ~ label {\n\tcolor: var(--light-yellow);\n}\n\nhr { color: var(--light-yellow); }";
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = "<div id=\"main\">\n\t<div id=\"control\">\n\t\t<button id=\"compare_button\">Compare images using</button>\n\t\t<select id=\"algorithm_select\" title=\"These are named after the degrees of a polynomial\">\n\t\t\t<option value=\"constant\" title=\"This is what you want\">Constant</option>\n\t\t\t<option value=\"linear\" title=\"absoluteValue of color1 - color2\">Linear</option>\n\t\t\t<option value=\"quadratic\" title=\"(color1 - color2)^2\">Quadratic</option>\n\t\t\t<option value=\"in_first\" title=\"Only pixels that are in the first image\">In First</option>\n\t\t\t<option value=\"in_second\" title=\"Only pixels that are in the second image\">In Second</option>\n\t\t</select>\n\t\t<br>\n\t\t<input type=\"checkbox\" id=\"leave_early\" name=\"leave_early\"></input>\n\t\t<label for=\"leave_early\">Quick Compare</label>\n\t\t<br>\n\t\t<div id=\"messages\">\n\t\t\t<span>Logging information should appear here<span>\n\t\t</div>\n\t</div>\n\t<div id=\"input\">\n\t\t<canvas id=\"c1\"></canvas>\n\t\t<canvas id=\"c2\"></canvas>\n\t</div>\n</div>\n<hr>\n<div>\n\t<canvas id=\"o1\"></canvas>\n</div>";
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 const {
 	multi_input,
 	remove_node,
@@ -2473,7 +2501,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":40,"./compare_canvas.js":20,"./header.js":22,"./main.css":23,"./main.html":24}],26:[function(require,module,exports){
+},{"./../../utils/utils.js":42,"./compare_canvas.js":21,"./header.js":23,"./main.css":24,"./main.html":25}],27:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		return url.href === 'https://e621.net/extensions';
@@ -2487,8 +2515,9 @@ module.exports = {
 	version: 1
 };
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 const headers = require('./header.js');
+const defaults = require('./../../default_settings.js');
 const Settings = require('./../../../dependencies/extensions.js');
 
 function exec () {
@@ -2498,16 +2527,49 @@ function exec () {
 
 function on_site_hasher_settings () {
 	const settings = new Settings({
-		name: 'on-site-hasher',
-		description: 'Will display the md5 sum of images on various sites.'
+		name: 'on-site-utilities',
+		description: 'A collection of utilities for sourcing and uploading posts.'
 	});
 
 	settings.checkbox({
-		name: 'Enabled',
-		key: 'on_site_md5_hasher',
-		default: true,
-		description: 'Determines if this functionality should be turned on at all'
+		name: 'on-site-hasher',
+		key: 'on_site_hasher_enabled',
+		default: defaults.on_site_hasher_enabled,
+		description: 'Downloads, hashes, and links to various image qualities.'
 	});
+
+	settings.checkbox({
+		name: 'on-site-upload',
+		key: 'on_site_upload_enabled',
+		default: defaults.on_site_upload_enabled,
+		description: 'Provides a convenient link to upload posts directly to e621.'
+	});
+
+	settings.checkbox({
+		name: 'on-site-commentary',
+		key: 'on_site_commentary_enabled',
+		default: defaults.on_site_commentary_enabled,
+		description: 'Provides a convenient button to copy an artists commentary about an image.'
+	});
+
+	site_checkbox('DeviantArt', 'https://deviantart.com/');
+	site_checkbox('FurAffinity', 'https://furaffinity.net/');
+	site_checkbox('FurryNetwork', 'https://furrynetwork.com/');
+	site_checkbox('InkBunny', 'https://inkbunny.net/');
+	site_checkbox('Pixiv', 'https://www.pixiv.net/en/');
+	site_checkbox('SoFurry', 'https://www.sofurry.com/');
+	site_checkbox('Twitter', 'https://twitter.com/');
+	site_checkbox('Weasyl', 'https://www.weasyl.com/');
+
+	function site_checkbox (name, url) {
+		const key = `on_site_${name.toLowerCase()}_enabled`;
+		settings.checkbox({
+			name: name,
+			key: key,
+			default: defaults[key],
+			description: `Enable on-site-utilities for <a href="${url}">${name}</a>.`
+		});
+	}
 }
 
 module.exports = {
@@ -2515,7 +2577,7 @@ module.exports = {
 	...headers
 };
 
-},{"./../../../dependencies/extensions.js":3,"./header.js":26}],28:[function(require,module,exports){
+},{"./../../../dependencies/extensions.js":3,"./../../default_settings.js":7,"./header.js":27}],29:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2532,7 +2594,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 const header = require('./header.js');
 const {
 	commentary_button,
@@ -2687,7 +2749,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":40,"./header.js":28}],30:[function(require,module,exports){
+},{"./../../utils/utils.js":42,"./header.js":29}],31:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2704,7 +2766,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 const { simple_site } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -2742,7 +2804,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":40,"./header.js":30}],32:[function(require,module,exports){
+},{"./../../utils/utils.js":42,"./header.js":31}],33:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -2797,7 +2859,7 @@ module.exports = {
 	commentary_from_text: commentary_from_text
 };
 
-},{"./node_to_dtext.js":35}],33:[function(require,module,exports){
+},{"./node_to_dtext.js":37}],34:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -2806,7 +2868,19 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],34:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],35:[function(require,module,exports){
+const GM = require('./../../dependencies/gm_functions.js');
+const defaults = require('./../default_settings.js');
+
+async function get_value (key) {
+	return GM.getValue(key).then(e => e === undefined ? defaults[key] : e);
+}
+
+module.exports = {
+	get_value: get_value
+};
+
+},{"./../../dependencies/gm_functions.js":4,"./../default_settings.js":7}],36:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -2970,7 +3044,7 @@ module.exports = {
 	data_to_span: data_to_span
 };
 
-},{"./../../dependencies/gm_functions.js":4,"./../../dependencies/md5.js":5,"./e621_api.js":33}],35:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./../../dependencies/md5.js":5,"./e621_api.js":34}],37:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -3041,7 +3115,7 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":37}],36:[function(require,module,exports){
+},{"./safe_link.js":39}],38:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 const { download_image } = require('./hash_image.js');
 
@@ -3111,6 +3185,12 @@ function multi_input (callback) {
 	return container;
 }
 
+function append (parent, node) {
+	if (node) {
+		parent.appendChild(node);
+	}
+}
+
 module.exports = {
 	clear_children: clear_children,
 	clear_page: clear_page,
@@ -3119,10 +3199,11 @@ module.exports = {
 	add_css: add_css,
 	string_to_node: string_to_node,
 	multi_input: multi_input,
-	move_children: move_children
+	move_children: move_children,
+	append: append
 };
 
-},{"./../../dependencies/gm_functions.js":4,"./hash_image.js":34}],37:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./hash_image.js":36}],39:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -3165,13 +3246,14 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],38:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 const { artist_commentary, commentary_button } = require('./artist_commentary.js');
 const { upload_button } = require('./upload_url.js');
 const { data_to_span } = require('./hash_image.js');
 const { common_styles, add_css } = require('./nodes.js');
+const { get_value } = require('./gm_values.js');
 
-function build_simple (options) {
+async function build_simple (options) {
 	options = transform_options(options);
 	// artist
 	// title
@@ -3179,6 +3261,7 @@ function build_simple (options) {
 	// full_url
 	// hashes
 	// css
+	// encased
 
 	const commentary = artist_commentary(
 		options.artist,
@@ -3186,18 +3269,39 @@ function build_simple (options) {
 		options.description
 	);
 
-	const commentary_span = document.createElement('span');
-	commentary_span.appendChild(commentary_button(commentary));
-
 	const sources = [
 		options.full_url,
 		options.artist.href,
 		window.location.href
 	];
 
-	const upload_span = document.createElement('span');
-	const upload_link = upload_button(options.full_url, sources, commentary);
-	upload_span.appendChild(upload_link);
+	let commentary_span = null;
+	const on_site_commentary_enabled = await get_value('on_site_commentary_enabled');
+	if (on_site_commentary_enabled === true) {
+		commentary_span = document.createElement('span');
+		commentary_span.appendChild(commentary_button(commentary));
+	}
+
+	let upload_span = null;
+	const on_site_upload_enabled = await get_value('on_site_upload_enabled');
+	if (on_site_upload_enabled === true) {
+		upload_span = document.createElement('span');
+		const button = upload_button(options.full_url, sources, commentary);
+		upload_span.appendChild(button);
+	}
+
+	let hash_span = null;
+	const on_site_hasher_enabled = await get_value('on_site_hasher_enabled');
+	if (on_site_hasher_enabled === true) {
+		const data_span = data_to_span(options.hashes);
+		if (options.hashes_as_array === true) {
+			hash_span = Array.from(data_span.children);
+		} else {
+			hash_span = data_span;
+		}
+	} else if (options.hashes_as_array === true) {
+		hash_span = [];
+	}
 
 	common_styles();
 	add_css(options.css);
@@ -3205,7 +3309,7 @@ function build_simple (options) {
 	return {
 		description: commentary_span,
 		upload: upload_span,
-		hashes: data_to_span(options.hashes)
+		hashes: hash_span
 	};
 }
 
@@ -3225,7 +3329,7 @@ module.exports = {
 	simple_site: build_simple
 };
 
-},{"./artist_commentary.js":32,"./hash_image.js":34,"./nodes.js":36,"./upload_url.js":39}],39:[function(require,module,exports){
+},{"./artist_commentary.js":33,"./gm_values.js":35,"./hash_image.js":36,"./nodes.js":38,"./upload_url.js":41}],41:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -3250,9 +3354,7 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],40:[function(require,module,exports){
-const GM = require('./../../dependencies/gm_functions.js');
-
+},{}],42:[function(require,module,exports){
 module.exports = {
 	...require('./artist_commentary.js'),
 	...require('./e621_api.js'),
@@ -3262,7 +3364,7 @@ module.exports = {
 	...require('./safe_link.js'),
 	...require('./upload_url.js'),
 	...require('./simple_site.js'),
-	GM: GM
+	...require('./gm_values.js')
 };
 
-},{"./../../dependencies/gm_functions.js":4,"./artist_commentary.js":32,"./e621_api.js":33,"./hash_image.js":34,"./node_to_dtext.js":35,"./nodes.js":36,"./safe_link.js":37,"./simple_site.js":38,"./upload_url.js":39}]},{},[7]);
+},{"./artist_commentary.js":33,"./e621_api.js":34,"./gm_values.js":35,"./hash_image.js":36,"./node_to_dtext.js":37,"./nodes.js":38,"./safe_link.js":39,"./simple_site.js":40,"./upload_url.js":41}]},{},[8]);

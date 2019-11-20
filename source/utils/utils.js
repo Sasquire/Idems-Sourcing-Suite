@@ -1,5 +1,3 @@
-const GM = require('./../../dependencies/gm_functions.js');
-
 module.exports = {
 	...require('./artist_commentary.js'),
 	...require('./e621_api.js'),
@@ -9,5 +7,5 @@ module.exports = {
 	...require('./safe_link.js'),
 	...require('./upload_url.js'),
 	...require('./simple_site.js'),
-	GM: GM
+	...require('./gm_values.js')
 };

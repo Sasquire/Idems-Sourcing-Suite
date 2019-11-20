@@ -1,7 +1,7 @@
-const { simple_site } = require('./../../utils/utils.js');
+const { simple_site, append } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
-const get_info = (full_url) => simple_site({
+const get_info = async (full_url) => simple_site({
 	artist: document.querySelector('.information a'),
 	title: document.querySelector('.information h2'),
 	description: document.querySelector('.alt1[width="70%"]'),
@@ -12,33 +12,33 @@ const get_info = (full_url) => simple_site({
 	css: `
 		.container { display:flex; flex-direction: row; }
 		.information { margin-right: auto; }
-		#iss_container {
-			display: grid;
-			grid-template-columns: auto auto;
-			grid-gap: 5px;
 
+		#iss_container {
+			display: flex;
+			flex-direction: column;
 			font-weight: 700;
 			font-size: 1.3em;
 			padding: 0.3rem;
 		}
 		.iss_image_link { margin-right: 0.4rem; }
-	`
+		#iss_container > :not(.iss_hash_span) > * {
+			float: right;
+		}
+	`,
+	hashes_as_array: true
 });
 
 async function exec () {
 	const full_url = document.querySelector('a[href^="//d.facdn.net"]').href;
-	const info = get_info(full_url);
+	const info = await get_info(full_url);
 
 	const container = document.createElement('div');
 	container.id = 'iss_container';
 	document.querySelector('.container').appendChild(container);
 
-	container.appendChild(info.upload);
-	container.appendChild(info.hashes.childNodes.item(0));
-	container.appendChild(info.description);
-	// Appending the zeroth element a second time because the
-	// first append shifts the array
-	container.appendChild(info.hashes.childNodes.item(0));
+	append(container, info.upload);
+	append(container, info.description);
+	info.hashes.forEach(e => append(container, e));
 }
 
 module.exports = exec;

@@ -2,8 +2,9 @@ const { artist_commentary, commentary_button } = require('./artist_commentary.js
 const { upload_button } = require('./upload_url.js');
 const { data_to_span } = require('./hash_image.js');
 const { common_styles, add_css } = require('./nodes.js');
+const { get_value } = require('./gm_values.js');
 
-function build_simple (options) {
+async function build_simple (options) {
 	options = transform_options(options);
 	// artist
 	// title
@@ -11,6 +12,7 @@ function build_simple (options) {
 	// full_url
 	// hashes
 	// css
+	// encased
 
 	const commentary = artist_commentary(
 		options.artist,
@@ -18,18 +20,39 @@ function build_simple (options) {
 		options.description
 	);
 
-	const commentary_span = document.createElement('span');
-	commentary_span.appendChild(commentary_button(commentary));
-
 	const sources = [
 		options.full_url,
 		options.artist.href,
 		window.location.href
 	];
 
-	const upload_span = document.createElement('span');
-	const upload_link = upload_button(options.full_url, sources, commentary);
-	upload_span.appendChild(upload_link);
+	let commentary_span = null;
+	const on_site_commentary_enabled = await get_value('on_site_commentary_enabled');
+	if (on_site_commentary_enabled === true) {
+		commentary_span = document.createElement('span');
+		commentary_span.appendChild(commentary_button(commentary));
+	}
+
+	let upload_span = null;
+	const on_site_upload_enabled = await get_value('on_site_upload_enabled');
+	if (on_site_upload_enabled === true) {
+		upload_span = document.createElement('span');
+		const button = upload_button(options.full_url, sources, commentary);
+		upload_span.appendChild(button);
+	}
+
+	let hash_span = null;
+	const on_site_hasher_enabled = await get_value('on_site_hasher_enabled');
+	if (on_site_hasher_enabled === true) {
+		const data_span = data_to_span(options.hashes);
+		if (options.hashes_as_array === true) {
+			hash_span = Array.from(data_span.children);
+		} else {
+			hash_span = data_span;
+		}
+	} else if (options.hashes_as_array === true) {
+		hash_span = [];
+	}
 
 	common_styles();
 	add_css(options.css);
@@ -37,7 +60,7 @@ function build_simple (options) {
 	return {
 		description: commentary_span,
 		upload: upload_span,
-		hashes: data_to_span(options.hashes)
+		hashes: hash_span
 	};
 }
 

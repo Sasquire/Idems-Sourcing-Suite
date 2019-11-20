@@ -14,9 +14,17 @@ const plans = [
 	require('./plans/settings/main.js')
 ];
 
+const { get_value } = require('./utils/utils.js');
+
 const here = new URL(window.location.href);
 const site = plans.find(e => e.test(here));
 if (site !== undefined) {
-	console.log(`idem's Sourcing Suite: Running ${site.title} v${site.version}`);
-	site.exec();
+	get_value(`on_site_${site.title.toLowerCase()}_enabled`).then(e => {
+		if (e === true) {
+			console.log(`idem's Sourcing Suite: Running ${site.title} v${site.version}`);
+			site.exec();
+		} else {
+			// Found site, but not enabled
+		}
+	});
 }

@@ -67,6 +67,12 @@ function multi_input (callback) {
 	return container;
 }
 
+function append (parent, node) {
+	if (node) {
+		parent.appendChild(node);
+	}
+}
+
 module.exports = {
 	clear_children: clear_children,
 	clear_page: clear_page,
@@ -75,5 +81,6 @@ module.exports = {
 	add_css: add_css,
 	string_to_node: string_to_node,
 	multi_input: multi_input,
-	move_children: move_children
+	move_children: move_children,
+	append: append
 };
