@@ -7,6 +7,6 @@ module.exports = {
 
 	connect: [],
 
-	title: 'Settings Page',
+	title: 'SettingsPage',
 	version: 1
 };

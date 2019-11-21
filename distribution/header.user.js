@@ -32,11 +32,11 @@
 // @match        *://*.furrynetwork.com/*
 // @connect      https://d3gz42uwgl1r1y.cloudfront.net/
 
-//               Image Comparison v1
+//               ImageComparison v1
 // @match        *://*.e621.net/extensions/image_compare
 // @connect      *
 
-//               Settings Page v1
+//               SettingsPage v1
 // @match        *://*.e621.net/extensions
 
 //               Twitter v1

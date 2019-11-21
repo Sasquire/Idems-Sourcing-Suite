@@ -14,5 +14,14 @@ module.exports = {
 	on_site_pixiv_enabled: true,
 	on_site_sofurry_enabled: true,
 	on_site_twitter_enabled: true,
-	on_site_weasyl_enabled: true
+	on_site_weasyl_enabled: true,
+
+	// Not really a site, but it has to follow this syntax
+	// to be enabled correctly
+	on_site_imagecomparison_enabled: true,
+
+	// Make sure that the settings page is accessible. If you
+	// somehow manage to set this to false, well, you'll have a
+	// rather large and not easy to fix problem.
+	on_site_settingspage_enabled: true
 };

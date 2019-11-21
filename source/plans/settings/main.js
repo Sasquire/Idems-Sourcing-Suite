@@ -5,6 +5,7 @@ const Settings = require('./../../../dependencies/extensions.js');
 function exec () {
 	// Do something with utils
 	on_site_hasher_settings();
+	image_compare_settings();
 }
 
 function on_site_hasher_settings () {
@@ -52,6 +53,15 @@ function on_site_hasher_settings () {
 			description: `Enable on-site-utilities for <a href="${url}">${name}</a>.`
 		});
 	}
+}
+
+function image_compare_settings () {
+	// eslint-disable-next-line no-unused-vars
+	const settings = new Settings({
+		name: 'image-compare',
+		description: 'An in-browser image comparison tool. Useful for seeing the differences between two images.',
+		url: 'https://e621.net/extensions/image_compare'
+	});
 }
 
 module.exports = {

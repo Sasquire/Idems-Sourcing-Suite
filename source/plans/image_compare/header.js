@@ -9,6 +9,6 @@ module.exports = {
 
 	connect: ['*'],
 
-	title: 'Image Comparison',
+	title: 'ImageComparison',
 	version: 1
 };

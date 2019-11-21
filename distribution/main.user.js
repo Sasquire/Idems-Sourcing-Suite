@@ -32,11 +32,11 @@
 // @match        *://*.furrynetwork.com/*
 // @connect      https://d3gz42uwgl1r1y.cloudfront.net/
 
-//               Image Comparison v1
+//               ImageComparison v1
 // @match        *://*.e621.net/extensions/image_compare
 // @connect      *
 
-//               Settings Page v1
+//               SettingsPage v1
 // @match        *://*.e621.net/extensions
 
 //               Twitter v1
@@ -1623,7 +1623,16 @@ module.exports = {
 	on_site_pixiv_enabled: true,
 	on_site_sofurry_enabled: true,
 	on_site_twitter_enabled: true,
-	on_site_weasyl_enabled: true
+	on_site_weasyl_enabled: true,
+
+	// Not really a site, but it has to follow this syntax
+	// to be enabled correctly
+	on_site_imagecomparison_enabled: true,
+
+	// Make sure that the settings page is accessible. If you
+	// somehow manage to set this to false, well, you'll have a
+	// rather large and not easy to fix problem.
+	on_site_settingspage_enabled: true
 };
 
 },{}],8:[function(require,module,exports){
@@ -2434,12 +2443,12 @@ module.exports = {
 
 	connect: ['*'],
 
-	title: 'Image Comparison',
+	title: 'ImageComparison',
 	version: 1
 };
 
 },{}],24:[function(require,module,exports){
-module.exports = ":root {\n\t--dark-blue: #031131;\n\t--blue: #284a81;\n\t--other-blue: #174891;\n\t--more-blue: #152f56;\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n}\n\nbody { background-color: var(--blue); }\n\ncanvas {\n\tborder: 5px dashed var(--dark-blue);\n}\n\n#c1, #c2 {\n\tmax-width: 400px;\n\tmax-height: 400px;\n}\n\n#input {\n\tdisplay: grid;\n\tgrid-template-columns: auto auto;\n\tgrid-gap: 5px;\n\tflex-grow: 1;\n}\n\n#control {\n\tflex-grow: 5;\n}\n\n#main {\n\tdisplay: flex;\n}\n\n#messages {\n\tdisplay: flex;\n\tflex-direction: column;\n\tcolor: var(--light-yellow);\n}\n\n#leave_early ~ label {\n\tcolor: var(--light-yellow);\n}\n\nhr { color: var(--light-yellow); }";
+module.exports = ":root {\n\t--background-blue: #031131;\n\t--home-blue: #012e56;\n\t--standard-blue: #152f56;\n\t--comment-blue: #213a5f;\n\t--quote-blue: #284a81;\n\t--link-blue: #b4c7d9;\n\t--hover-blue: #2e76b4;\n\n\t--other-blue: #174891;\n\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n}\n\nbody {\n\tbackground-color: var(--background-blue);\n\tbackground-image: url(https://e621.net/images/stripe.png);\n}\n\ncanvas {\n\tborder: 5px dashed var(--quote-blue);\n}\n\n#c1, #c2 {\n\tmax-width: 400px;\n\tmax-height: 400px;\n}\n\n#input {\n\tdisplay: grid;\n\tgrid-template-columns: auto auto;\n\tgrid-gap: 5px;\n\tflex-grow: 1;\n}\n\n#control {\n\tflex-grow: 5;\n}\n\n#main {\n\tdisplay: flex;\n}\n\n#messages {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n\nhr,\ninput[type=file],\n#leave_early ~ label,\n#messages {\n\tcolor: #ccc;\n}";
 
 },{}],25:[function(require,module,exports){
 module.exports = "<div id=\"main\">\n\t<div id=\"control\">\n\t\t<button id=\"compare_button\">Compare images using</button>\n\t\t<select id=\"algorithm_select\" title=\"These are named after the degrees of a polynomial\">\n\t\t\t<option value=\"constant\" title=\"This is what you want\">Constant</option>\n\t\t\t<option value=\"linear\" title=\"absoluteValue of color1 - color2\">Linear</option>\n\t\t\t<option value=\"quadratic\" title=\"(color1 - color2)^2\">Quadratic</option>\n\t\t\t<option value=\"in_first\" title=\"Only pixels that are in the first image\">In First</option>\n\t\t\t<option value=\"in_second\" title=\"Only pixels that are in the second image\">In Second</option>\n\t\t</select>\n\t\t<br>\n\t\t<input type=\"checkbox\" id=\"leave_early\" name=\"leave_early\"></input>\n\t\t<label for=\"leave_early\">Quick Compare</label>\n\t\t<br>\n\t\t<div id=\"messages\">\n\t\t\t<span>Logging information should appear here<span>\n\t\t</div>\n\t</div>\n\t<div id=\"input\">\n\t\t<canvas id=\"c1\"></canvas>\n\t\t<canvas id=\"c2\"></canvas>\n\t</div>\n</div>\n<hr>\n<div>\n\t<canvas id=\"o1\"></canvas>\n</div>";
@@ -2544,7 +2553,7 @@ module.exports = {
 
 	connect: [],
 
-	title: 'Settings Page',
+	title: 'SettingsPage',
 	version: 1
 };
 
@@ -2556,6 +2565,7 @@ const Settings = require('./../../../dependencies/extensions.js');
 function exec () {
 	// Do something with utils
 	on_site_hasher_settings();
+	image_compare_settings();
 }
 
 function on_site_hasher_settings () {
@@ -2588,9 +2598,9 @@ function on_site_hasher_settings () {
 	site_checkbox('DeviantArt', 'https://deviantart.com/');
 	site_checkbox('FurAffinity', 'https://furaffinity.net/');
 	site_checkbox('FurryNetwork', 'https://furrynetwork.com/');
-	site_checkbox('InkBunny', 'https://inkbunny.net/');
-	site_checkbox('Pixiv', 'https://www.pixiv.net/en/');
-	site_checkbox('SoFurry', 'https://www.sofurry.com/');
+	// site_checkbox('InkBunny', 'https://inkbunny.net/');
+	// site_checkbox('Pixiv', 'https://www.pixiv.net/en/');
+	// site_checkbox('SoFurry', 'https://www.sofurry.com/');
 	site_checkbox('Twitter', 'https://twitter.com/');
 	site_checkbox('Weasyl', 'https://www.weasyl.com/');
 
@@ -2603,6 +2613,14 @@ function on_site_hasher_settings () {
 			description: `Enable on-site-utilities for <a href="${url}">${name}</a>.`
 		});
 	}
+}
+
+function image_compare_settings () {
+	const settings = new Settings({
+		name: 'image-compare',
+		description: 'An in-browser image comparison tool. Useful for seeing the differences between two images.',
+		url: 'https://e621.net/extensions/image_compare'
+	});
 }
 
 module.exports = {
