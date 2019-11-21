@@ -10,9 +10,10 @@ async function build_simple (options) {
 	// title
 	// description
 	// full_url
+	// full_url_name
 	// hashes
 	// css
-	// encased
+	// hashes_as_array
 
 	const commentary = artist_commentary(
 		options.artist,
@@ -71,7 +72,8 @@ function transform_options (options) {
 		}
 	});
 
-	options.hashes = [[options.full_url, 'full image']].concat(options.hashes);
+	const image_name = options.full_url_name || 'full image';
+	options.hashes = [[options.full_url, image_name]].concat(options.hashes);
 
 	return options;
 }

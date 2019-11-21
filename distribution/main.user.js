@@ -1666,6 +1666,7 @@ const {
 	data_to_nodes,
 	common_styles,
 	remove_node,
+	get_value,
 	add_css
 } = require('./../../utils/utils.js');
 
@@ -1682,11 +1683,25 @@ async function run_artwork () {
 	container.id = 'iss_container';
 	post_info.appendChild(container);
 
-	container.appendChild(upload(info));
-	container.appendChild(description(info));
+	await conditional_execute('on_site_commentary_enabled', () => {
+		container.appendChild(description(info));
+	});
 
-	const hashes = await data_to_nodes(info.sources);
-	hashes.forEach(e => container.appendChild(e));
+	await conditional_execute('on_site_upload_enabled', () => {
+		container.appendChild(upload(info));
+	});
+
+	await conditional_execute('on_site_hasher_enabled', () => {
+		const hashes = data_to_nodes(info.sources);
+		hashes.forEach(e => container.appendChild(e));
+	});
+}
+
+async function conditional_execute (key, func) {
+	const value = await get_value(key);
+	if (value === true) {
+		func();
+	}
 }
 
 function add_style () {
@@ -1843,6 +1858,7 @@ const {
 	node_to_dtext,
 	common_styles,
 	remove_node,
+	get_value,
 	add_css
 } = require('./../../utils/utils.js');
 
@@ -1865,11 +1881,25 @@ async function run_artwork () {
 	container.id = 'iss_container';
 	post_info.appendChild(container);
 
-	container.appendChild(upload(info));
-	container.appendChild(description(info));
+	await conditional_execute('on_site_commentary_enabled', () => {
+		container.appendChild(description(info));
+	});
 
-	const hashes = await data_to_nodes(info.sources);
-	hashes.forEach(e => container.appendChild(e));
+	await conditional_execute('on_site_upload_enabled', () => {
+		container.appendChild(upload(info));
+	});
+
+	await conditional_execute('on_site_hasher_enabled', () => {
+		const hashes = data_to_nodes(info.sources);
+		hashes.forEach(e => container.appendChild(e));
+	});
+}
+
+async function conditional_execute (key, func) {
+	const value = await get_value(key);
+	if (value === true) {
+		func();
+	}
 }
 
 function add_style () {
@@ -1977,10 +2007,10 @@ module.exports = {
 };
 
 },{"./../../utils/utils.js":42}],14:[function(require,module,exports){
-const { simple_site } = require('./../../utils/utils.js');
+const { simple_site, append } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
-const get_info = (full_url) => simple_site({
+const get_info = async (full_url) => simple_site({
 	artist: document.querySelector('.submission-artist-container > a ~ a'),
 	title: document.querySelector('.submission-title > h2'),
 	description: () => {
@@ -2007,14 +2037,21 @@ const get_info = (full_url) => simple_site({
 		#iss_container > * { white-space: nowrap; }
 		.iss_hash { font-weight: 700; }
 		.iss_image_link { margin-right: 0.4rem; }
-	`
+	`,
+	hashes_as_array: true
 });
 
 async function exec () {
+	// There seem to be two different display modes for the beta site
+	// This code only works on the wide version because in the thin
+	// view, the place where the container is placed disappears. This
+	// seems like it is only done with css because the node will come
+	// back if the window is stretched to fit again.
+
 	// It appears that you can only be on the beta site while logged
 	// in. This does not concern me about this node being hidden
 	const full_url = document.querySelector('.download-logged-in').href;
-	const info = get_info(full_url);
+	const info = await get_info(full_url);
 
 	const container = document.createElement('div');
 	container.id = 'iss_container';
@@ -2023,11 +2060,13 @@ async function exec () {
 		.previousElementSibling;
 	more_from.parentNode.insertBefore(container, more_from);
 
-	container.appendChild(info.upload);
-	container.appendChild(info.description);
-	while (info.hashes.firstChild) {
-		container.appendChild(info.hashes.firstChild);
-	}
+	const header = document.createElement('h2');
+	header.innerText = 'idem\'s sourcing suite';
+	container.appendChild(header);
+
+	append(container, info.upload);
+	append(container, info.description);
+	info.hashes.forEach(e => append(container, e));
 }
 
 module.exports = exec;
@@ -2145,14 +2184,15 @@ module.exports = {
 };
 
 },{}],20:[function(require,module,exports){
-const {
-	simple_site,
-	remove_node,
-	move_children
-} = require('./../../utils/utils.js');
+const { simple_site, remove_node, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
 let last_url = null;
+
+const signal = {
+	wait: async () => document.body.leave('.submission-description__created[title$=" "]'),
+	load: () => (document.querySelector('.submission-description__created').title += ' ')
+};
 
 function attempt_site () {
 	const here = new URL(window.location.href);
@@ -2170,7 +2210,7 @@ function attempt_site () {
 		console.log('ISS: Direct artwork URL detected');
 		document.body.arrive('.l--app__layout .submission')
 			.then(run_site)
-			.then(load_signal);
+			.then(signal.load);
 	} else if (is_viewed) {
 		console.log('ISS: Linked artwork URL detected');
 		// Wait for known element on first run (can be discarded on all)
@@ -2186,31 +2226,23 @@ function attempt_site () {
 
 		// This is way too complex and should be simplified
 		document.body.arrive('.submission__tags')
-			.then(wait_signal)
+			.then(signal.wait)
 			.then(run_site)
-			.then(load_signal);
+			.then(signal.load);
 	}
 
 	last_url = here;
 }
 
-async function wait_signal () {
-	return document.body.leave('.submission-description__created[title$=" "]');
-}
-
-function load_signal () {
-	document.querySelector('.submission-description__created').title += ' ';
-}
-
-function run_site () {
+async function run_site () {
 	const aside = document.querySelector('.submission__aside__inner');
 	const container = document.createElement('div');
 	container.id = 'iss_container';
 
-	const info = get_info();
-	container.appendChild(info.upload);
-	container.appendChild(info.description);
-	move_children(info.hashes, container);
+	const info = await get_info();
+	append(container, info.upload);
+	append(container, info.description);
+	info.hashes.forEach(e => append(container, e));
 
 	const description = aside.querySelector('.submission__description');
 	aside.insertBefore(container, description);
@@ -2223,7 +2255,7 @@ function get_sources () {
 	};
 }
 
-const get_info = () => simple_site({
+const get_info = async () => simple_site({
 	artist: () => {
 		const node = document.querySelector('.submission-author__display-name');
 		return {
@@ -2249,7 +2281,8 @@ const get_info = () => simple_site({
 	}
 
 	.iss_image_link { margin-right: 1rem; }
-	`
+	`,
+	hashes_as_array: true
 });
 
 async function exec () {
@@ -2595,16 +2628,69 @@ module.exports = {
 };
 
 },{}],30:[function(require,module,exports){
+const { remove_node, simple_site, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
-const {
-	commentary_button,
-	artist_commentary,
-	upload_button,
-	data_to_span,
-	common_styles,
-	remove_node,
-	add_css
-} = require('./../../utils/utils.js');
+
+async function photo_hashes () {
+	const info = await build_info();
+
+	// Because of the async nature of stuff, a user might
+	// have gone through things rather quickly. This will
+	// make sure that there is always a clean slate
+	clear_all_setup();
+
+	const quick_buttons = document.querySelector('[aria-label$=Reply]')
+		.parentNode
+		.parentNode;
+	quick_buttons.querySelector('div ~ div ~ div ~ div').style.flexGrow = 1;
+
+	append(quick_buttons, info.upload);
+	append(document.body, info.hashes);
+	// I can not get the button when pressed to copy the description
+	// append(quick_buttons, info.description);
+}
+
+function exec () {
+	find_site();
+	window.addEventListener('locationchange', find_site);
+}
+
+async function get_sources () {
+	const image_id = parseInt((/\d+$/).exec(window.location.href)[0], 10);
+	const list_elems = new Array(image_id).fill('li').join(' ~ ');
+	const query = `ul[role=list] > ${list_elems} img`;
+
+	// The structure for displaying multiple images and single
+	// images is different. This attempt to find each style and
+	// then return the first one that is found. The other's event
+	// listeners are then discarded and those promises are left
+	// never resolving. Perhaps this is not the best idea.
+	const image_node = await Promise.race([
+		// Specific image
+		document.getElementById('react-root').arrive(query),
+
+		// Single image
+		document.getElementById('react-root').arrive('div > div > div > div > div > img[alt=Image]')
+	]);
+	document.getElementById('react-root').forget_arrives();
+
+	const all_sources = produce_sources(image_node.src);
+	return all_sources;
+}
+
+function produce_sources (starting_url) {
+	return [
+		[url_type('orig'), 'full '],
+		[url_type('4096x4096'), '4096 '],
+		[url_type('large'), 'large ']
+	];
+
+	function url_type (new_type) {
+		const url = new URL(starting_url);
+		url.searchParams.set('name', new_type);
+		return url.href;
+	}
+}
 
 function find_site () {
 	const status = /^\/[A-z0-9_]+\/status\/\d+$/;
@@ -2619,106 +2705,39 @@ function find_site () {
 		// copy description
 	} else if (photo.test(here.pathname)) {
 		console.log('ISS: Photo URL detected');
-		photo_hashes().then(upload);
+		photo_hashes();
 	}
-}
-
-// This runs too quickly. As in, It is run before
-// twitter has updated its page. It will return a
-// element that no longer exists
-async function do_description () {
-	const query = '[role=article] > div > div:first-child + div > div:first-child > div:only-child';
-	const first_unquoted_icon = await document.body.arrive(query);
-	const first_unquoted = first_unquoted_icon.parentNode.parentNode.parentNode;
-	console.log(first_unquoted);
-}
-
-async function get_sources () {
-	const image_id = parseInt((/\d+$/).exec(window.location.href)[0], 10);
-	const list_elems = new Array(image_id).fill('li').join(' ~ ');
-	const query = `ul[role=list] > ${list_elems} img`;
-
-	// The structure for displaying multiple images and single
-	// images is different. This attempt to find each style and
-	// then return the first one that is found. The other's event
-	// listeners are then discarded and those promises are left
-	// never resolving. Perhaps this is not the best idea.
-	const image_node = await Promise.race([
-		document.getElementById('react-root').arrive(query),
-		document.getElementById('react-root').arrive('div > div > div > div > div > img[alt=Image]')
-	]);
-	document.getElementById('react-root').forget_arrives();
-
-	const all_sources = produce_sources(image_node.src);
-	return all_sources;
-}
-
-function produce_sources (starting_url) {
-	return [
-		[url_type('orig'), 'full '],
-		[url_type('4096x4096'), '4096 '],
-		[url_type('large'), 'large '],
-		[url_type('medium'), 'thumb ']
-	];
-
-	function url_type (new_type) {
-		const url = new URL(starting_url);
-		url.searchParams.set('name', new_type);
-		return url.href;
-	}
-}
-
-async function photo_hashes () {
-	const sources = await get_sources();
-	const span = data_to_span(sources);
-	console.log(document.getElementById('iss_span'));
-	console.log(span);
-
-	// Because of the async nature of stuff, a user might
-	// have gone through things rather quickly. This will
-	// make sure that there is always a clean slate
-	clear_all_setup();
-
-	document.body.appendChild(span);
-}
-
-async function get_description () {
-	const artist = await document.body.arrive('[data-testid=tweet] [dir=ltr] > span');
-	const title = null;
-	const description = await document.body.arrive('[data-testid=tweet] ~ [dir=auto] > span');
-	return artist_commentary(artist, title, description);
-}
-
-async function upload () {
-	const full_url = await get_sources().then(e => e[0][0]);
-	const description = await get_description();
-
-	const sources = [
-		document.querySelector('[data-testid=tweet] a').href,
-		window.location.href,
-		full_url
-	];
-
-	// Fix visual bug where upload would be crammed against
-	// the other share buttons
-	const quick_buttons = document.querySelector('[aria-label$=Reply]')
-		.parentNode
-		.parentNode;
-	quick_buttons.querySelector('div ~ div ~ div ~ div').style.flexGrow = 1;
-
-	const button = upload_button(full_url, sources, description);
-	quick_buttons.appendChild(button);
 }
 
 function clear_all_setup () {
-	remove_node(document.getElementById('iss_span'));
+	remove_node(document.getElementById('iss_hashes'));
 	remove_node(document.getElementById('iss_upload_link'));
 }
 
-function add_style () {
-	common_styles();
+async function build_info () {
+	const artist = await document.body.arrive('[data-testid=tweet] [dir=ltr] > span');
+	// This should always be present if using the site normally
+	// when launched from a  direct photo url, the top tweet
+	// isn't actually present! This causes some problems, so saying
+	// it is empty is a lot better
+	const description = document.querySelector('[data-testid=tweet] ~ [dir=auto] > span');
+	const sources = await get_sources();
 
-	add_css(`
+	return get_info({
+		artist: artist,
+		description: description,
+		sources: sources
+	});
+}
+
+const get_info = async (pre_found) => simple_site({
+	artist: pre_found.artist,
+	title: null, // No titles on twitter
+	description: pre_found.description,
+	full_url: pre_found.sources[0][0],
+	full_url_name: 'orig',
+	hashes: pre_found.sources.slice(1),
+	css: `
 		#iss_hashes {
 			position: fixed;
 			top: 0px;
@@ -2735,14 +2754,9 @@ function add_style () {
 			color: white;
 			margin: auto;
 		}
-	`);
-}
-
-function exec () {
-	add_style();
-	find_site();
-	window.addEventListener('locationchange', find_site);
-}
+	`,
+	hashes_as_array: false
+});
 
 module.exports = {
 	...header,
@@ -2767,10 +2781,10 @@ module.exports = {
 };
 
 },{}],32:[function(require,module,exports){
-const { simple_site } = require('./../../utils/utils.js');
+const { simple_site, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
-const get_info = () => simple_site({
+const get_info = async () => simple_site({
 	artist: document.querySelector('#db-user > .username'),
 	title: document.querySelector('#detail-bar-title'),
 	description: document.querySelector('#detail-description > .formatted-content'),
@@ -2784,19 +2798,20 @@ const get_info = () => simple_site({
 			flex-direction: column;
 		}
 		.iss_image_link { margin-right: 1rem; }
-	`
+	`,
+	hashes_as_array: false
 });
 
 async function exec () {
-	const info = get_info();
+	const info = await get_info();
 
 	const container = document.createElement('div');
 	container.id = 'iss_container';
 	document.querySelector('#di-info').appendChild(container);
 
-	container.appendChild(info.upload);
-	container.appendChild(info.description);
-	container.appendChild(info.hashes);
+	append(container, info.upload);
+	append(container, info.description);
+	append(container, info.hashes);
 }
 
 module.exports = {
@@ -3259,9 +3274,10 @@ async function build_simple (options) {
 	// title
 	// description
 	// full_url
+	// full_url_name
 	// hashes
 	// css
-	// encased
+	// hashes_as_array
 
 	const commentary = artist_commentary(
 		options.artist,
@@ -3320,7 +3336,8 @@ function transform_options (options) {
 		}
 	});
 
-	options.hashes = [[options.full_url, 'full image']].concat(options.hashes);
+	const image_name = options.full_url_name || 'full image';
+	options.hashes = [[options.full_url, image_name]].concat(options.hashes);
 
 	return options;
 }

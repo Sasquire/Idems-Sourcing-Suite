@@ -1,11 +1,12 @@
-const {
-	simple_site,
-	remove_node,
-	move_children
-} = require('./../../utils/utils.js');
+const { simple_site, remove_node, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
 let last_url = null;
+
+const signal = {
+	wait: async () => document.body.leave('.submission-description__created[title$=" "]'),
+	load: () => (document.querySelector('.submission-description__created').title += ' ')
+};
 
 function attempt_site () {
 	const here = new URL(window.location.href);
@@ -23,7 +24,7 @@ function attempt_site () {
 		console.log('ISS: Direct artwork URL detected');
 		document.body.arrive('.l--app__layout .submission')
 			.then(run_site)
-			.then(load_signal);
+			.then(signal.load);
 	} else if (is_viewed) {
 		console.log('ISS: Linked artwork URL detected');
 		// Wait for known element on first run (can be discarded on all)
@@ -39,31 +40,23 @@ function attempt_site () {
 
 		// This is way too complex and should be simplified
 		document.body.arrive('.submission__tags')
-			.then(wait_signal)
+			.then(signal.wait)
 			.then(run_site)
-			.then(load_signal);
+			.then(signal.load);
 	}
 
 	last_url = here;
 }
 
-async function wait_signal () {
-	return document.body.leave('.submission-description__created[title$=" "]');
-}
-
-function load_signal () {
-	document.querySelector('.submission-description__created').title += ' ';
-}
-
-function run_site () {
+async function run_site () {
 	const aside = document.querySelector('.submission__aside__inner');
 	const container = document.createElement('div');
 	container.id = 'iss_container';
 
-	const info = get_info();
-	container.appendChild(info.upload);
-	container.appendChild(info.description);
-	move_children(info.hashes, container);
+	const info = await get_info();
+	append(container, info.upload);
+	append(container, info.description);
+	info.hashes.forEach(e => append(container, e));
 
 	const description = aside.querySelector('.submission__description');
 	aside.insertBefore(container, description);
@@ -76,7 +69,7 @@ function get_sources () {
 	};
 }
 
-const get_info = () => simple_site({
+const get_info = async () => simple_site({
 	artist: () => {
 		const node = document.querySelector('.submission-author__display-name');
 		return {
@@ -102,7 +95,8 @@ const get_info = () => simple_site({
 	}
 
 	.iss_image_link { margin-right: 1rem; }
-	`
+	`,
+	hashes_as_array: true
 });
 
 async function exec () {

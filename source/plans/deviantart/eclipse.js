@@ -5,6 +5,7 @@ const {
 	data_to_nodes,
 	common_styles,
 	remove_node,
+	get_value,
 	add_css
 } = require('./../../utils/utils.js');
 
@@ -21,11 +22,25 @@ async function run_artwork () {
 	container.id = 'iss_container';
 	post_info.appendChild(container);
 
-	container.appendChild(upload(info));
-	container.appendChild(description(info));
+	await conditional_execute('on_site_commentary_enabled', () => {
+		container.appendChild(description(info));
+	});
 
-	const hashes = await data_to_nodes(info.sources);
-	hashes.forEach(e => container.appendChild(e));
+	await conditional_execute('on_site_upload_enabled', () => {
+		container.appendChild(upload(info));
+	});
+
+	await conditional_execute('on_site_hasher_enabled', () => {
+		const hashes = data_to_nodes(info.sources);
+		hashes.forEach(e => container.appendChild(e));
+	});
+}
+
+async function conditional_execute (key, func) {
+	const value = await get_value(key);
+	if (value === true) {
+		func();
+	}
 }
 
 function add_style () {
