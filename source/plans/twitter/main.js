@@ -1,6 +1,12 @@
 const { remove_node, simple_site, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
+// Twitter actually has a different site for people not logged in
+// There *should* be a case where this is handled, but I am just going
+// to leave that out and hope that twitter will force the new site
+// design on everyone soon. Worst case, users of this can simply
+// make a twitter account for this to work. (I'm sorry this is a bad solution)
+
 async function photo_hashes () {
 	const info = await build_info();
 

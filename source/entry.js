@@ -11,7 +11,8 @@ const plans = [
 	require('./plans/weasyl/main.js'),
 	require('./plans/image_compare/main.js'),
 	require('./plans/furrynetwork/main.js'),
-	require('./plans/settings/main.js')
+	require('./plans/settings/main.js'),
+	require('./plans/sofurry/main.js')
 ];
 
 const { get_value } = require('./utils/utils.js');

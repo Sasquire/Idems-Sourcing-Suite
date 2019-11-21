@@ -40,7 +40,7 @@ function on_site_hasher_settings () {
 	site_checkbox('FurryNetwork', 'https://furrynetwork.com/');
 	// site_checkbox('InkBunny', 'https://inkbunny.net/');
 	// site_checkbox('Pixiv', 'https://www.pixiv.net/en/');
-	// site_checkbox('SoFurry', 'https://www.sofurry.com/');
+	site_checkbox('SoFurry', 'https://www.sofurry.com/');
 	site_checkbox('Twitter', 'https://twitter.com/');
 	site_checkbox('Weasyl', 'https://www.weasyl.com/');
 
