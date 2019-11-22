@@ -38,7 +38,7 @@ function on_site_hasher_settings () {
 	site_checkbox('DeviantArt', 'https://deviantart.com/');
 	site_checkbox('FurAffinity', 'https://furaffinity.net/');
 	site_checkbox('FurryNetwork', 'https://furrynetwork.com/');
-	// site_checkbox('InkBunny', 'https://inkbunny.net/');
+	site_checkbox('InkBunny', 'https://inkbunny.net/');
 	// site_checkbox('Pixiv', 'https://www.pixiv.net/en/');
 	site_checkbox('SoFurry', 'https://www.sofurry.com/');
 	site_checkbox('Twitter', 'https://twitter.com/');
@@ -61,6 +61,13 @@ function image_compare_settings () {
 		name: 'image-compare',
 		description: 'An in-browser image comparison tool. Useful for seeing the differences between two images.',
 		url: 'https://e621.net/extensions/image_compare'
+	});
+
+	settings.checkbox({
+		name: 'Enabled',
+		key: 'on_site_imagecomparison_enabled',
+		default: defaults['on_site_imagecomparison_enabled'],
+		description: `Enables or disables the image-compare tool located at <a href="https://e621.net/extensions/image_compare">/extensions/image_compare</a>.`
 	});
 }
 

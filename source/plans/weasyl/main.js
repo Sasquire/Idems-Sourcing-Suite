@@ -1,5 +1,4 @@
 const { simple_site, append } = require('./../../utils/utils.js');
-const header = require('./header.js');
 
 const get_info = async () => simple_site({
 	artist: document.querySelector('#db-user > .username'),
@@ -32,6 +31,6 @@ async function exec () {
 }
 
 module.exports = {
-	...header,
+	...require('./header.js'),
 	exec: exec
 };

@@ -12,7 +12,8 @@ const plans = [
 	require('./plans/image_compare/main.js'),
 	require('./plans/furrynetwork/main.js'),
 	require('./plans/settings/main.js'),
-	require('./plans/sofurry/main.js')
+	require('./plans/sofurry/main.js'),
+	require('./plans/inkbunny/main.js')
 ];
 
 const { get_value } = require('./utils/utils.js');

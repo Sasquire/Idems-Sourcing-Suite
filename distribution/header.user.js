@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00009
+// @version      1.00010
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -35,6 +35,9 @@
 //               ImageComparison v1
 // @match        *://*.e621.net/extensions/image_compare
 // @connect      *
+
+//               InkBunny v1
+// @match        *://*.inkbunny.net/s/*
 
 //               SettingsPage v1
 // @match        *://*.e621.net/extensions

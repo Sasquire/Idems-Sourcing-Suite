@@ -51,30 +51,42 @@ async function lookup_hash (container_node) {
 	const url = container_node.querySelector('.iss_image_link').href;
 	const hash_node = container_node.getElementsByClassName('iss_hash')[0];
 
-	hash_url(url).then(hash => {
-		return check_hash(hash);
-	}).then(hash => {
-		hash_node.textContent = hash;
-		hash_node.classList.add('iss_hash_checking');
-		return e621.post_show_md5(hash);
-	}).then(post => {
-		hash_node.classList.remove('iss_hash_checking');
+	hash_url(url)
+		.then(check_hash)
+		// Catching here looks a bit weird, but that is because the
+		// e621_lookup_hash function will do its own error handling,
+		// and handling the error twice would actually be really weird.
+		.catch(e => (hash_node.textContent = hash_lookup_error(e)))
+		.then(hash => e621_lookup_hash(hash, hash_node));
+}
 
-		if (post.status === 'destroyed') {
-			hash_node.classList.add('iss_hash_notfound');
-		} else {
-			const new_hash = document.createElement('a');
-			new_hash.classList.add('iss_hash_found');
-			Array.from(hash_node.classList)
-				.forEach(e => new_hash.classList.add(e));
+async function e621_lookup_hash (hash, hash_node) {
+	e621_lookup(hash, hash_node)
+		.then(post => set_hash_status(post, hash_node))
+		.catch(e => (hash_node.textContent = hash_lookup_error(e)));
+}
 
-			new_hash.href = `https://e621.net/post/show/${post.post_id}`;
-			new_hash.textContent = post.file.md5;
-			hash_node.parentNode.replaceChild(new_hash, hash_node);
-		}
-	}).catch(e => {
-		hash_node.textContent = hash_lookup_error(e);
-	});
+async function e621_lookup (hash, hash_node) {
+	hash_node.textContent = hash;
+	hash_node.classList.add('iss_hash_checking');
+	return e621.post_show_md5(hash);
+}
+
+async function set_hash_status (post, hash_node) {
+	hash_node.classList.remove('iss_hash_checking');
+
+	if (post.status === 'destroyed') {
+		hash_node.classList.add('iss_hash_notfound');
+	} else {
+		const new_hash = document.createElement('a');
+		new_hash.classList.add('iss_hash_found');
+		Array.from(hash_node.classList)
+			.forEach(e => new_hash.classList.add(e));
+
+		new_hash.href = `https://e621.net/post/show/${post.post_id}`;
+		new_hash.textContent = post.file.md5;
+		hash_node.parentNode.replaceChild(new_hash, hash_node);
+	}
 }
 
 function hash_lookup_error (error) {
@@ -158,5 +170,6 @@ module.exports = {
 	md5_blob: md5_blob,
 	hash_url: hash_url,
 	data_to_nodes: data_to_nodes,
-	data_to_span: data_to_span
+	data_to_span: data_to_span,
+	e621_lookup_hash: e621_lookup_hash
 };
