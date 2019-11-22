@@ -22,9 +22,9 @@ async function build_simple (options) {
 	);
 
 	const sources = [
+		window.location.href,
 		options.full_url,
-		options.artist.href,
-		window.location.href
+		options.artist.href
 	];
 
 	let commentary_span = null;
