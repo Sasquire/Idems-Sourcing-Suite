@@ -45,6 +45,12 @@ function build_header () {
 // @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
 
+//               Legacy userscript support
+// @grant        GM_addStyle
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_xmlhttpRequest
+
 ${build_match_connects()}
 // ==/UserScript==
 
