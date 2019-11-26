@@ -13,6 +13,7 @@
 // @license      Unlicense
 
 //               Common v1
+// @noframes
 // @connect      e621.net
 // @grant        GM.addStyle
 // @grant        GM.getValue

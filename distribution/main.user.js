@@ -13,6 +13,7 @@
 // @license      Unlicense
 
 //               Common v1
+// @noframes
 // @connect      e621.net
 // @grant        GM.addStyle
 // @grant        GM.getValue
@@ -1320,7 +1321,31 @@ h1 {
 	color: var(--link-blue);
 }
 `,
-window.GM);
+(() => {
+	// eslint-disable-next-line no-undef
+	let gm_object = window.GM ? window.GM : GM;
+	wrap_generic('GM_setValue', 'setValue');
+	wrap_generic('GM_getValue', 'getValue');
+	return gm_object;
+
+	async function wrap_generic (generic_name, new_name) {
+		if (gm_object[new_name]) {
+			return; // Already exists
+		}
+
+		if (window[generic_name] === undefined) {
+			return; // No old function
+		}
+
+		gm_object[new_name] = async (...args) => new Promise((resolve, reject) => {
+			try {
+				resolve(window[generic_name](...args));
+			} catch (e) {
+				reject(e);
+			}
+		});
+	}
+})());
 
 },{}],4:[function(require,module,exports){
 /*

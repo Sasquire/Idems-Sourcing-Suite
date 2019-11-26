@@ -39,6 +39,7 @@ function build_header () {
 // @license      Unlicense
 
 //               Common v${info.base_version}
+// @noframes
 // @connect      e621.net
 // @grant        GM.addStyle
 // @grant        GM.getValue
