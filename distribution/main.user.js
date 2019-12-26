@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00010
+// @version      1.00011
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -45,6 +45,10 @@
 
 //               InkBunny v1
 // @match        *://*.inkbunny.net/s/*
+
+//               Pixiv v1
+// @match        *://*.pixiv.net/*
+// @connect      i.pximg.net
 
 //               SettingsPage v1
 // @match        *://*.e621.net/extensions
@@ -1774,7 +1778,8 @@ const plans = [
 	require('./plans/furrynetwork/main.js'),
 	require('./plans/settings/main.js'),
 	require('./plans/sofurry/main.js'),
-	require('./plans/inkbunny/main.js')
+	require('./plans/inkbunny/main.js'),
+	require('./plans/pixiv/main.js')
 ];
 
 const { get_value } = require('./utils/utils.js');
@@ -1792,7 +1797,7 @@ if (site !== undefined) {
 	});
 }
 
-},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":6,"./plans/deviantart/main.js":11,"./plans/furaffinity/main.js":18,"./plans/furrynetwork/main.js":20,"./plans/image_compare/main.js":26,"./plans/inkbunny/main.js":28,"./plans/settings/main.js":30,"./plans/sofurry/main.js":32,"./plans/twitter/main.js":34,"./plans/weasyl/main.js":36,"./utils/utils.js":46}],9:[function(require,module,exports){
+},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":6,"./plans/deviantart/main.js":11,"./plans/furaffinity/main.js":18,"./plans/furrynetwork/main.js":20,"./plans/image_compare/main.js":26,"./plans/inkbunny/main.js":28,"./plans/pixiv/main.js":30,"./plans/settings/main.js":32,"./plans/sofurry/main.js":34,"./plans/twitter/main.js":36,"./plans/weasyl/main.js":38,"./utils/utils.js":48}],9:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	artist_commentary,
@@ -1922,7 +1927,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":46,"./shared.js":13}],10:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./shared.js":13}],10:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2112,7 +2117,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":46,"./shared.js":13}],13:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./shared.js":13}],13:[function(require,module,exports){
 const { commentary_button, upload_button } = require('./../../utils/utils.js');
 
 function create_description_button (info) {
@@ -2140,7 +2145,7 @@ module.exports = {
 	upload: create_upload_button
 };
 
-},{"./../../utils/utils.js":46}],14:[function(require,module,exports){
+},{"./../../utils/utils.js":48}],14:[function(require,module,exports){
 const { simple_site, append } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -2205,7 +2210,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":46,"./links.js":17}],15:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./links.js":17}],15:[function(require,module,exports){
 const { simple_site, append } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -2251,7 +2256,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":46,"./links.js":17}],16:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./links.js":17}],16:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2429,7 +2434,7 @@ module.exports = {
 	...header
 };
 
-},{"./../../utils/utils.js":46,"./header.js":19}],21:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./header.js":19}],21:[function(require,module,exports){
 const pixel_compare = require('./compare_points.js');
 
 async function compare (options) {
@@ -2668,7 +2673,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":46,"./compare_canvas.js":21,"./header.js":23,"./main.css":24,"./main.html":25}],27:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./compare_canvas.js":21,"./header.js":23,"./main.css":24,"./main.html":25}],27:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2849,7 +2854,195 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":46,"./header.js":27}],29:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./header.js":27}],29:[function(require,module,exports){
+module.exports = {
+	test: (url) => {
+		const this_url = url.hostname.split('.').slice(-2).join('.');
+		return this_url === 'pixiv.net';
+	},
+
+	match: [
+		'*://*.pixiv.net/*'
+	],
+
+	connect: ['i.pximg.net'],
+
+	title: 'Pixiv',
+	version: 1
+};
+
+},{}],30:[function(require,module,exports){
+const header = require('./header.js');
+const {
+	artist_commentary,
+	commentary_button,
+	data_to_nodes,
+	common_styles,
+	upload_button,
+	get_value,
+	add_css
+} = require('./../../utils/utils.js');
+
+function exec () {
+	find_site();
+	common_styles();
+	add_css(`
+		.iss_image_link {
+			color: black !important;
+		}
+
+		.iss_hashes {
+			display: flex;
+			flex-direction: column;
+		}
+		
+		.iss_hash_span {
+			margin: 0px auto;
+		}
+
+		.iss_image_link {
+			margin-right: 1rem;
+		}
+	`);
+
+	// This whole thing was meant to be setup so
+	// it would work with pixiv's design and will
+	// load the proper things on each page, but this
+	// proved to be too difficult. Commented out code
+	// should be the beginnings of such a system
+	// window.addEventListener('locationchange', find_site);
+}
+
+function find_site () {
+	const artworks = /^\/[^/]*\/artworks\/\d+$/;
+
+	clear_all_setup();
+
+	const here = new URL(window.location.href);
+	if (artworks.test(here.pathname)) {
+		console.log('ISS: Artwork URL detected');
+		run();
+	}
+}
+
+function clear_all_setup () {
+	// Todo
+}
+
+// let last_image_url = null;
+async function run () {
+	// Wait for the first image to appear. Make sure it has a different url
+	// const image = await document.body.arrive(`img[srcset]:not([srcset^="${last_image_url}"])`);
+	// await document.body.leave('#\\32 ');
+	// last_image_url = image.srcset;
+
+	await document.body.arrive('img[srcset]');
+	await document.body.arrive('aside h2 a[href^="/member"] > div');
+
+	// Description can always be done
+	conditional_execute('on_site_commentary_enabled', do_commentary);
+
+	// May need to wait for upload links and image hashes
+	if (document.getElementById('1') !== null) {
+		// https://stackoverflow.com/questions/20306204/using-queryselector-with-ids-that-are-numbers
+		await document.body.arrive('#\\32 ');
+	}
+
+	conditional_execute('on_site_upload_enabled', do_upload);
+	conditional_execute('on_site_hasher_enabled', do_md5s);
+}
+
+async function do_md5s () {
+	const images = get_images();
+	for (let i = 0; i < images.length; i++) {
+		const image = images[i];
+		console.log(`ISS: Processing image ${i}`);
+
+		const iss_container = document.createElement('span');
+		iss_container.classList.add('iss_hashes');
+
+		data_to_nodes([
+			[image.best_url, 'Full'],
+			[image.preview_url, 'Preview']
+		]).forEach(p => {
+			iss_container.appendChild(p);
+		});
+
+		image.container.appendChild(iss_container);
+
+		// Wait a whole second so images are complete sequentially
+		// and on large posts with many images, we do not get rate
+		// limited by e621 or from pixiv.
+		await new Promise(resolve => setTimeout(resolve, 1300));
+	}
+}
+
+function get_description () {
+	return artist_commentary(
+		document.querySelectorAll('a[href^="/member"]')[1], // Artist
+		document.getElementsByTagName('h1')[0], // Title
+		document.querySelector('h1 ~ div > div') // Description
+	);
+}
+
+function do_upload () {
+	const gallery_url = document.querySelectorAll('a[href^="/member"]')[1].href;
+
+	const images = get_images();
+	for (let i = 0; i < images.length; i++) {
+		const image = images[i];
+
+		const button = upload_button(
+			image.best_url,
+			[
+				window.location.href,
+				image.best_url,
+				gallery_url
+			],
+			get_description()
+		);
+
+		image.container.appendChild(button);
+	}
+}
+
+function get_images () {
+	return Array.from(document.querySelectorAll('main div[role="presentation"] > a'))
+		.map(e => ({
+			container: e.parentNode.parentNode,
+			link: e
+		}))
+		// Find some way to filter out bad images such
+		// as animations. Currently the script will just
+		// break and I guess that is okay.
+		.map(e => ({
+			...e,
+			best_url: e.link.href,
+			preview_url: e.link.href
+				.replace('/img-original/', '/img-master/')
+				.replace(/.(png|jpg)$/u, '_master1200.jpg')
+		}));
+}
+
+function do_commentary () {
+	const container = document.querySelector('h1').parentNode;
+	const button = commentary_button(get_description());
+	container.insertBefore(button, container.querySelector('footer'));
+}
+
+async function conditional_execute (key, func) {
+	const value = await get_value(key);
+	if (value === true) {
+		func();
+	}
+}
+
+module.exports = {
+	...header,
+	exec: exec
+};
+
+},{"./../../utils/utils.js":48,"./header.js":29}],31:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		return url.href === 'https://e621.net/extensions';
@@ -2863,7 +3056,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],30:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 const headers = require('./header.js');
 const defaults = require('./../../default_settings.js');
 const Settings = require('./../../../dependencies/extensions.js');
@@ -2905,7 +3098,7 @@ function on_site_hasher_settings () {
 	site_checkbox('FurAffinity', 'https://furaffinity.net/');
 	site_checkbox('FurryNetwork', 'https://furrynetwork.com/');
 	site_checkbox('InkBunny', 'https://inkbunny.net/');
-	// site_checkbox('Pixiv', 'https://www.pixiv.net/en/');
+	site_checkbox('Pixiv', 'https://www.pixiv.net/en/');
 	site_checkbox('SoFurry', 'https://www.sofurry.com/');
 	site_checkbox('Twitter', 'https://twitter.com/');
 	site_checkbox('Weasyl', 'https://www.weasyl.com/');
@@ -2922,7 +3115,6 @@ function on_site_hasher_settings () {
 }
 
 function image_compare_settings () {
-	// eslint-disable-next-line no-unused-vars
 	const settings = new Settings({
 		name: 'image-compare',
 		description: 'An in-browser image comparison tool. Useful for seeing the differences between two images.',
@@ -2942,7 +3134,7 @@ module.exports = {
 	...headers
 };
 
-},{"./../../../dependencies/extensions.js":3,"./../../default_settings.js":7,"./header.js":29}],31:[function(require,module,exports){
+},{"./../../../dependencies/extensions.js":3,"./../../default_settings.js":7,"./header.js":31}],33:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2959,7 +3151,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],32:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 const { simple_site, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -3030,7 +3222,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":46,"./header.js":31}],33:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./header.js":33}],35:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -3047,7 +3239,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],34:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 const { remove_node, simple_site, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -3189,7 +3381,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":46,"./header.js":33}],35:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./header.js":35}],37:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -3206,7 +3398,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],36:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 const { simple_site, append } = require('./../../utils/utils.js');
 
 const get_info = async () => simple_site({
@@ -3244,7 +3436,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":46,"./header.js":35}],37:[function(require,module,exports){
+},{"./../../utils/utils.js":48,"./header.js":37}],39:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -3299,7 +3491,7 @@ module.exports = {
 	commentary_from_text: commentary_from_text
 };
 
-},{"./node_to_dtext.js":41}],38:[function(require,module,exports){
+},{"./node_to_dtext.js":43}],40:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -3308,7 +3500,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],39:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],41:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 const defaults = require('./../default_settings.js');
 
@@ -3320,7 +3512,7 @@ module.exports = {
 	get_value: get_value
 };
 
-},{"./../../dependencies/gm_functions.js":4,"./../default_settings.js":7}],40:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./../default_settings.js":7}],42:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -3351,6 +3543,11 @@ async function md5_blob (blob) {
 }
 
 async function hash_url (url, headers = {}) {
+	const url_ = new URL(url);
+	if (url_.host === 'i.pximg.net') {
+		headers.referer = window.location.href;
+	}
+
 	return download_image(url, headers).then(md5_blob);
 }
 
@@ -3497,7 +3694,7 @@ module.exports = {
 	e621_lookup_hash: e621_lookup_hash
 };
 
-},{"./../../dependencies/gm_functions.js":4,"./../../dependencies/md5.js":5,"./e621_api.js":38}],41:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./../../dependencies/md5.js":5,"./e621_api.js":40}],43:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -3568,7 +3765,7 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":43}],42:[function(require,module,exports){
+},{"./safe_link.js":45}],44:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 const { download_image } = require('./hash_image.js');
 
@@ -3656,7 +3853,7 @@ module.exports = {
 	append: append
 };
 
-},{"./../../dependencies/gm_functions.js":4,"./hash_image.js":40}],43:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./hash_image.js":42}],45:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -3699,7 +3896,7 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],44:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 const { artist_commentary, commentary_button } = require('./artist_commentary.js');
 const { upload_button } = require('./upload_url.js');
 const { data_to_span } = require('./hash_image.js');
@@ -3784,7 +3981,7 @@ module.exports = {
 	simple_site: build_simple
 };
 
-},{"./artist_commentary.js":37,"./gm_values.js":39,"./hash_image.js":40,"./nodes.js":42,"./upload_url.js":45}],45:[function(require,module,exports){
+},{"./artist_commentary.js":39,"./gm_values.js":41,"./hash_image.js":42,"./nodes.js":44,"./upload_url.js":47}],47:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -3809,7 +4006,7 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],46:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 module.exports = {
 	...require('./artist_commentary.js'),
 	...require('./e621_api.js'),
@@ -3822,4 +4019,4 @@ module.exports = {
 	...require('./gm_values.js')
 };
 
-},{"./artist_commentary.js":37,"./e621_api.js":38,"./gm_values.js":39,"./hash_image.js":40,"./node_to_dtext.js":41,"./nodes.js":42,"./safe_link.js":43,"./simple_site.js":44,"./upload_url.js":45}]},{},[8]);
+},{"./artist_commentary.js":39,"./e621_api.js":40,"./gm_values.js":41,"./hash_image.js":42,"./node_to_dtext.js":43,"./nodes.js":44,"./safe_link.js":45,"./simple_site.js":46,"./upload_url.js":47}]},{},[8]);

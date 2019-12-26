@@ -13,7 +13,8 @@ const plans = [
 	require('./plans/furrynetwork/main.js'),
 	require('./plans/settings/main.js'),
 	require('./plans/sofurry/main.js'),
-	require('./plans/inkbunny/main.js')
+	require('./plans/inkbunny/main.js'),
+	require('./plans/pixiv/main.js')
 ];
 
 const { get_value } = require('./utils/utils.js');
