@@ -6,7 +6,7 @@
 		"build": "node build.js"
 	},
 	"author": "",
-	"license": "UNLICENSED",
+	"license": "UNLICENSE",
 	"private": true,
 	"devDependencies": {
 		"browserify": "^16.5.0",
