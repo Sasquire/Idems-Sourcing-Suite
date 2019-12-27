@@ -1,10 +1,10 @@
 # Contributing
 ## For human folk that want to help
 
-Welcome, and thank you for taking the time to read the contributing file. Hopefully you find contributing to this project and adding your favorite sites to the list of plans painless.
+Welcome, and thank you, for taking the time to read the contributing file. Hopefully you find contributing to this project and adding your favorite sites to the list of plans painless.
 
 ### History
-This project started as a simple tool to check the md5sum of both the preview and source images on FurAffinity. Over time it has gained more functionality with the goal of becoming the only tool needed to adequately moderate, approve, source, and ensure the quality of posts on e621.
+This project started as a simple tool to check the md5sum of both the preview and source images on FurAffinity. Over time, it has gained more functionality with the goal of becoming the only tool needed to adequately moderate, approve, source, and ensure the quality of posts on e621.
 
 ### Style guide
 Linting for this program is done with eslint and the configuration can be found in the package.json file.
@@ -37,7 +37,7 @@ Root
 Building the code from source should be as simple as `node build.js`.
 
 ### Adding a site plan
-If you want to add a site to be included in this script here are the steps that you should take.
+If you want to add a site to be included in this script, here are the steps that you should take:
 
 1. Create a folder in the `/source/plans/` directory with a name related to the site you are working on.
 2. Add a `header.js` and `main.js` file in the newly created folder.
@@ -77,3 +77,9 @@ module.exports = {
 	version: 1
 };
 ```
+
+### Special Thanks
+* [Mairo](https://e621.net/user/show/38571)
+* [ajk](https://e621.net/user/show/193424)
+* [Munkelzahn](https://e621.net/user/show/14377)
+* And anyone that uses this script

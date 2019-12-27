@@ -50,4 +50,4 @@ If new issues are discovered or you would like another site supported, please cr
 If you would like to contribute, please see the CONTRIBUTING.md file in this repository.
 
 ## License
-All of the code in this repository is licensed using the [unlicense](https://unlicense.org/). This means all the code is put in the public domain and can be used with no restrictions. For more information please see the LICENSE file.
+All of the code in this repository is licensed using the [unlicense](https://unlicense.org/). This means all the code is put in the public domain and can be used with no restrictions. For more information, please see the LICENSE file.
