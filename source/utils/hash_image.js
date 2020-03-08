@@ -67,28 +67,30 @@ async function lookup_hash (container_node) {
 
 async function e621_lookup_hash (hash, hash_node) {
 	e621_lookup(hash, hash_node)
-		.then(post => set_hash_status(post, hash_node))
+		.then(e => {console.log(e); return e})
+		.then(posts => set_hash_status(posts, hash_node))
 		.catch(e => (hash_node.textContent = hash_lookup_error(e)));
 }
 
 async function e621_lookup (hash, hash_node) {
 	hash_node.textContent = hash;
 	hash_node.classList.add('iss_hash_checking');
-	return e621.post_show_md5(hash);
+	return e621.raw_post_list(`md5:${hash}`);
 }
 
-async function set_hash_status (post, hash_node) {
+async function set_hash_status (posts, hash_node) {
 	hash_node.classList.remove('iss_hash_checking');
 
-	if (post.status === 'destroyed') {
+	if (posts.posts.length === 0) {
 		hash_node.classList.add('iss_hash_notfound');
 	} else {
+		const post = posts.posts[0];
 		const new_hash = document.createElement('a');
 		new_hash.classList.add('iss_hash_found');
 		Array.from(hash_node.classList)
 			.forEach(e => new_hash.classList.add(e));
 
-		new_hash.href = `https://e621.net/post/show/${post.post_id}`;
+		new_hash.href = `https://e621.net/post/show/${post.id}`;
 		new_hash.textContent = post.file.md5;
 		hash_node.parentNode.replaceChild(new_hash, hash_node);
 	}
