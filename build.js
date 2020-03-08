@@ -6,11 +6,11 @@ const { performance } = require('perf_hooks');
 
 const apply_header = require('./dependencies/prepend-text.js');
 const info = {
-	base_version: 1,
+	base_version: 20,
 	authors: 'Meras',
-	updateURL: '',
-	downloadURL: '',
-	icon: ''
+	updateURL: 'https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/distribution/header.user.js',
+	downloadURL: 'https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/distribution/main.user.js',
+	icon: 'https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/resources/icon32.png'
 };
 
 function bundle (header_string) {

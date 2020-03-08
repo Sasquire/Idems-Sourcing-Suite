@@ -1,6 +1,6 @@
 # Idem's Sourcing Suite
 
-### [Install](https://raw.githubusercontent.com/Sasquire/on-site-md5-hasher/master/main.user.js)
+### [Install](https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/distribution/main.user.js)
 You must have a [userscript manager](https://greasyfork.org/en) to run this program.
 
 ### [Examples](https://imgur.com/a/R96CNCz)
