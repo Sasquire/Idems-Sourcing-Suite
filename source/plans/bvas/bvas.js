@@ -6,9 +6,12 @@ if(
 	new URL(window.location.href).pathname.includes('/extensions/upload_bvas')
 ){
 	clear_page();
-	document.body.innerHTML = GM_getResourceText('bvas_html');
-	GM_addStyle(GM_getResourceText('bvas_css'));
-	bvas();
+	(async () => {
+		document.body.innerHTML = await GM.getResourceText('bvas_html');
+		const css = await GM.getResourceText('bvas_css');
+		GM.addStyle(css);
+		bvas();
+	})();
 }
 
 async function bvas(){
@@ -41,11 +44,11 @@ async function bvas(){
 
 		listener('username', 'input', () => {
 			const username = $i('username').value;
-			set_value('username', username);
+			GM.setValue('username', username);
 		});
 		listener('api_key', 'input', () => {
 			const api_key = $i('api_key').value;
-			set_value('api_key', api_key);
+			GM.setValue('api_key', api_key);
 		});
 
 		listener('action_delete', 'click', save_action);
@@ -54,20 +57,20 @@ async function bvas(){
 		function save_action(){
 			// eslint-disable-next-line max-len
 			const current_selection = $q('#action_selection > input:checked').value;
-			set_value('bvas_action', current_selection);
+			GM.setValue('bvas_action', current_selection);
 		}
 
 		listener('notification_comment', 'click', () => {
 			const checked = $i('notification_comment').checked;
-			set_value('bvas_comment', checked);
+			GM.setValue('bvas_comment', checked);
 		});
 		listener('notification_description', 'click', () => {
 			const checked = $i('notification_description').checked;
-			set_value('bvas_description', checked);
+			GM.setValue('bvas_description', checked);
 		});
 		listener('copy_notes', 'click', () => {
 			const checked = $i('copy_notes').checked;
-			set_value('bvas_notes', checked);
+			GM.setValue('bvas_notes', checked);
 		});
 
 		load_settings();
@@ -91,31 +94,31 @@ async function bvas(){
 	];
 
 	async function load_settings(){
-		const username = await get_value('username');
+		const username = await GM.getValue('username');
 		if(username){
 			$i('username').value = username;
 		}
 
-		const api_key = await get_value('api_key');
+		const api_key = await GM.getValue('api_key');
 		if(api_key){
 			$i('api_key').value = api_key;
 		}
 
-		const action = await get_value('bvas_action');
+		const action = await GM.getValue('bvas_action');
 		$qa('#action_selection > input').forEach(e => (e.checked = false));
 		($i(`action_${action}`) || $i('action_flag')).checked = true;
 
-		const comment = await get_value('bvas_comment');
+		const comment = await GM.getValue('bvas_comment');
 		if(comment == true){
 			$i('notification_comment').checked = true;
 		}
 
-		const description = await get_value('bvas_description');
+		const description = await GM.getValue('bvas_description');
 		if(description == true){
 			$i('notification_description').checked = true;
 		}
 
-		const notes = await get_value('bvas_notes');
+		const notes = await GM.getValue('bvas_notes');
 		if(notes == true){
 			$i('copy_notes').checked = true;
 		}

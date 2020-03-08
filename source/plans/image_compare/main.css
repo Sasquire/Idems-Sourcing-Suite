@@ -1,0 +1,56 @@
+:root {
+	--background-blue: #031131;
+	--home-blue: #012e56;
+	--standard-blue: #152f56;
+	--comment-blue: #213a5f;
+	--quote-blue: #284a81;
+	--link-blue: #b4c7d9;
+	--hover-blue: #2e76b4;
+
+	--other-blue: #174891;
+
+	--yellow: #fdba31;
+	--light-yellow: #ffde9b;
+	--dark-yellow: #d8b162;
+}
+
+body {
+	background-color: var(--background-blue);
+	background-image: url(https://e621.net/images/stripe.png);
+}
+
+canvas {
+	border: 5px dashed var(--quote-blue);
+}
+
+#c1, #c2 {
+	max-width: 400px;
+	max-height: 400px;
+}
+
+#input {
+	display: grid;
+	grid-template-columns: auto auto;
+	grid-gap: 5px;
+	flex-grow: 1;
+}
+
+#control {
+	flex-grow: 5;
+}
+
+#main {
+	display: flex;
+}
+
+#messages {
+	display: flex;
+	flex-direction: column;
+}
+
+hr,
+input[type=file],
+#leave_early ~ label,
+#messages {
+	color: #ccc;
+}
