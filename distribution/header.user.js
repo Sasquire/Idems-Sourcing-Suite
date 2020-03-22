@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00030
+// @version      1.00031
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -49,6 +49,10 @@
 //               Pixiv v1
 // @match        *://*.pixiv.net/*
 // @connect      i.pximg.net
+
+//               PostBVAS v1
+// @match        https://e621.net/extensions/upload_bvas
+// @connect      *
 
 //               SettingsPage v1
 // @match        *://*.e621.net/extensions

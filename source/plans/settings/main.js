@@ -6,6 +6,7 @@ function exec () {
 	// Do something with utils
 	on_site_hasher_settings();
 	image_compare_settings();
+	post_bvas_settings();
 }
 
 function on_site_hasher_settings () {
@@ -67,6 +68,21 @@ function image_compare_settings () {
 		key: 'on_site_imagecomparison_enabled',
 		default: defaults['on_site_imagecomparison_enabled'],
 		description: `Enables or disables the image-compare tool located at <a href="https://e621.net/extensions/image_compare">/extensions/image_compare</a>.`
+	});
+}
+
+function post_bvas_settings () {
+	const settings = new Settings({
+		name: 'post-bvas',
+		description: 'A tool to automate the process of replacing posts with better versions.',
+		url: 'https://e621.net/extensions/upload_bvas'
+	});
+
+	settings.checkbox({
+		name: 'Enabled',
+		key: 'on_site_postbvas_enabled',
+		default: defaults['on_site_postbvas_enabled'],
+		description: `Enables or disables the post-bvaser tool located at <a href="https://e621.net/extensions/upload_bvas">/extensions/upload_bvas</a>.`
 	});
 }
 

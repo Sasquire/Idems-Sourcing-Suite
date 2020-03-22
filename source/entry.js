@@ -14,7 +14,8 @@ const plans = [
 	require('./plans/settings/main.js'),
 	require('./plans/sofurry/main.js'),
 	require('./plans/inkbunny/main.js'),
-	require('./plans/pixiv/main.js')
+	require('./plans/pixiv/main.js'),
+	require('./plans/bvas/main.js')
 ];
 
 const { get_value } = require('./utils/utils.js');

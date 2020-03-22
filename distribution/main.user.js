@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00030
+// @version      1.00031
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -49,6 +49,10 @@
 //               Pixiv v1
 // @match        *://*.pixiv.net/*
 // @connect      i.pximg.net
+
+//               PostBVAS v1
+// @match        https://e621.net/extensions/upload_bvas
+// @connect      *
 
 //               SettingsPage v1
 // @match        *://*.e621.net/extensions
@@ -235,6 +239,80 @@ module.exports =
 /************************************************************************/
 /******/ ({
 
+/***/ "./source/comment/create/comment_create.js":
+/*!*************************************************!*\
+  !*** ./source/comment/create/comment_create.js ***!
+  \*************************************************/
+/*! exports provided: comment_create */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "comment_create", function() { return comment_create; });
+const { raw_comment_create } = __webpack_require__(/*! ./raw_comment_create.js */ "./source/comment/create/raw_comment_create.js");
+
+async function comment_create (post_id, text) {
+	return raw_comment_create.call(this, {
+		'comment[post_id]': post_id,
+		'comment[body]': text
+	});
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/comment/create/raw_comment_create.js":
+/*!*****************************************************!*\
+  !*** ./source/comment/create/raw_comment_create.js ***!
+  \*****************************************************/
+/*! exports provided: raw_comment_create */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_comment_create", function() { return raw_comment_create; });
+/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
+
+
+
+// Add support for ['do_not_bump_post', 'is_sticky', 'is_hidden']
+
+async function raw_comment_create (settings) {
+	validate_settings(settings);
+
+	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
+		method: 'POST',
+		path: '/comments',
+		response: 'JSON',
+
+		format: 'FORM',
+		data: {
+			'comment[post_id]': settings['comment[post_id]'],
+			'comment[body]': settings['comment[body]']
+		},
+		authenticate: true
+	}).catch(handle_error);
+}
+
+function handle_error (error) {
+	// Todo
+	console.log(error);
+	throw error;
+}
+
+function validate_settings (settings) {
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings['comment[post_id]'], 'comment[post_id]');
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_string"])(settings['comment[body]'], 'comment[body]');
+}
+
+
+
+
+/***/ }),
+
 /***/ "./source/download/download.userscript.js":
 /*!************************************************!*\
   !*** ./source/download/download.userscript.js ***!
@@ -300,7 +378,8 @@ function build_request_options (settings) {
 		}
 	};
 
-	if (settings.authenticate) {
+	const has_credentials = (this.username !== undefined && this.api_key !== undefined);
+	if (settings.authenticate || has_credentials) {
 		const key = `Basic ${btoa(`${this.username}:${this.api_key}`)}`;
 		request_options.headers.Authorization = key;
 	}
@@ -323,6 +402,7 @@ function build_request_options (settings) {
 
 /* harmony default export */ __webpack_exports__["default"] = (download);
 
+
 /***/ }),
 
 /***/ "./source/main.js":
@@ -334,10 +414,46 @@ function build_request_options (settings) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _post_raw_post_show_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./post/raw_post_show.js */ "./source/post/raw_post_show.js");
-/* harmony import */ var _post_raw_post_list_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./post/raw_post_list.js */ "./source/post/raw_post_list.js");
-/* harmony import */ var _post_raw_post_vote_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./post/raw_post_vote.js */ "./source/post/raw_post_vote.js");
-/* harmony import */ var _post_raw_post_create_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./post/raw_post_create.js */ "./source/post/raw_post_create.js");
+/* harmony import */ var _post_show_raw_post_show_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./post/show/raw_post_show.js */ "./source/post/show/raw_post_show.js");
+/* harmony import */ var _post_show_post_show_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./post/show/post_show.js */ "./source/post/show/post_show.js");
+/* harmony import */ var _post_index_raw_post_search_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./post/index/raw_post_search.js */ "./source/post/index/raw_post_search.js");
+/* harmony import */ var _post_index_post_search_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./post/index/post_search.js */ "./source/post/index/post_search.js");
+/* harmony import */ var _post_index_post_search_iterator_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./post/index/post_search_iterator.js */ "./source/post/index/post_search_iterator.js");
+/* harmony import */ var _post_vote_raw_post_vote_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./post/vote/raw_post_vote.js */ "./source/post/vote/raw_post_vote.js");
+/* harmony import */ var _post_vote_post_vote_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./post/vote/post_vote.js */ "./source/post/vote/post_vote.js");
+/* harmony import */ var _post_create_raw_post_create_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./post/create/raw_post_create.js */ "./source/post/create/raw_post_create.js");
+/* harmony import */ var _post_create_post_create_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./post/create/post_create.js */ "./source/post/create/post_create.js");
+/* harmony import */ var _post_update_raw_post_update_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./post/update/raw_post_update.js */ "./source/post/update/raw_post_update.js");
+/* harmony import */ var _post_update_post_update_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./post/update/post_update.js */ "./source/post/update/post_update.js");
+/* harmony import */ var _post_copy_notes_raw_post_copy_notes_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./post/copy_notes/raw_post_copy_notes.js */ "./source/post/copy_notes/raw_post_copy_notes.js");
+/* harmony import */ var _post_copy_notes_post_copy_notes_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./post/copy_notes/post_copy_notes.js */ "./source/post/copy_notes/post_copy_notes.js");
+/* harmony import */ var _post_flag_create_raw_post_flag_create_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./post_flag/create/raw_post_flag_create.js */ "./source/post_flag/create/raw_post_flag_create.js");
+/* harmony import */ var _post_flag_create_post_flag_create_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./post_flag/create/post_flag_create.js */ "./source/post_flag/create/post_flag_create.js");
+/* harmony import */ var _comment_create_raw_comment_create_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./comment/create/raw_comment_create.js */ "./source/comment/create/raw_comment_create.js");
+/* harmony import */ var _comment_create_comment_create_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./comment/create/comment_create.js */ "./source/comment/create/comment_create.js");
+/* harmony import */ var _post_bvas_post_bvas_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./post/bvas/post_bvas.js */ "./source/post/bvas/post_bvas.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -353,28 +469,303 @@ class E621API {
 	}
 }
 
-E621API.prototype.raw_post_show = _post_raw_post_show_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_show"];
-E621API.prototype.raw_post_list = _post_raw_post_list_js__WEBPACK_IMPORTED_MODULE_1__["raw_post_list"];
-E621API.prototype.raw_post_vote = _post_raw_post_vote_js__WEBPACK_IMPORTED_MODULE_2__["raw_post_vote"];
-E621API.prototype.raw_post_create = _post_raw_post_create_js__WEBPACK_IMPORTED_MODULE_3__["raw_post_create"];
+E621API.prototype.version = '1.00100';
+
+E621API.prototype.raw_post_show = _post_show_raw_post_show_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_show"];
+E621API.prototype.post_show_id = _post_show_post_show_js__WEBPACK_IMPORTED_MODULE_1__["post_show_id"];
+E621API.prototype.post_show_md5 = _post_show_post_show_js__WEBPACK_IMPORTED_MODULE_1__["post_show_md5"];
+E621API.prototype.post_show = _post_show_post_show_js__WEBPACK_IMPORTED_MODULE_1__["post_show"];
+
+E621API.prototype.raw_post_search = _post_index_raw_post_search_js__WEBPACK_IMPORTED_MODULE_2__["raw_post_search"];
+E621API.prototype.post_search = _post_index_post_search_js__WEBPACK_IMPORTED_MODULE_3__["post_search"];
+E621API.prototype.post_search_iterator = _post_index_post_search_iterator_js__WEBPACK_IMPORTED_MODULE_4__["post_search_iterator"];
+
+E621API.prototype.raw_post_vote = _post_vote_raw_post_vote_js__WEBPACK_IMPORTED_MODULE_5__["raw_post_vote"];
+E621API.prototype.post_vote_up = _post_vote_post_vote_js__WEBPACK_IMPORTED_MODULE_6__["post_vote_up"];
+E621API.prototype.post_vote_down = _post_vote_post_vote_js__WEBPACK_IMPORTED_MODULE_6__["post_vote_down"];
+E621API.prototype.post_vote_remove = _post_vote_raw_post_vote_js__WEBPACK_IMPORTED_MODULE_5__["post_vote_remove"];
+
+E621API.prototype.raw_post_create = _post_create_raw_post_create_js__WEBPACK_IMPORTED_MODULE_7__["raw_post_create"];
+E621API.prototype.post_create = _post_create_post_create_js__WEBPACK_IMPORTED_MODULE_8__["post_create"];
+
+E621API.prototype.raw_post_update = _post_update_raw_post_update_js__WEBPACK_IMPORTED_MODULE_9__["raw_post_update"];
+E621API.prototype.post_update = _post_update_post_update_js__WEBPACK_IMPORTED_MODULE_10__["post_update"];
+
+E621API.prototype.raw_post_copy_notes = _post_copy_notes_raw_post_copy_notes_js__WEBPACK_IMPORTED_MODULE_11__["raw_post_copy_notes"];
+E621API.prototype.post_copy_notes = _post_copy_notes_post_copy_notes_js__WEBPACK_IMPORTED_MODULE_12__["post_copy_notes"];
+
+E621API.prototype.raw_post_flag_create = _post_flag_create_raw_post_flag_create_js__WEBPACK_IMPORTED_MODULE_13__["raw_post_flag_create"];
+E621API.prototype.post_flag_create = _post_flag_create_post_flag_create_js__WEBPACK_IMPORTED_MODULE_14__["post_flag_create"];
+E621API.prototype.post_flag_reasons = _post_flag_create_post_flag_create_js__WEBPACK_IMPORTED_MODULE_14__["post_flag_reasons"];
+
+E621API.prototype.raw_comment_create = _comment_create_raw_comment_create_js__WEBPACK_IMPORTED_MODULE_15__["raw_comment_create"];
+E621API.prototype.comment_create = _comment_create_comment_create_js__WEBPACK_IMPORTED_MODULE_16__["comment_create"];
+
+E621API.prototype.post_bvas = _post_bvas_post_bvas_js__WEBPACK_IMPORTED_MODULE_17__["post_bvas"];
 
 /* harmony default export */ __webpack_exports__["default"] = (E621API);
 
 
 /***/ }),
 
-/***/ "./source/post/raw_post_create.js":
-/*!****************************************!*\
-  !*** ./source/post/raw_post_create.js ***!
-  \****************************************/
+/***/ "./source/post/bvas/post_bvas.js":
+/*!***************************************!*\
+  !*** ./source/post/bvas/post_bvas.js ***!
+  \***************************************/
+/*! exports provided: post_bvas */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_bvas", function() { return post_bvas; });
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
+
+
+// settings = {
+//   post_id: id of the post to be replaced
+//   replacement: the replacement file/URL
+//   comment: boolean if a comment should be posted to the new post
+//   description: boolean if the description should be edited.
+//   message: message of superior quality. '%' replaced with old_id
+//   delete: boolean. If true will try to delete post. if false will flag
+// }
+
+async function post_bvas (settings) {
+	settings = apply_defaults(settings);
+	const old_post = await this.post_show(settings.post_id);
+	settings.message = settings.message.replace('%', old_post.id);
+
+	const new_post = await this.post_create({
+		tags: filter_tags(old_post.tags),
+		sources: old_post.sources,
+		description: settings.description === true ? `${settings.message}\n${old_post.description}` : old_post.description,
+		rating: old_post.rating,
+		parent_id: old_post.relationships.parent_id,
+
+		upload: settings.replacement
+	});
+
+	if (settings.comment === true) {
+		await this.comment_create(new_post.post_id, settings.message);
+	}
+
+	await set_parent.call(this, old_post.id, new_post.post_id);
+	for (const child_id of old_post.relationships.children) {
+		await set_parent.call(this, child_id, new_post.post_id);
+	}
+	// Fix with pool
+
+	await this.post_copy_notes(old_post.id, new_post.post_id);
+
+	// optionally delete the post
+	await this.post_flag_create(this.post_flag_reasons.inferior, old_post.id, new_post.post_id);
+}
+
+function apply_defaults (settings) {
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_0__["validate_counting_number"])(settings.post_id, 'post_id');
+	if (settings.replacement === undefined) {
+		throw new Error('replacement must be defined');
+	}
+
+	return {
+		post_id: settings.post_id,
+		comment: nullish(settings.comment, false),
+		description: nullish(settings.description, true),
+		message: nullish(settings.message, 'Superior version of post #%'),
+		delete: nullish(settings.delete, false),
+		replacement: settings.replacement
+	};
+}
+
+function nullish (value, replacement) {
+	if (value === null || value === undefined) {
+		return replacement;
+	} else {
+		return value;
+	}
+}
+
+async function set_parent (post_id, new_parent) {
+	return this.post_update({
+		id: post_id,
+		parent_id: new_parent
+	});
+}
+
+function filter_tags (tag_object) {
+	const tags_to_remove = [
+		'better_version_at_source',
+		'smaller_version_at_source',
+		'compression_artifacts',
+		'cropped',
+		'upscale'
+	];
+
+	return Object.values(tag_object)
+		.reduce((acc, e) => acc.concat(e))
+		.filter(e => tags_to_remove.includes(e) === false);
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/copy_notes/post_copy_notes.js":
+/*!***************************************************!*\
+  !*** ./source/post/copy_notes/post_copy_notes.js ***!
+  \***************************************************/
+/*! exports provided: post_copy_notes */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_copy_notes", function() { return post_copy_notes; });
+const { raw_post_copy_notes } = __webpack_require__(/*! ./raw_post_copy_notes.js */ "./source/post/copy_notes/raw_post_copy_notes.js");
+
+async function post_copy_notes (post_id, to_id) {
+	return raw_post_copy_notes.call(this, {
+		id: post_id,
+		other_post_id: to_id
+	});
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/copy_notes/raw_post_copy_notes.js":
+/*!*******************************************************!*\
+  !*** ./source/post/copy_notes/raw_post_copy_notes.js ***!
+  \*******************************************************/
+/*! exports provided: raw_post_copy_notes */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_copy_notes", function() { return raw_post_copy_notes; });
+/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
+
+
+
+async function raw_post_copy_notes (settings) {
+	validate_settings(settings);
+
+	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
+		method: 'PUT',
+		path: `/posts/${settings.id}/copy_notes`,
+		response: 'JSON',
+
+		format: 'URL',
+		data: {
+			id: settings.id,
+			other_post_id: settings.other_post_id
+		}
+	}).catch(handle_error);
+}
+
+function handle_error (error) {
+	if (error.response.data.reason === 'Post has no notes') {
+		return null; // Expected behavior is to have no errors thrown if post has no notes
+	} else {
+		// Todo
+		console.log(error);
+		throw error;
+	}
+}
+
+function validate_settings (settings) {
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings.id, 'id');
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings.other_post_id, 'other_post_id');
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/create/post_create.js":
+/*!*******************************************!*\
+  !*** ./source/post/create/post_create.js ***!
+  \*******************************************/
+/*! exports provided: post_create */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_create", function() { return post_create; });
+const { raw_post_create } = __webpack_require__(/*! ./raw_post_create.js */ "./source/post/create/raw_post_create.js");
+
+async function post_create (settings) {
+	validate_settings(settings);
+	return raw_post_create.call(this, transform_settings(settings));
+}
+
+function validate_settings (settings) {
+	if (settings.upload === undefined) {
+		throw new Error('You must supply an upload file to upload a post');
+	}
+
+	if (typeof settings.rating !== 'string') {
+		throw new Error('rating must be of type string');
+	} else if (['e', 'q', 's'].includes(settings.rating.charAt(0)) === false) {
+		throw new Error('first character of rating must be one of [\'e\', \'q\', \'s\']');
+	}
+
+	if (settings.tags !== undefined) {
+		if (Array.isArray(settings.tags === false)) {
+			throw new Error('tags must be of type array');
+		} else if (settings.tags.every(e => typeof e === 'string') === false) {
+			throw new Error('every element of tags must of of type string');
+		}
+	}
+
+	if (settings.sources !== undefined) {
+		if (Array.isArray(settings.sources === false)) {
+			throw new Error('sources must be of type array');
+		} else if (settings.tags.every(e => typeof e === 'string') === false) {
+			throw new Error('every element of sources must of of type string');
+		}
+	}
+}
+
+function transform_settings (settings) {
+	const return_object = {
+		'upload[tag_string]': (settings.tags || []).join(' '),
+		'upload[rating]': settings.rating.charAt(0),
+		'upload[source]': (settings.sources || []).join('\n'),
+		'upload[description]': (settings.description || ''),
+		'upload[parent_id]': (settings.parent_id || null)
+	};
+
+	if (settings.upload.constructor === ArrayBuffer) {
+		return_object['upload[file]'] = settings.upload;
+	} else {
+		return_object['upload[direct_url]'] = settings.upload;
+	}
+
+	return return_object;
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/create/raw_post_create.js":
+/*!***********************************************!*\
+  !*** ./source/post/create/raw_post_create.js ***!
+  \***********************************************/
 /*! exports provided: raw_post_create */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_create", function() { return raw_post_create; });
-/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
-/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../validation/validation.js */ "./source/validation/validation.js");
+/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
 
 
 
@@ -481,7 +872,7 @@ function validate_settings (settings) {
 	} else if (settings['upload[parent_id]'] === null) {
 		// It is fine if parent_id is null
 	} else {
-		Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_post_id"])(settings['upload[parent_id]']);
+		Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings['upload[parent_id]'], 'upload[parent_id]');
 	}
 }
 
@@ -496,36 +887,24 @@ function handle_error (error) {
 
 /***/ }),
 
-/***/ "./source/post/raw_post_list.js":
-/*!**************************************!*\
-  !*** ./source/post/raw_post_list.js ***!
-  \**************************************/
-/*! exports provided: raw_post_list */
+/***/ "./source/post/index/post_search.js":
+/*!******************************************!*\
+  !*** ./source/post/index/post_search.js ***!
+  \******************************************/
+/*! exports provided: post_search */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_list", function() { return raw_post_list; });
-/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
-/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../validation/validation.js */ "./source/validation/validation.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_search", function() { return post_search; });
+/* harmony import */ var _raw_post_search_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./raw_post_search.js */ "./source/post/index/raw_post_search.js");
 
 
-
-// There is an edge case where the data can be md5=<md5>
-
-async function raw_post_list (tag_search) {
-	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_string"])(tag_search);
-
-	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
-		method: 'GET',
-		path: '/posts',
-		response: 'JSON',
-
-		format: 'URL',
-		data: {
-			limit: 320,
-			tags: tag_search
-		}
+async function post_search (tag_string, page = 0) {
+	return _raw_post_search_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_search"].call(this, {
+		limit: 320,
+		tags: tag_string,
+		page: page.toString()
 	}).catch(handle_error);
 }
 
@@ -540,35 +919,45 @@ function handle_error (error) {
 
 /***/ }),
 
-/***/ "./source/post/raw_post_show.js":
-/*!**************************************!*\
-  !*** ./source/post/raw_post_show.js ***!
-  \**************************************/
-/*! exports provided: raw_post_show */
+/***/ "./source/post/index/post_search_iterator.js":
+/*!***************************************************!*\
+  !*** ./source/post/index/post_search_iterator.js ***!
+  \***************************************************/
+/*! exports provided: post_search_iterator */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_show", function() { return raw_post_show; });
-/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
-/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../validation/validation.js */ "./source/validation/validation.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_search_iterator", function() { return post_search_iterator; });
+/* harmony import */ var _raw_post_search_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./raw_post_search.js */ "./source/post/index/raw_post_search.js");
 
 
+const posts_per_page = 320;
 
-async function raw_post_show (post_id) {
-	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_post_id"])(post_id);
+// You can not have a different order when searching through posts like this
+async function* post_search_iterator (search_string) {
+	// "Providing arbitrarily large values to obtain the most recent posts
+	// is not portable and may break in the future". (wiki)
+	// I do what I want
+	let max_id = 1e9;
+	while (true) {
+		// https://github.com/zwagoth/e621ng/issues/202
+		const { posts } = await _raw_post_search_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_search"].call(this, {
+			tags: search_string,
+			limit: posts_per_page,
+			page: `b${max_id}`
+		}).catch(handle_error);
 
-	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
-		method: 'GET',
-		path: `/posts/${post_id}`,
-		response: 'JSON',
+		yield* posts;
+		max_id = posts.reduce((acc, e) => acc.id < e.id ? acc : e).id;
 
-		format: 'URL',
-		data: null
-	}).catch(handle_post_show_error);
+		if (posts.length < posts_per_page) {
+			return;
+		}
+	}
 }
 
-function handle_post_show_error (error) {
+function handle_error (error) {
 	// Todo
 	console.log(error);
 	throw error;
@@ -579,34 +968,269 @@ function handle_post_show_error (error) {
 
 /***/ }),
 
-/***/ "./source/post/raw_post_vote.js":
-/*!**************************************!*\
-  !*** ./source/post/raw_post_vote.js ***!
-  \**************************************/
-/*! exports provided: raw_post_vote */
+/***/ "./source/post/index/raw_post_search.js":
+/*!**********************************************!*\
+  !*** ./source/post/index/raw_post_search.js ***!
+  \**********************************************/
+/*! exports provided: raw_post_search */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_vote", function() { return raw_post_vote; });
-/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
-/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../validation/validation.js */ "./source/validation/validation.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_search", function() { return raw_post_search; });
+/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
 
 
 
-async function raw_post_vote (settings) {
-	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_post_id"])(settings.post_id);
-	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_vote_option"])(settings.vote);
+// There is an edge case where the data can be md5=<md5>
+
+async function raw_post_search (settings) {
+	validate_settings(settings);
 
 	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
-		method: 'POST',
-		path: `/posts/${settings.post_id}/votes`,
+		method: 'GET',
+		path: '/posts',
 		response: 'JSON',
 
 		format: 'URL',
-		data: {
-			score: settings.vote
-		},
+		data: make_data(settings)
+	}).catch(handle_error);
+}
+
+function handle_error (error) {
+	// Todo
+	console.log(error);
+	throw error;
+}
+
+function validate_settings (settings) {
+	if (settings.tags !== null) {
+		Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_string"])(settings.tags, 'tags');
+	}
+
+	if (settings.limit !== null) {
+		Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings.limit, 'limit');
+	}
+
+	if (settings.page !== null) {
+		Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_page_string"])(settings.page, 'page');
+	}
+}
+
+function make_data (settings) {
+	const return_object = {};
+
+	if (settings.limit !== null) {
+		return_object.limit = settings.limit;
+	}
+
+	if (settings.tags !== null) {
+		return_object.tags = settings.tags;
+	}
+
+	if (settings.page !== null) {
+		return_object.page = settings.page;
+	}
+
+	return return_object;
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/show/post_show.js":
+/*!***************************************!*\
+  !*** ./source/post/show/post_show.js ***!
+  \***************************************/
+/*! exports provided: post_show_id, post_show_md5, post_show */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_show_id", function() { return post_show_id; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_show_md5", function() { return post_show_md5; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_show", function() { return post_show; });
+/* harmony import */ var _index_raw_post_search_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../index/raw_post_search.js */ "./source/post/index/raw_post_search.js");
+/* harmony import */ var _raw_post_show_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./raw_post_show.js */ "./source/post/show/raw_post_show.js");
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
+
+
+
+
+async function post_show_id (post_id) {
+	return _raw_post_show_js__WEBPACK_IMPORTED_MODULE_1__["raw_post_show"].call(this, {
+		id: post_id
+	}).then(e => e.post);
+}
+
+async function post_show_md5 (md5) {
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_2__["validate_md5"])(md5);
+	return _index_raw_post_search_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_search"].call(this, {
+		tags: `md5:${md5}`,
+		limit: 1
+	}).then(e => {
+		if (e.posts.length === 0) {
+			return null;
+		} else {
+			return e.posts[0];
+		}
+	});
+}
+
+async function post_show (id_md5) {
+	if (typeof id_md5 === 'string' && id_md5.length === 32) {
+		return post_show_md5.call(this, id_md5);
+	} else {
+		return post_show_id.call(this, Number(id_md5));
+	}
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/show/raw_post_show.js":
+/*!*******************************************!*\
+  !*** ./source/post/show/raw_post_show.js ***!
+  \*******************************************/
+/*! exports provided: raw_post_show */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_show", function() { return raw_post_show; });
+/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
+
+
+
+async function raw_post_show (settings) {
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings.id, 'post_id');
+
+	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
+		method: 'GET',
+		path: `/posts/${settings.id}`,
+		response: 'JSON',
+
+		format: undefined,
+		data: null
+	}).catch(handle_error);
+}
+
+function handle_error (error) {
+	// Todo
+	console.log(error);
+	throw error;
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/update/post_update.js":
+/*!*******************************************!*\
+  !*** ./source/post/update/post_update.js ***!
+  \*******************************************/
+/*! exports provided: post_update */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_update", function() { return post_update; });
+/* harmony import */ var _raw_post_update_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./raw_post_update.js */ "./source/post/update/raw_post_update.js");
+
+
+async function post_update (settings) {
+	return _raw_post_update_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_update"].call(this, {
+		id: settings.id,
+		'post[tag_string_diff]': get_differences(settings, 'tags_to_add', 'tags_to_remove', ' '),
+		'post[tag_string]': optional_join(settings.tags, ' '),
+		'post[old_tag_string]': optional_join(settings.old_tags, ' '),
+		'post[source_diff]': get_differences(settings, 'sources_to_add', 'sources_to_remove', '\n'),
+		'post[source]': optional_join(settings.sources, '\n'),
+		'post[old_source]': optional_join(settings.old_sources, '\n'),
+		'post[description]': settings.description || null,
+		'post[old_description]': settings.old_description || null,
+		'post[parent_id]': settings.parent_id || null,
+		'post[old_parent_id]': settings.old_parent_id || null,
+		'post[rating]': get_rating(settings.rating),
+		'post[old_rating]': get_rating(settings.old_rating),
+		'post[edit_reason]': settings.reason || null
+	});
+}
+
+// Idea for a different type of update function. Maybe its better in some cases
+// async function transform_post (post_id, transform_function) {
+//   const post = await get_post(post_id);
+//   const new_post = await transform_function(post_id)
+//   return post_update(post, new_post);
+// }
+
+function get_rating (rating) {
+	if (rating !== undefined) {
+		return rating.charAt(0);
+	} else {
+		return null;
+	}
+}
+
+function optional_join (list, joiner) {
+	if (list !== undefined) {
+		return list.join(joiner);
+	} else {
+		return null;
+	}
+}
+
+function get_differences (settings, add_string, remove_string, joiner) {
+	if (settings[add_string] !== undefined || settings[remove_string] !== undefined) {
+		const adds = (settings[add_string] || [])
+			.join(joiner);
+		const removes = (settings[remove_string] || [])
+			.map(e => `-${e.toString()}`)
+			.join(joiner);
+
+		return `${adds}${joiner}${removes}`;
+	} else {
+		return null; // If no changes return null
+	}
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/update/raw_post_update.js":
+/*!***********************************************!*\
+  !*** ./source/post/update/raw_post_update.js ***!
+  \***********************************************/
+/*! exports provided: raw_post_update */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_update", function() { return raw_post_update; });
+/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
+
+
+
+async function raw_post_update (settings) {
+	validate_settings(settings);
+
+	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
+		method: 'PATCH',
+		path: `/posts/${settings.id}`,
+		response: 'JSON',
+
+		format: 'FORM',
+		data: make_data(settings),
 		authenticate: true
 	}).catch(handle_error);
 }
@@ -617,6 +1241,360 @@ function handle_error (error) {
 	throw error;
 }
 
+function validate_settings (settings) {
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings.id, 'id');
+
+	[
+		'post[tag_string_diff]',
+		'post[tag_string]',
+		'post[old_tag_string]',
+		'post[source_diff]',
+		'post[source]',
+		'post[old_source]',
+		'post[description]',
+		'post[old_description]',
+		// parent_id
+		'post[rating]',
+		'post[old_rating]',
+		'post[edit_reason]'
+		// has_embedded_notes will be removed at some point.
+	].forEach(e => {
+		if (settings[e] === undefined) {
+			throw new Error(`${e} must be present`);
+		} else if (settings[e] === null) {
+			// all of these can be null
+		} else if (typeof settings[e] !== 'string') {
+			throw new Error(`${e} must be of type string`);
+		}
+	});
+
+	if (settings['post[parent_id]'] === undefined) {
+		throw new Error('post[parent_id] must be present');
+	}
+
+	if (settings['post[old_parent_id]'] === undefined) {
+		throw new Error('post[old_parent_id] must be present');
+	}
+
+	[
+		'tag_string',
+		'source',
+		'description',
+		'parent_id',
+		'rating'
+	].forEach(e => {
+		if (settings[`post[old_${e}]`] !== null && settings[`post[${e}]`] === null) {
+			throw new Error(`old_${e} must not be present if ${e} is not present`);
+		}
+	});
+
+	if (settings['post[tag_string]'] !== null && settings['post[tag_string_diff]'] !== null) {
+		throw new Error('at most one of tag_string and tag_string_diff can be non-null');
+	}
+
+	if (settings['post[source]'] !== null && settings['post[source_diff]'] !== null) {
+		throw new Error('at most one of source and source_diff can be non-null');
+	}
+
+	// Parent_id
+	if (settings['post[parent_id]'] === undefined) {
+		throw new Error('parent_id must be present');
+	} else if (settings['post[parent_id]'] === null) {
+		// it can be null without issue
+	} else {
+		Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings['post[parent_id]'], 'parent_id');
+	}
+
+	if (settings['post[old_parent_id]'] === undefined) {
+		throw new Error('old_parent_id must be present');
+	} else if (settings['post[old_parent_id]'] === null) {
+		// it can be null without issue
+	} else {
+		Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings['post[old_parent_id]'], 'old_parent_id');
+	}
+
+	// Rating
+	if (settings['post[rating]'] !== null && ['e', 'q', 's'].includes(settings['post[rating]']) === false) {
+		throw new Error('rating must be one of [\'e\', \'q\', \'s\']');
+	}
+
+	if (settings['post[old_rating]'] !== null && ['e', 'q', 's'].includes(settings['post[old_rating]']) === false) {
+		throw new Error('old_rating must be one of [\'e\', \'q\', \'s\']');
+	}
+}
+
+function make_data (settings) {
+	return [
+		'post[tag_string_diff]',
+		'post[tag_string]',
+		'post[old_tag_string]',
+		'post[source_diff]',
+		'post[source]',
+		'post[old_source]',
+		'post[description]',
+		'post[old_description]',
+		'post[parent_id]',
+		'post[old_parent_id]',
+		'post[rating]',
+		'post[old_rating]',
+		'post[edit_reason]'
+	].reduce((acc, e) => {
+		if (settings[e] !== null) {
+			acc[e] = settings[e];
+		}
+
+		return acc;
+	}, {});
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/vote/post_vote.js":
+/*!***************************************!*\
+  !*** ./source/post/vote/post_vote.js ***!
+  \***************************************/
+/*! exports provided: post_vote_up, post_vote_down */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_vote_up", function() { return post_vote_up; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_vote_down", function() { return post_vote_down; });
+/* harmony import */ var _raw_post_vote_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./raw_post_vote.js */ "./source/post/vote/raw_post_vote.js");
+
+
+async function post_vote_up (post_id) {
+	return _raw_post_vote_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_vote"].call(this, {
+		id: post_id,
+		score: 1,
+		no_unvote: true
+	});
+}
+
+async function post_vote_down (post_id) {
+	_raw_post_vote_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_vote"].call(this, {
+		id: post_id,
+		score: -1,
+		no_unvote: true
+	});
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post/vote/raw_post_vote.js":
+/*!*******************************************!*\
+  !*** ./source/post/vote/raw_post_vote.js ***!
+  \*******************************************/
+/*! exports provided: raw_post_vote, post_vote_remove */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_vote", function() { return raw_post_vote; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_vote_remove", function() { return post_vote_remove; });
+/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
+
+
+
+async function raw_post_vote (settings) {
+	validate_settings(settings);
+
+	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
+		method: 'POST',
+		path: `/posts/${settings.id}/votes`,
+		response: 'JSON',
+
+		format: 'URL',
+		data: make_data(settings),
+		authenticate: true
+	}).catch(handle_error);
+}
+
+async function post_vote_remove (id) {
+	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
+		method: 'DELETE',
+		path: `/posts/${id}/votes`,
+		response: 'JSON',
+
+		format: undefined,
+		data: undefined,
+		authenticate: true
+	}).catch(handle_error);
+}
+
+function handle_error (error) {
+	// Todo
+	console.log(error);
+	throw error;
+}
+
+function validate_settings (settings) {
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings.id, 'post_id');
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_vote_option"])(settings.score);
+
+	if (settings.no_unvote !== null) {
+		Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_boolean"])(settings.no_unvote, 'no_unvote');
+	}
+}
+
+function make_data (settings) {
+	const return_object = {
+		score: settings.score
+	};
+
+	if (settings.no_unvote !== null) {
+		return_object.no_unvote = settings.no_unvote;
+	}
+
+	return return_object;
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post_flag/create/post_flag_create.js":
+/*!*****************************************************!*\
+  !*** ./source/post_flag/create/post_flag_create.js ***!
+  \*****************************************************/
+/*! exports provided: post_flag_create, post_flag_reasons */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_flag_create", function() { return post_flag_create; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "post_flag_reasons", function() { return post_flag_reasons; });
+/* harmony import */ var _raw_post_flag_create_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./raw_post_flag_create.js */ "./source/post_flag/create/raw_post_flag_create.js");
+
+
+const post_flag_reasons = {
+	deletion: 'deletion',
+	inferior: 'inferior',
+	custom: 'user',
+	dnp: 'dnp_artist',
+	pay_content: 'pay_content',
+	trace: 'trace',
+	previously_deleted: 'previously_deleted',
+	real: 'real_porn',
+	corrupt: 'corrupt'
+};
+
+async function post_flag_create (reason, post_id, extra) {
+	if (post_flag_reasons[reason] === undefined) {
+		throw new Error(`reason must be one of [${Object.keys(post_flag_reasons).join(', ')}]`);
+	}
+
+	const data = {
+		'post_flag[post_id]': post_id,
+		'post_flag[reason_name]': post_flag_reasons[reason],
+		'post_flag[user_reason]': null,
+		'post_flag[parent_id]': null
+	};
+
+	if (reason === post_flag_reasons.custom) {
+		data['post_flag[user_reason]'] = extra;
+	} else if (reason === post_flag_reasons.inferior) {
+		data['post_flag[parent_id]'] = extra;
+	}
+
+	return _raw_post_flag_create_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_flag_create"].call(this, data);
+}
+
+
+
+
+/***/ }),
+
+/***/ "./source/post_flag/create/raw_post_flag_create.js":
+/*!*********************************************************!*\
+  !*** ./source/post_flag/create/raw_post_flag_create.js ***!
+  \*********************************************************/
+/*! exports provided: raw_post_flag_create */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "raw_post_flag_create", function() { return raw_post_flag_create; });
+/* harmony import */ var _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../download/download.__TARGET__.js */ "./source/download/download.userscript.js");
+/* harmony import */ var _validation_validation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../../validation/validation.js */ "./source/validation/validation.js");
+
+
+
+async function raw_post_flag_create (settings) {
+	validate_settings(settings);
+
+	return _download_download_TARGET_js__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, {
+		method: 'POST',
+		path: '/post_flags',
+		response: 'JSON',
+
+		format: 'URL',
+		data: make_data(settings),
+		authenticate: true
+	}).catch(handle_error);
+}
+
+function validate_settings (settings) {
+	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings['post_flag[post_id]'], 'post_flag[post_id]');
+	const valid_reason = [
+		'deletion',
+		'inferior',
+		'user',
+		'dnp_artist',
+		'pay_content',
+		'trace',
+		'previously_deleted',
+		'real_porn',
+		'corrupt'
+	];
+
+	if (valid_reason.includes(settings['post_flag[reason_name]']) === false) {
+		throw new Error(`post_flag[reason_name] must be one of [${valid_reason.join(', ')}]`);
+	}
+
+	if (settings['post_flag[reason_name]'] === 'user') {
+		if (typeof settings['post_flag[user_reason]'] !== 'string')	{
+			throw new Error('if post_flag[reason_name] is \'user\' then post_flag[user_reason] must be a string');
+		}
+	} else if (settings['post_flag[user_reason]'] !== null) {
+		throw new Error('post_flag[user_reason] must be null unless post_flag[reason_name] is \'user\'');
+	}
+
+	if (settings['post_flag[reason_name]'] === 'inferior') {
+		Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_1__["validate_counting_number"])(settings['post_flag[parent_id]'], 'post_flag[parent_id]');
+	} else if (settings['post_flag[parent_id]'] !== null) {
+		throw new Error('post_flag[parent_id] must be null unless post_flag[parent_id] is \'inferior\'');
+	}
+}
+
+function make_data (settings) {
+	const return_object = {
+		'post_flag[post_id]': settings['post_flag[post_id]'],
+		'post_flag[reason_name]': settings['post_flag[reason_name]']
+	};
+
+	if (settings['post_flag[reason_name]'] === 'user') {
+		return_object['post_flag[user_reason]'] = settings['post_flag[user_reason]'];
+	} else if (settings['post_flag[reason_name]'] === 'inferior') {
+		return_object['post_flag[parent_id]'] = settings['post_flag[parent_id]'];
+	}
+
+	return return_object;
+}
+
+function handle_error (err) {
+	console.log(err);
+	throw err;
+};
+
 
 
 
@@ -626,15 +1604,17 @@ function handle_error (error) {
 /*!*****************************************!*\
   !*** ./source/validation/validation.js ***!
   \*****************************************/
-/*! exports provided: validate_md5, validate_post_id, validate_string, validate_vote_option */
+/*! exports provided: validate_md5, validate_counting_number, validate_string, validate_vote_option, validate_page_string, validate_boolean */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validate_md5", function() { return validate_md5; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validate_post_id", function() { return validate_post_id; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validate_counting_number", function() { return validate_counting_number; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validate_string", function() { return validate_string; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validate_vote_option", function() { return validate_vote_option; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validate_page_string", function() { return validate_page_string; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validate_boolean", function() { return validate_boolean; });
 function validate_md5 (md5) {
 	if (typeof md5 !== 'string') {
 		throw new Error('md5 must be of type string');
@@ -650,29 +1630,43 @@ function validate_md5 (md5) {
 	}
 }
 
-function validate_post_id (post_id) {
-	if (typeof post_id !== 'number') {
-		throw new Error('post_id must be a number');
+function validate_counting_number (number, name) {
+	if (typeof number !== 'number') {
+		throw new Error(`${name} must be a number`);
 	}
 
-	if (Number.isInteger(post_id) === false) {
-		throw new Error('post_id must be an integer');
+	if (Number.isInteger(number) === false) {
+		throw new Error(`${name}must be an integer`);
 	}
 
-	if (post_id < 0) {
-		throw new Error('post_id must be greater than zero');
+	if (number < 0) {
+		throw new Error(`${name} must be greater than zero`);
 	}
 }
 
-function validate_string (string) {
+function validate_string (string, name) {
 	if (typeof string !== 'string') {
-		throw new Error('string is not a string');
+		throw new Error(`${name} is not a string`);
 	}
 }
 
 function validate_vote_option (vote) {
 	if (vote !== -1 && vote !== 0 && vote !== 1) {
-		throw new Error('vote is not of the values [-1, 0, 1]');
+		throw new Error('vote is not of the values [-1, 1]');
+	}
+}
+
+function validate_page_string (string, name) {
+	validate_string(string, name);
+
+	if ((/[ab]?\d+/).test(string) === false) {
+		throw new Error(`${name} does not match the format /[ab]?\\d+/`);
+	}
+}
+
+function validate_boolean (boolean, name) {
+	if (boolean !== false && boolean !== true) {
+		throw new Error(`${name} is not of the type boolean`);
 	}
 }
 
@@ -1494,6 +2488,7 @@ module.exports = {
 	// Not really a site, but it has to follow this syntax
 	// to be enabled correctly
 	on_site_imagecomparison_enabled: true,
+	on_site_postbvas_enabled: true,
 
 	// Make sure that the settings page is accessible. If you
 	// somehow manage to set this to false, well, you'll have a
@@ -1518,7 +2513,8 @@ const plans = [
 	require('./plans/settings/main.js'),
 	require('./plans/sofurry/main.js'),
 	require('./plans/inkbunny/main.js'),
-	require('./plans/pixiv/main.js')
+	require('./plans/pixiv/main.js'),
+	require('./plans/bvas/main.js')
 ];
 
 const { get_value } = require('./utils/utils.js');
@@ -1536,7 +2532,51 @@ if (site !== undefined) {
 	});
 }
 
-},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":6,"./plans/deviantart/main.js":11,"./plans/furaffinity/main.js":18,"./plans/furrynetwork/main.js":20,"./plans/image_compare/main.js":26,"./plans/inkbunny/main.js":28,"./plans/pixiv/main.js":30,"./plans/settings/main.js":32,"./plans/sofurry/main.js":34,"./plans/twitter/main.js":36,"./plans/weasyl/main.js":38,"./utils/utils.js":48}],9:[function(require,module,exports){
+},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":6,"./plans/bvas/main.js":12,"./plans/deviantart/main.js":15,"./plans/furaffinity/main.js":22,"./plans/furrynetwork/main.js":24,"./plans/image_compare/main.js":30,"./plans/inkbunny/main.js":32,"./plans/pixiv/main.js":34,"./plans/settings/main.js":36,"./plans/sofurry/main.js":38,"./plans/twitter/main.js":40,"./plans/weasyl/main.js":42,"./utils/utils.js":52}],9:[function(require,module,exports){
+module.exports = {
+	test: (url) => {
+		return url.href === 'https://e621.net/extensions/upload_bvas';
+	},
+
+	match: ['https://e621.net/extensions/upload_bvas'],
+
+	connect: ['*'],
+
+	title: 'PostBVAS',
+	version: 1
+};
+
+},{}],10:[function(require,module,exports){
+module.exports = ":root {\n\t--dark-blue: #031131;\n\t--blue: #284a81;\n\t--other-blue: #174891;\n\t--more-blue: #152f56;\n\t--grey-blue: #213a5f;\n\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n\n\t--text-color: #ddd;\n}\n\n.hidden { display:none; }\n\nbody {\n\tbackground-color: var(--dark-blue);\n\tcolor: var(--text-color);\n}\n\ninput, button { border:none; }\n\n#message > a { color: var(--text-color); }\n\n#settings > span {\n\tborder: 1px solid var(--yellow);\n\tmargin-right: 10px;\n}\n#settings > span > span {\n\tborder-left: 1px solid var(--light-yellow);\n\tpadding-left: 5px;\n}\n\n#post_container {\n\tdisplay:grid;\n\tgrid-template-columns: calc(50% - 10px) calc(50% - 10px);\n\tgrid-gap: 20px;\n\twidth:100%;\n\theight:100%\n}\n\n#old_post, #new_post {\n\tdisplay: grid;\n\tgrid-template-columns: 250px 1fr;\n\tgrid-template-rows: 250px auto;\n}\n\n#old_stats, #new_stats {\n\tbackground-color: var(--blue);\n\theight: 100%;\n}\n#old_fields, #new_fields {\n\tgrid-column: 1/3; grid-row: 2/3;\n\tbackground-color: var(--blue);\n}\n\n#old_img, #new_img { background-color: var(--grey-blue); }\n\n#old_fields {\n\tdisplay: block;\n\toverflow-x: auto;\n\tborder-collapse: collapse;\n}\n#old_fields td { border: 2px solid black; }\n#old_sources { white-space: pre; }\n#old_md5, #new_md5, #new_md5 > a { font-size: 0.5rem; }\n#new_md5 > a { color: #f66; }\n#load_new_file { width: 100%; }\n\ntable { line-height: 16px; }\ntable * { font-size: 13px; }\n#new_fields table { width:95% }\ntable textarea { width: 90%; }\n#new_stats tr > td:first-child { width:150px; }\n#new_fields tr > td:first-child { width:20px; }\ntable textarea { height: 5em; }";
+
+},{}],11:[function(require,module,exports){
+module.exports = "\n\n<div id=\"settings\">\n\t<input id=\"username\" placeholder=\"username\"></input>\n\t<input id=\"api_key\" type=\"password\" placeholder=\"api key\"></input>\n\t<span id=\"action_selection\">\n\t\t<input type=\"radio\" name=\"action\" value=\"delete\" id=\"action_delete\">Delete</input>\n\t\t<input type=\"radio\" name=\"action\" value=\"flag\" id=\"action_flag\">Flag</input>\n\t\t<input type=\"radio\" name=\"action\" value=\"nothing\" id=\"action_nothing\">Nothing</input>\n\t\t<span>The post</span>\n\t</span>\n\n\t<span id=\"notification_selection\">\n\t\t<input type=\"checkbox\" name=\"selection\" id=\"notification_comment\">Comment</input>\n\t\t<input type=\"checkbox\" name=\"selection\" id=\"notification_description\">Description</input>\n\t\t<span>For superior version</span>\n\t</span>\n\n\t<span>\n\t\t<input type=\"checkbox\" id=\"copy_notes\">Copy Notes</input>\n\t</span>\n</div>\n<hr>\n<div id=\"message\">Message Box</div>\n<hr>\n<div id=\"post_container\">\n\t<div id=\"old_post\">\n\t\t<div id=\"old_img\"></div>\n\t\t<table id=\"old_stats\">\n\t\t\t<tr>\n\t\t\t\t<td><input type=\"number\" id=\"e6_post_id\" placeholder=\"e621 post id\"></input></td>\n\t\t\t\t<td><button id=\"load_post_btn\">Load</button></td>\n\t\t\t</tr>\n\t\t\t<tr><td>Post Id: </td><td id=\"old_id\"> </td></tr>\n\t\t\t<tr><td>Poster: </td><td id=\"old_author\"> </td></tr>\n\t\t\t<tr><td>Size: </td><td id=\"old_size\"> </td></tr>\n\t\t\t<tr><td>Type: </td><td id=\"old_file_ext\"> </td></tr>\n\t\t\t<tr><td>md5: </td><td id=\"old_md5\"> </td></tr>\n\t\t\t<tr><td>Status: </td><td id=\"old_status\"> </td></tr>\n\t\t\t<tr><td>Rating: </td><td id=\"old_rating\"> </td></tr>\n\t\t\t<tr><td>Parent: </td><td id=\"old_parent_id\"> </td></tr>\n\t\t\t<tr><td>Children: </td><td id=\"old_has_children\"> </td></tr>\n\t\t\t<tr><td>Notes: </td><td id=\"old_has_notes\"> </td></tr>\n\t\t\t<tr><td>Comments: </td><td id=\"old_has_comments\"> </td></tr>\n\t\t</table>\n\t\t<table id=\"old_fields\">\n\t\t\t<tr><td>Tags: </td><td id=\"old_tags\"></td></tr>\n\t\t\t<tr><td>L Tags: </td><td id=\"old_locked_tags\"></td></tr>\n\t\t\t<!-- It is supposed to be _old_sources, because its manually changed -->\n\t\t\t<tr><td>Sources: </td><td id=\"old_sources\"></td></tr>\n\t\t\t<tr><td>Description: </td><td id=\"old_description\"></td></tr>\n\t\t</table>\n\t</div>\n\t<div id=\"new_post\">\n\t\t<div id=\"new_img\"></div>\n        <table id=\"new_stats\">\n            <tr>\n                <td><input id=\"new_url\" placeholder=\"new image\"></input></td>\n\t\t\t\t<td class=\"hidden hidable\"><button id=\"load_new_post\">Load</button></td>\n\t\t\t</tr>\n\t\t\t<tr>\n\t\t\t\t<td>Direct File</td>\n\t\t\t\t<td class=\"hidden hidable\"><input id=\"load_new_file\" type=\"file\"></button></td>\n\t\t\t</tr>\n\t\t\t<tr><td>Medium: </td><td id=\"upload_medium\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Size: </td><td id=\"new_size\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Type: </td><td id=\"new_file_ext\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>md5: </td><td id=\"new_md5\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Rating: </td><td id=\"new_rating\" class=\"hidden hidable\">\n                <input type=\"radio\" name=\"rating\" value=\"explicit\" data-type=\"e\">e</input>\n                <input type=\"radio\" name=\"rating\" value=\"questionable\" data-type=\"q\">q</input>\n                <input type=\"radio\" name=\"rating\" value=\"safe\" data-type=\"s\">s</input>\n            </td></tr>\n            <tr><td>Parent: </td><td><input id=\"new_parent_id\" placeholder=\"parent id\" class=\"hidden hidable\"></input></td></tr>\n\t\t\t<tr><td>Children: </td><td><input id=\"new_children\" placeholder=\"children id\" class=\"hidden hidable\"></input></td></tr>\n            <tr><td>Upload</td><td><button id=\"upload_button\" class=\"hidden hidable\">Create Post</button></td></tr>\n        </table>\n        <table id=\"new_fields\">\n            <tr><td>Tags: </td><td><textarea id=\"new_tags\" placeholder=\"tags\" class=\"hidden hidable\"></textarea></td></tr>\n            <tr><td>Sources: </td><td><textarea id=\"new_sources\" placeholder=\"sources\" class=\"hidden hidable\"></textarea></td></tr>\n            <tr><td>Description: </td><td><textarea id=\"new_description\" placeholder=\"description\" class=\"hidden hidable\"></textarea></td></tr>\n        </table>\n\t</div>\n</div>";
+
+},{}],12:[function(require,module,exports){
+const {
+	multi_input,
+	remove_node,
+	clear_page,
+	add_css
+} = require('./../../utils/utils.js');
+const header = require('./header.js');
+
+async function init () {
+	clear_page();
+	add_css(require('./main.css'));
+	document.body.innerHTML = require('./main.html');
+}
+
+async function exec () {
+	init();
+}
+
+module.exports = {
+	exec: exec,
+	...header
+};
+
+},{"./../../utils/utils.js":52,"./header.js":9,"./main.css":10,"./main.html":11}],13:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	artist_commentary,
@@ -1666,7 +2706,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":48,"./shared.js":13}],10:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./shared.js":17}],14:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -1681,7 +2721,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],11:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 const old = require('./old.js');
 const eclipse = require('./eclipse.js');
 const header = require('./header.js');
@@ -1727,7 +2767,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./eclipse.js":9,"./header.js":10,"./old.js":12}],12:[function(require,module,exports){
+},{"./eclipse.js":13,"./header.js":14,"./old.js":16}],16:[function(require,module,exports){
 const { description, upload } = require('./shared.js');
 const {
 	commentary_from_text,
@@ -1856,7 +2896,7 @@ module.exports = {
 	exec: run_artwork
 };
 
-},{"./../../utils/utils.js":48,"./shared.js":13}],13:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./shared.js":17}],17:[function(require,module,exports){
 const { commentary_button, upload_button } = require('./../../utils/utils.js');
 
 function create_description_button (info) {
@@ -1884,7 +2924,7 @@ module.exports = {
 	upload: create_upload_button
 };
 
-},{"./../../utils/utils.js":48}],14:[function(require,module,exports){
+},{"./../../utils/utils.js":52}],18:[function(require,module,exports){
 const { simple_site, append } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -1949,7 +2989,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":48,"./links.js":17}],15:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./links.js":21}],19:[function(require,module,exports){
 const { simple_site, append } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
@@ -1995,7 +3035,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":48,"./links.js":17}],16:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./links.js":21}],20:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2013,7 +3053,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],17:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 function full_to_thumb (full_url) {
 	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
 	const post_id = new URL(window.location.href).pathname.split('/')[2];
@@ -2024,7 +3064,7 @@ module.exports = {
 	full_to_thumb: full_to_thumb
 };
 
-},{}],18:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 const run_classic = require('./classic.js');
 const run_beta = require('./beta.js');
 const header = require('./header.js');
@@ -2046,7 +3086,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./beta.js":14,"./classic.js":15,"./header.js":16}],19:[function(require,module,exports){
+},{"./beta.js":18,"./classic.js":19,"./header.js":20}],23:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2061,7 +3101,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],20:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 const { simple_site, remove_node, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -2173,7 +3213,7 @@ module.exports = {
 	...header
 };
 
-},{"./../../utils/utils.js":48,"./header.js":19}],21:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./header.js":23}],25:[function(require,module,exports){
 const pixel_compare = require('./compare_points.js');
 
 async function compare (options) {
@@ -2242,7 +3282,7 @@ async function compare (options) {
 
 module.exports = compare;
 
-},{"./compare_points.js":22}],22:[function(require,module,exports){
+},{"./compare_points.js":26}],26:[function(require,module,exports){
 const library = {};
 
 // https://stackoverflow.com/questions/8885323/speed-of-the-math-object-in-javascript
@@ -2300,7 +3340,7 @@ library.in_second = (d1, d2, o) => {
 
 module.exports = library;
 
-},{}],23:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		return url.href === 'https://e621.net/extensions/image_compare';
@@ -2316,13 +3356,13 @@ module.exports = {
 	version: 1
 };
 
-},{}],24:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports = ":root {\n\t--background-blue: #031131;\n\t--home-blue: #012e56;\n\t--standard-blue: #152f56;\n\t--comment-blue: #213a5f;\n\t--quote-blue: #284a81;\n\t--link-blue: #b4c7d9;\n\t--hover-blue: #2e76b4;\n\n\t--other-blue: #174891;\n\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n}\n\nbody {\n\tbackground-color: var(--background-blue);\n\tbackground-image: url(https://e621.net/images/stripe.png);\n}\n\ncanvas {\n\tborder: 5px dashed var(--quote-blue);\n}\n\n#c1, #c2 {\n\tmax-width: 400px;\n\tmax-height: 400px;\n}\n\n#input {\n\tdisplay: grid;\n\tgrid-template-columns: auto auto;\n\tgrid-gap: 5px;\n\tflex-grow: 1;\n}\n\n#control {\n\tflex-grow: 5;\n}\n\n#main {\n\tdisplay: flex;\n}\n\n#messages {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n\nhr,\ninput[type=file],\n#leave_early ~ label,\n#messages {\n\tcolor: #ccc;\n}";
 
-},{}],25:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = "<div id=\"main\">\n\t<div id=\"control\">\n\t\t<button id=\"compare_button\">Compare images using</button>\n\t\t<select id=\"algorithm_select\" title=\"These are named after the degrees of a polynomial\">\n\t\t\t<option value=\"constant\" title=\"This is what you want\">Constant</option>\n\t\t\t<option value=\"linear\" title=\"absoluteValue of color1 - color2\">Linear</option>\n\t\t\t<option value=\"quadratic\" title=\"(color1 - color2)^2\">Quadratic</option>\n\t\t\t<option value=\"in_first\" title=\"Only pixels that are in the first image\">In First</option>\n\t\t\t<option value=\"in_second\" title=\"Only pixels that are in the second image\">In Second</option>\n\t\t</select>\n\t\t<br>\n\t\t<input type=\"checkbox\" id=\"leave_early\" name=\"leave_early\"></input>\n\t\t<label for=\"leave_early\">Quick Compare</label>\n\t\t<br>\n\t\t<div id=\"messages\">\n\t\t\t<span>Logging information should appear here<span>\n\t\t</div>\n\t</div>\n\t<div id=\"input\">\n\t\t<canvas id=\"c1\"></canvas>\n\t\t<canvas id=\"c2\"></canvas>\n\t</div>\n</div>\n<hr>\n<div>\n\t<canvas id=\"o1\"></canvas>\n</div>";
 
-},{}],26:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 const {
 	multi_input,
 	remove_node,
@@ -2412,7 +3452,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":48,"./compare_canvas.js":21,"./header.js":23,"./main.css":24,"./main.html":25}],27:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./compare_canvas.js":25,"./header.js":27,"./main.css":28,"./main.html":29}],31:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2429,7 +3469,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],28:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 const {
 	artist_commentary,
 	commentary_button,
@@ -2593,7 +3633,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":48,"./header.js":27}],29:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./header.js":31}],33:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2610,7 +3650,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],30:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 const header = require('./header.js');
 const {
 	artist_commentary,
@@ -2781,7 +3821,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":48,"./header.js":29}],31:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./header.js":33}],35:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		return url.href === 'https://e621.net/extensions';
@@ -2795,7 +3835,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],32:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 const headers = require('./header.js');
 const defaults = require('./../../default_settings.js');
 const Settings = require('./../../../dependencies/extensions.js');
@@ -2804,6 +3844,7 @@ function exec () {
 	// Do something with utils
 	on_site_hasher_settings();
 	image_compare_settings();
+	post_bvas_settings();
 }
 
 function on_site_hasher_settings () {
@@ -2868,12 +3909,27 @@ function image_compare_settings () {
 	});
 }
 
+function post_bvas_settings () {
+	const settings = new Settings({
+		name: 'post-bvas',
+		description: 'A tool to automate the process of replacing posts.',
+		url: 'https://e621.net/extensions/upload_bvas'
+	});
+
+	settings.checkbox({
+		name: 'Enabled',
+		key: 'on_site_postbvas_enabled',
+		default: defaults['on_site_postbvas_enabled'],
+		description: `Enables or disables the post-bvaser tool located at <a href="https://e621.net/extensions/upload_bvas">/extensions/upload_bvas</a>.`
+	});
+}
+
 module.exports = {
 	exec: exec,
 	...headers
 };
 
-},{"./../../../dependencies/extensions.js":3,"./../../default_settings.js":7,"./header.js":31}],33:[function(require,module,exports){
+},{"./../../../dependencies/extensions.js":3,"./../../default_settings.js":7,"./header.js":35}],37:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2890,7 +3946,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],34:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 const { simple_site, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -2961,7 +4017,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":48,"./header.js":33}],35:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./header.js":37}],39:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -2978,7 +4034,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],36:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 const { remove_node, simple_site, append } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -3120,7 +4176,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":48,"./header.js":35}],37:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./header.js":39}],41:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -3137,7 +4193,7 @@ module.exports = {
 	version: 1
 };
 
-},{}],38:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 const { simple_site, append } = require('./../../utils/utils.js');
 
 const get_info = async () => simple_site({
@@ -3175,7 +4231,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":48,"./header.js":37}],39:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./header.js":41}],43:[function(require,module,exports){
 const { node_to_dtext } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
@@ -3230,7 +4286,7 @@ module.exports = {
 	commentary_from_text: commentary_from_text
 };
 
-},{"./node_to_dtext.js":43}],40:[function(require,module,exports){
+},{"./node_to_dtext.js":47}],44:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
 
 const e621 = new E621API('Idem\'s Sourcing Suite');
@@ -3239,7 +4295,7 @@ module.exports = {
 	e621: e621
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],41:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],45:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 const defaults = require('./../default_settings.js');
 
@@ -3251,7 +4307,7 @@ module.exports = {
 	get_value: get_value
 };
 
-},{"./../../dependencies/gm_functions.js":4,"./../default_settings.js":7}],42:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./../default_settings.js":7}],46:[function(require,module,exports){
 const MD5 = require('./../../dependencies/md5.js');
 const GM = require('./../../dependencies/gm_functions.js');
 const { e621 } = require('./e621_api.js');
@@ -3435,7 +4491,7 @@ module.exports = {
 	e621_lookup_hash: e621_lookup_hash
 };
 
-},{"./../../dependencies/gm_functions.js":4,"./../../dependencies/md5.js":5,"./e621_api.js":40}],43:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./../../dependencies/md5.js":5,"./e621_api.js":44}],47:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
 function get_link (node) {
@@ -3506,7 +4562,7 @@ module.exports = {
 	node_to_dtext: html_to_dtext
 };
 
-},{"./safe_link.js":45}],44:[function(require,module,exports){
+},{"./safe_link.js":49}],48:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 const { download_image } = require('./hash_image.js');
 
@@ -3594,7 +4650,7 @@ module.exports = {
 	append: append
 };
 
-},{"./../../dependencies/gm_functions.js":4,"./hash_image.js":42}],45:[function(require,module,exports){
+},{"./../../dependencies/gm_functions.js":4,"./hash_image.js":46}],49:[function(require,module,exports){
 const safe_domains = [
 	'furaffinity.net',
 	'facdn.net',
@@ -3637,7 +4693,7 @@ module.exports = {
 	safe_link: safe_link
 };
 
-},{}],46:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 const { artist_commentary, commentary_button } = require('./artist_commentary.js');
 const { upload_button } = require('./upload_url.js');
 const { data_to_span } = require('./hash_image.js');
@@ -3722,7 +4778,7 @@ module.exports = {
 	simple_site: build_simple
 };
 
-},{"./artist_commentary.js":39,"./gm_values.js":41,"./hash_image.js":42,"./nodes.js":44,"./upload_url.js":47}],47:[function(require,module,exports){
+},{"./artist_commentary.js":43,"./gm_values.js":45,"./hash_image.js":46,"./nodes.js":48,"./upload_url.js":51}],51:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
 	url.searchParams.set('url', source_url);
@@ -3747,7 +4803,7 @@ module.exports = {
 	upload_button: upload_button
 };
 
-},{}],48:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 module.exports = {
 	...require('./artist_commentary.js'),
 	...require('./e621_api.js'),
@@ -3760,4 +4816,4 @@ module.exports = {
 	...require('./gm_values.js')
 };
 
-},{"./artist_commentary.js":39,"./e621_api.js":40,"./gm_values.js":41,"./hash_image.js":42,"./node_to_dtext.js":43,"./nodes.js":44,"./safe_link.js":45,"./simple_site.js":46,"./upload_url.js":47}]},{},[8]);
+},{"./artist_commentary.js":43,"./e621_api.js":44,"./gm_values.js":45,"./hash_image.js":46,"./node_to_dtext.js":47,"./nodes.js":48,"./safe_link.js":49,"./simple_site.js":50,"./upload_url.js":51}]},{},[8]);

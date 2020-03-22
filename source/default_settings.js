@@ -19,6 +19,7 @@ module.exports = {
 	// Not really a site, but it has to follow this syntax
 	// to be enabled correctly
 	on_site_imagecomparison_enabled: true,
+	on_site_postbvas_enabled: true,
 
 	// Make sure that the settings page is accessible. If you
 	// somehow manage to set this to false, well, you'll have a
