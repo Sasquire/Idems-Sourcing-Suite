@@ -338,15 +338,15 @@ async function download (settings) {
 
 	return new Promise((resolve, reject) => {
 		const on_load = (e) => {
-			if (e.status === 200) {
+			if (e.status >= 200 && e.status <= 299) {
 				resolve(e.response); // This will likely cause errors later
 			} else {
 				// eslint-disable-next-line prefer-promise-reject-errors
 				reject({
 					response: {
-						status: e.status
-					},
-					data: e
+						status: e.status,
+						data: e.response
+					}
 				});
 			}
 		};
@@ -1070,7 +1070,8 @@ async function post_show_md5 (md5) {
 	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_2__["validate_md5"])(md5);
 	return _index_raw_post_search_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_search"].call(this, {
 		tags: `md5:${md5}`,
-		limit: 1
+		limit: 1,
+		page: null
 	}).then(e => {
 		if (e.posts.length === 0) {
 			return null;
@@ -2559,17 +2560,19 @@ module.exports = {
 module.exports = ":root {\n\t--background-blue: #031131;\n\t--home-blue: #012e56;\n\t--standard-blue: #152f56;\n\t--comment-blue: #213a5f;\n\t--quote-blue: #284a81;\n\t--link-blue: #b4c7d9;\n\t--hover-blue: #2e76b4;\n\n\t--other-blue: #174891;\n\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n}\n.hidden { display:none; }\n\nbody {\n\tbackground-color: var(--background-blue);\n\tcolor: #ccc;\n}\n\n#messages {\n\theight: 5rem;\n\toverflow-y: scroll;\n\tdisplay: flex;\n\tflex-direction: column;\n}";
 
 },{}],11:[function(require,module,exports){
-module.exports = "<div id=\"main\">\n\t<div id=\"messages\">\n\t\t<span>Logging information should appear here<span>\n\t</div>\n\t<hr>\n\t<div id=\"old_post\">\n\t</div>\n\t<div id=\"new_post\">\n\t</div>\n</div>\n\n<!--\n\n<div id=\"settings\">\n\t<input id=\"username\" placeholder=\"username\"></input>\n\t<input id=\"api_key\" type=\"password\" placeholder=\"api key\"></input>\n\t<span id=\"action_selection\">\n\t\t<input type=\"radio\" name=\"action\" value=\"delete\" id=\"action_delete\">Delete</input>\n\t\t<input type=\"radio\" name=\"action\" value=\"flag\" id=\"action_flag\">Flag</input>\n\t\t<input type=\"radio\" name=\"action\" value=\"nothing\" id=\"action_nothing\">Nothing</input>\n\t\t<span>The post</span>\n\t</span>\n\n\t<span id=\"notification_selection\">\n\t\t<input type=\"checkbox\" name=\"selection\" id=\"notification_comment\">Comment</input>\n\t\t<input type=\"checkbox\" name=\"selection\" id=\"notification_description\">Description</input>\n\t\t<span>For superior version</span>\n\t</span>\n\n\t<span>\n\t\t<input type=\"checkbox\" id=\"copy_notes\">Copy Notes</input>\n\t</span>\n</div>\n<hr>\n<div id=\"message\">Message Box</div>\n<hr>\n<div id=\"post_container\">\n\t<div id=\"old_post\">\n\t\t<div id=\"old_img\"></div>\n\t\t<table id=\"old_stats\">\n\t\t\t<tr>\n\t\t\t\t<td><input type=\"number\" id=\"e6_post_id\" placeholder=\"e621 post id\"></input></td>\n\t\t\t\t<td><button id=\"load_post_btn\">Load</button></td>\n\t\t\t</tr>\n\t\t\t<tr><td>Post Id: </td><td id=\"old_id\"> </td></tr>\n\t\t\t<tr><td>Poster: </td><td id=\"old_author\"> </td></tr>\n\t\t\t<tr><td>Size: </td><td id=\"old_size\"> </td></tr>\n\t\t\t<tr><td>Type: </td><td id=\"old_file_ext\"> </td></tr>\n\t\t\t<tr><td>md5: </td><td id=\"old_md5\"> </td></tr>\n\t\t\t<tr><td>Status: </td><td id=\"old_status\"> </td></tr>\n\t\t\t<tr><td>Rating: </td><td id=\"old_rating\"> </td></tr>\n\t\t\t<tr><td>Parent: </td><td id=\"old_parent_id\"> </td></tr>\n\t\t\t<tr><td>Children: </td><td id=\"old_has_children\"> </td></tr>\n\t\t\t<tr><td>Notes: </td><td id=\"old_has_notes\"> </td></tr>\n\t\t\t<tr><td>Comments: </td><td id=\"old_has_comments\"> </td></tr>\n\t\t</table>\n\t\t<table id=\"old_fields\">\n\t\t\t<tr><td>Tags: </td><td id=\"old_tags\"></td></tr>\n\t\t\t<tr><td>L Tags: </td><td id=\"old_locked_tags\"></td></tr>\n\t\t\t<tr><td>Sources: </td><td id=\"old_sources\"></td></tr>\n\t\t\t<tr><td>Description: </td><td id=\"old_description\"></td></tr>\n\t\t</table>\n\t</div>\n\t<div id=\"new_post\">\n\t\t<div id=\"new_img\"></div>\n        <table id=\"new_stats\">\n            <tr>\n                <td><input id=\"new_url\" placeholder=\"new image\"></input></td>\n\t\t\t\t<td class=\"hidden hidable\"><button id=\"load_new_post\">Load</button></td>\n\t\t\t</tr>\n\t\t\t<tr>\n\t\t\t\t<td>Direct File</td>\n\t\t\t\t<td class=\"hidden hidable\"><input id=\"load_new_file\" type=\"file\"></button></td>\n\t\t\t</tr>\n\t\t\t<tr><td>Medium: </td><td id=\"upload_medium\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Size: </td><td id=\"new_size\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Type: </td><td id=\"new_file_ext\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>md5: </td><td id=\"new_md5\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Rating: </td><td id=\"new_rating\" class=\"hidden hidable\">\n                <input type=\"radio\" name=\"rating\" value=\"explicit\" data-type=\"e\">e</input>\n                <input type=\"radio\" name=\"rating\" value=\"questionable\" data-type=\"q\">q</input>\n                <input type=\"radio\" name=\"rating\" value=\"safe\" data-type=\"s\">s</input>\n            </td></tr>\n            <tr><td>Parent: </td><td><input id=\"new_parent_id\" placeholder=\"parent id\" class=\"hidden hidable\"></input></td></tr>\n\t\t\t<tr><td>Children: </td><td><input id=\"new_children\" placeholder=\"children id\" class=\"hidden hidable\"></input></td></tr>\n            <tr><td>Upload</td><td><button id=\"upload_button\" class=\"hidden hidable\">Create Post</button></td></tr>\n        </table>\n        <table id=\"new_fields\">\n            <tr><td>Tags: </td><td><textarea id=\"new_tags\" placeholder=\"tags\" class=\"hidden hidable\"></textarea></td></tr>\n            <tr><td>Sources: </td><td><textarea id=\"new_sources\" placeholder=\"sources\" class=\"hidden hidable\"></textarea></td></tr>\n            <tr><td>Description: </td><td><textarea id=\"new_description\" placeholder=\"description\" class=\"hidden hidable\"></textarea></td></tr>\n        </table>\n\t</div>\n</div>\n-->";
+module.exports = "<div id=\"main\">\n\t<div id=\"messages\">\n\t\t<span>Logging information should appear here<span>\n\t</div>\n\t<hr>\n\t<div id=\"old_post\">\n\t\t<input id=\"old_post_id\" placeholder=\"old post #\"></input>\n\t</div>\n\t<div id=\"new_post\">\n\t</div>\n\t<button id=\"bvas_submit\">BVAS post</button>\n</div>\n";
 
 },{}],12:[function(require,module,exports){
 const {
 	multi_input,
-	remove_node,
 	clear_page,
 	add_css,
-	get_authenticated_e621
+	get_authenticated_e621,
+	get_value
 } = require('./../../utils/utils.js');
 const header = require('./header.js');
+
+let e621_api = null;
 
 function log_message (text) {
 	console.log(text);
@@ -2585,9 +2588,62 @@ async function init () {
 	clear_page();
 	add_css(require('./main.css'));
 	document.body.innerHTML = require('./main.html');
-	const e621 = await get_authenticated_e621()
-		.then(e => log_message('Credentials obtained. If entered incorrectly this page will experience issues later.'))
+	e621_api = await get_authenticated_e621()
 		.catch(e => log_message('Error with obtaining credentials. This page may not work as intended. Please enter credentials on the settings page.'));
+	if (e621_api === undefined) {
+		return;
+	}
+
+	log_message('Credentials obtained. If entered incorrectly this page will experience issues later.');
+
+	bvas_listener();
+	// e621.post_show_id(6268).then(console.log);
+}
+
+function bvas_listener () {
+	let new_data = null;
+	const new_input = multi_input(data => {
+		log_message('Loading new data for replacement post');
+		data.arrayBuffer().then(e => {
+			log_message('Loaded new data for replacement post');
+			new_data = e;
+		});
+	});
+	document.getElementById('new_post').appendChild(new_input);
+
+	document.getElementById('bvas_submit').addEventListener('click', e => {
+		const old_id = parseInt(document.getElementById('old_post_id').value, 10);
+		perform_bvas(old_id, new_data);
+	});
+}
+
+async function perform_bvas (old_id, new_data) {
+	const edit_description = await get_value('postbvas_edit_description');
+	const post_comment = await get_value('postbvas_post_comment');
+	const delete_post = await get_value('postbvas_delete_post');
+
+	if (Number.isNaN(old_id) === true) {
+		log_message('Error with old post id. Please fix the issue.');
+		return null;
+	} else if (new_data === null) {
+		log_message('New post data was not set. Set data and try again.');
+		return null;
+	} else {
+		log_message('Attempting to BVAS post.');
+		await e621_api.post_bvas({
+			post_id: old_id,
+			replacement: new_data,
+			comment: post_comment,
+			description: edit_description,
+			delete: delete_post
+		}).catch(e => {
+			log_message('Error with BVASing post. Please make a bug report to idem on e621.');
+			log_message(e.toString());
+			throw e;
+		});
+		log_message('Post successfully BVASed');
+		return null;
+	}
 }
 
 async function exec () {
@@ -4452,7 +4508,7 @@ async function lookup_hash (container_node) {
 
 async function e621_lookup_hash (hash, hash_node) {
 	e621_lookup(hash, hash_node)
-		.then(e => {console.log(e); return e})
+		.then(e => { console.log(e); return e; })
 		.then(posts => set_hash_status(posts, hash_node))
 		.catch(e => (hash_node.textContent = hash_lookup_error(e)));
 }
@@ -4460,16 +4516,15 @@ async function e621_lookup_hash (hash, hash_node) {
 async function e621_lookup (hash, hash_node) {
 	hash_node.textContent = hash;
 	hash_node.classList.add('iss_hash_checking');
-	return e621.raw_post_list(`md5:${hash}`);
+	return e621.post_show_md5(hash);
 }
 
-async function set_hash_status (posts, hash_node) {
+async function set_hash_status (post, hash_node) {
 	hash_node.classList.remove('iss_hash_checking');
 
-	if (posts.posts.length === 0) {
+	if (post === null) {
 		hash_node.classList.add('iss_hash_notfound');
 	} else {
-		const post = posts.posts[0];
 		const new_hash = document.createElement('a');
 		new_hash.classList.add('iss_hash_found');
 		Array.from(hash_node.classList)
