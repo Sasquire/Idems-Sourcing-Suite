@@ -1,17 +1,18 @@
 :root {
-	--dark-blue: #031131;
-	--blue: #284a81;
+	--background-blue: #031131;
+	--home-blue: #012e56;
+	--standard-blue: #152f56;
+	--comment-blue: #213a5f;
+	--quote-blue: #284a81;
+	--link-blue: #b4c7d9;
+	--hover-blue: #2e76b4;
+
 	--other-blue: #174891;
-	--more-blue: #152f56;
-	--grey-blue: #213a5f;
 
 	--yellow: #fdba31;
 	--light-yellow: #ffde9b;
 	--dark-yellow: #d8b162;
-
-	--text-color: #ddd;
 }
-
 .hidden { display:none; }
 
 body {

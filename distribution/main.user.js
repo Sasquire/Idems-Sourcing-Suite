@@ -2493,7 +2493,10 @@ module.exports = {
 	// Make sure that the settings page is accessible. If you
 	// somehow manage to set this to false, well, you'll have a
 	// rather large and not easy to fix problem.
-	on_site_settingspage_enabled: true
+	on_site_settingspage_enabled: true,
+
+	username: null,
+	api_key: null
 };
 
 },{}],8:[function(require,module,exports){
@@ -2547,17 +2550,18 @@ module.exports = {
 };
 
 },{}],10:[function(require,module,exports){
-module.exports = ":root {\n\t--dark-blue: #031131;\n\t--blue: #284a81;\n\t--other-blue: #174891;\n\t--more-blue: #152f56;\n\t--grey-blue: #213a5f;\n\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n\n\t--text-color: #ddd;\n}\n\n.hidden { display:none; }\n\nbody {\n\tbackground-color: var(--dark-blue);\n\tcolor: var(--text-color);\n}\n\ninput, button { border:none; }\n\n#message > a { color: var(--text-color); }\n\n#settings > span {\n\tborder: 1px solid var(--yellow);\n\tmargin-right: 10px;\n}\n#settings > span > span {\n\tborder-left: 1px solid var(--light-yellow);\n\tpadding-left: 5px;\n}\n\n#post_container {\n\tdisplay:grid;\n\tgrid-template-columns: calc(50% - 10px) calc(50% - 10px);\n\tgrid-gap: 20px;\n\twidth:100%;\n\theight:100%\n}\n\n#old_post, #new_post {\n\tdisplay: grid;\n\tgrid-template-columns: 250px 1fr;\n\tgrid-template-rows: 250px auto;\n}\n\n#old_stats, #new_stats {\n\tbackground-color: var(--blue);\n\theight: 100%;\n}\n#old_fields, #new_fields {\n\tgrid-column: 1/3; grid-row: 2/3;\n\tbackground-color: var(--blue);\n}\n\n#old_img, #new_img { background-color: var(--grey-blue); }\n\n#old_fields {\n\tdisplay: block;\n\toverflow-x: auto;\n\tborder-collapse: collapse;\n}\n#old_fields td { border: 2px solid black; }\n#old_sources { white-space: pre; }\n#old_md5, #new_md5, #new_md5 > a { font-size: 0.5rem; }\n#new_md5 > a { color: #f66; }\n#load_new_file { width: 100%; }\n\ntable { line-height: 16px; }\ntable * { font-size: 13px; }\n#new_fields table { width:95% }\ntable textarea { width: 90%; }\n#new_stats tr > td:first-child { width:150px; }\n#new_fields tr > td:first-child { width:20px; }\ntable textarea { height: 5em; }";
+module.exports = ":root {\n\t--background-blue: #031131;\n\t--home-blue: #012e56;\n\t--standard-blue: #152f56;\n\t--comment-blue: #213a5f;\n\t--quote-blue: #284a81;\n\t--link-blue: #b4c7d9;\n\t--hover-blue: #2e76b4;\n\n\t--other-blue: #174891;\n\n\t--yellow: #fdba31;\n\t--light-yellow: #ffde9b;\n\t--dark-yellow: #d8b162;\n}\n.hidden { display:none; }\n\nbody {\n\tbackground-color: var(--dark-blue);\n\tcolor: var(--text-color);\n}\n\ninput, button { border:none; }\n\n#message > a { color: var(--text-color); }\n\n#settings > span {\n\tborder: 1px solid var(--yellow);\n\tmargin-right: 10px;\n}\n#settings > span > span {\n\tborder-left: 1px solid var(--light-yellow);\n\tpadding-left: 5px;\n}\n\n#post_container {\n\tdisplay:grid;\n\tgrid-template-columns: calc(50% - 10px) calc(50% - 10px);\n\tgrid-gap: 20px;\n\twidth:100%;\n\theight:100%\n}\n\n#old_post, #new_post {\n\tdisplay: grid;\n\tgrid-template-columns: 250px 1fr;\n\tgrid-template-rows: 250px auto;\n}\n\n#old_stats, #new_stats {\n\tbackground-color: var(--blue);\n\theight: 100%;\n}\n#old_fields, #new_fields {\n\tgrid-column: 1/3; grid-row: 2/3;\n\tbackground-color: var(--blue);\n}\n\n#old_img, #new_img { background-color: var(--grey-blue); }\n\n#old_fields {\n\tdisplay: block;\n\toverflow-x: auto;\n\tborder-collapse: collapse;\n}\n#old_fields td { border: 2px solid black; }\n#old_sources { white-space: pre; }\n#old_md5, #new_md5, #new_md5 > a { font-size: 0.5rem; }\n#new_md5 > a { color: #f66; }\n#load_new_file { width: 100%; }\n\ntable { line-height: 16px; }\ntable * { font-size: 13px; }\n#new_fields table { width:95% }\ntable textarea { width: 90%; }\n#new_stats tr > td:first-child { width:150px; }\n#new_fields tr > td:first-child { width:20px; }\ntable textarea { height: 5em; }";
 
 },{}],11:[function(require,module,exports){
-module.exports = "\n\n<div id=\"settings\">\n\t<input id=\"username\" placeholder=\"username\"></input>\n\t<input id=\"api_key\" type=\"password\" placeholder=\"api key\"></input>\n\t<span id=\"action_selection\">\n\t\t<input type=\"radio\" name=\"action\" value=\"delete\" id=\"action_delete\">Delete</input>\n\t\t<input type=\"radio\" name=\"action\" value=\"flag\" id=\"action_flag\">Flag</input>\n\t\t<input type=\"radio\" name=\"action\" value=\"nothing\" id=\"action_nothing\">Nothing</input>\n\t\t<span>The post</span>\n\t</span>\n\n\t<span id=\"notification_selection\">\n\t\t<input type=\"checkbox\" name=\"selection\" id=\"notification_comment\">Comment</input>\n\t\t<input type=\"checkbox\" name=\"selection\" id=\"notification_description\">Description</input>\n\t\t<span>For superior version</span>\n\t</span>\n\n\t<span>\n\t\t<input type=\"checkbox\" id=\"copy_notes\">Copy Notes</input>\n\t</span>\n</div>\n<hr>\n<div id=\"message\">Message Box</div>\n<hr>\n<div id=\"post_container\">\n\t<div id=\"old_post\">\n\t\t<div id=\"old_img\"></div>\n\t\t<table id=\"old_stats\">\n\t\t\t<tr>\n\t\t\t\t<td><input type=\"number\" id=\"e6_post_id\" placeholder=\"e621 post id\"></input></td>\n\t\t\t\t<td><button id=\"load_post_btn\">Load</button></td>\n\t\t\t</tr>\n\t\t\t<tr><td>Post Id: </td><td id=\"old_id\"> </td></tr>\n\t\t\t<tr><td>Poster: </td><td id=\"old_author\"> </td></tr>\n\t\t\t<tr><td>Size: </td><td id=\"old_size\"> </td></tr>\n\t\t\t<tr><td>Type: </td><td id=\"old_file_ext\"> </td></tr>\n\t\t\t<tr><td>md5: </td><td id=\"old_md5\"> </td></tr>\n\t\t\t<tr><td>Status: </td><td id=\"old_status\"> </td></tr>\n\t\t\t<tr><td>Rating: </td><td id=\"old_rating\"> </td></tr>\n\t\t\t<tr><td>Parent: </td><td id=\"old_parent_id\"> </td></tr>\n\t\t\t<tr><td>Children: </td><td id=\"old_has_children\"> </td></tr>\n\t\t\t<tr><td>Notes: </td><td id=\"old_has_notes\"> </td></tr>\n\t\t\t<tr><td>Comments: </td><td id=\"old_has_comments\"> </td></tr>\n\t\t</table>\n\t\t<table id=\"old_fields\">\n\t\t\t<tr><td>Tags: </td><td id=\"old_tags\"></td></tr>\n\t\t\t<tr><td>L Tags: </td><td id=\"old_locked_tags\"></td></tr>\n\t\t\t<!-- It is supposed to be _old_sources, because its manually changed -->\n\t\t\t<tr><td>Sources: </td><td id=\"old_sources\"></td></tr>\n\t\t\t<tr><td>Description: </td><td id=\"old_description\"></td></tr>\n\t\t</table>\n\t</div>\n\t<div id=\"new_post\">\n\t\t<div id=\"new_img\"></div>\n        <table id=\"new_stats\">\n            <tr>\n                <td><input id=\"new_url\" placeholder=\"new image\"></input></td>\n\t\t\t\t<td class=\"hidden hidable\"><button id=\"load_new_post\">Load</button></td>\n\t\t\t</tr>\n\t\t\t<tr>\n\t\t\t\t<td>Direct File</td>\n\t\t\t\t<td class=\"hidden hidable\"><input id=\"load_new_file\" type=\"file\"></button></td>\n\t\t\t</tr>\n\t\t\t<tr><td>Medium: </td><td id=\"upload_medium\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Size: </td><td id=\"new_size\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Type: </td><td id=\"new_file_ext\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>md5: </td><td id=\"new_md5\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Rating: </td><td id=\"new_rating\" class=\"hidden hidable\">\n                <input type=\"radio\" name=\"rating\" value=\"explicit\" data-type=\"e\">e</input>\n                <input type=\"radio\" name=\"rating\" value=\"questionable\" data-type=\"q\">q</input>\n                <input type=\"radio\" name=\"rating\" value=\"safe\" data-type=\"s\">s</input>\n            </td></tr>\n            <tr><td>Parent: </td><td><input id=\"new_parent_id\" placeholder=\"parent id\" class=\"hidden hidable\"></input></td></tr>\n\t\t\t<tr><td>Children: </td><td><input id=\"new_children\" placeholder=\"children id\" class=\"hidden hidable\"></input></td></tr>\n            <tr><td>Upload</td><td><button id=\"upload_button\" class=\"hidden hidable\">Create Post</button></td></tr>\n        </table>\n        <table id=\"new_fields\">\n            <tr><td>Tags: </td><td><textarea id=\"new_tags\" placeholder=\"tags\" class=\"hidden hidable\"></textarea></td></tr>\n            <tr><td>Sources: </td><td><textarea id=\"new_sources\" placeholder=\"sources\" class=\"hidden hidable\"></textarea></td></tr>\n            <tr><td>Description: </td><td><textarea id=\"new_description\" placeholder=\"description\" class=\"hidden hidable\"></textarea></td></tr>\n        </table>\n\t</div>\n</div>";
+module.exports = "<div id=\"settings\">\n\t<input id=\"username\" placeholder=\"username\"></input>\n\t<input id=\"api_key\" type=\"password\" placeholder=\"api key\"></input>\n\t<span id=\"action_selection\">\n\t\t<input type=\"radio\" name=\"action\" value=\"delete\" id=\"action_delete\">Delete</input>\n\t\t<input type=\"radio\" name=\"action\" value=\"flag\" id=\"action_flag\">Flag</input>\n\t\t<input type=\"radio\" name=\"action\" value=\"nothing\" id=\"action_nothing\">Nothing</input>\n\t\t<span>The post</span>\n\t</span>\n\n\t<span id=\"notification_selection\">\n\t\t<input type=\"checkbox\" name=\"selection\" id=\"notification_comment\">Comment</input>\n\t\t<input type=\"checkbox\" name=\"selection\" id=\"notification_description\">Description</input>\n\t\t<span>For superior version</span>\n\t</span>\n\n\t<span>\n\t\t<input type=\"checkbox\" id=\"copy_notes\">Copy Notes</input>\n\t</span>\n</div>\n<hr>\n<div id=\"message\">Message Box</div>\n<hr>\n<div id=\"post_container\">\n\t<div id=\"old_post\">\n\t\t<div id=\"old_img\"></div>\n\t\t<table id=\"old_stats\">\n\t\t\t<tr>\n\t\t\t\t<td><input type=\"number\" id=\"e6_post_id\" placeholder=\"e621 post id\"></input></td>\n\t\t\t\t<td><button id=\"load_post_btn\">Load</button></td>\n\t\t\t</tr>\n\t\t\t<tr><td>Post Id: </td><td id=\"old_id\"> </td></tr>\n\t\t\t<tr><td>Poster: </td><td id=\"old_author\"> </td></tr>\n\t\t\t<tr><td>Size: </td><td id=\"old_size\"> </td></tr>\n\t\t\t<tr><td>Type: </td><td id=\"old_file_ext\"> </td></tr>\n\t\t\t<tr><td>md5: </td><td id=\"old_md5\"> </td></tr>\n\t\t\t<tr><td>Status: </td><td id=\"old_status\"> </td></tr>\n\t\t\t<tr><td>Rating: </td><td id=\"old_rating\"> </td></tr>\n\t\t\t<tr><td>Parent: </td><td id=\"old_parent_id\"> </td></tr>\n\t\t\t<tr><td>Children: </td><td id=\"old_has_children\"> </td></tr>\n\t\t\t<tr><td>Notes: </td><td id=\"old_has_notes\"> </td></tr>\n\t\t\t<tr><td>Comments: </td><td id=\"old_has_comments\"> </td></tr>\n\t\t</table>\n\t\t<table id=\"old_fields\">\n\t\t\t<tr><td>Tags: </td><td id=\"old_tags\"></td></tr>\n\t\t\t<tr><td>L Tags: </td><td id=\"old_locked_tags\"></td></tr>\n\t\t\t<!-- It is supposed to be _old_sources, because its manually changed -->\n\t\t\t<tr><td>Sources: </td><td id=\"old_sources\"></td></tr>\n\t\t\t<tr><td>Description: </td><td id=\"old_description\"></td></tr>\n\t\t</table>\n\t</div>\n\t<div id=\"new_post\">\n\t\t<div id=\"new_img\"></div>\n        <table id=\"new_stats\">\n            <tr>\n                <td><input id=\"new_url\" placeholder=\"new image\"></input></td>\n\t\t\t\t<td class=\"hidden hidable\"><button id=\"load_new_post\">Load</button></td>\n\t\t\t</tr>\n\t\t\t<tr>\n\t\t\t\t<td>Direct File</td>\n\t\t\t\t<td class=\"hidden hidable\"><input id=\"load_new_file\" type=\"file\"></button></td>\n\t\t\t</tr>\n\t\t\t<tr><td>Medium: </td><td id=\"upload_medium\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Size: </td><td id=\"new_size\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Type: </td><td id=\"new_file_ext\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>md5: </td><td id=\"new_md5\" class=\"hidden hidable\"></td></tr>\n\t\t\t<tr><td>Rating: </td><td id=\"new_rating\" class=\"hidden hidable\">\n                <input type=\"radio\" name=\"rating\" value=\"explicit\" data-type=\"e\">e</input>\n                <input type=\"radio\" name=\"rating\" value=\"questionable\" data-type=\"q\">q</input>\n                <input type=\"radio\" name=\"rating\" value=\"safe\" data-type=\"s\">s</input>\n            </td></tr>\n            <tr><td>Parent: </td><td><input id=\"new_parent_id\" placeholder=\"parent id\" class=\"hidden hidable\"></input></td></tr>\n\t\t\t<tr><td>Children: </td><td><input id=\"new_children\" placeholder=\"children id\" class=\"hidden hidable\"></input></td></tr>\n            <tr><td>Upload</td><td><button id=\"upload_button\" class=\"hidden hidable\">Create Post</button></td></tr>\n        </table>\n        <table id=\"new_fields\">\n            <tr><td>Tags: </td><td><textarea id=\"new_tags\" placeholder=\"tags\" class=\"hidden hidable\"></textarea></td></tr>\n            <tr><td>Sources: </td><td><textarea id=\"new_sources\" placeholder=\"sources\" class=\"hidden hidable\"></textarea></td></tr>\n            <tr><td>Description: </td><td><textarea id=\"new_description\" placeholder=\"description\" class=\"hidden hidable\"></textarea></td></tr>\n        </table>\n\t</div>\n</div>";
 
 },{}],12:[function(require,module,exports){
 const {
 	multi_input,
 	remove_node,
 	clear_page,
-	add_css
+	add_css,
+	get_authenticated_e621
 } = require('./../../utils/utils.js');
 const header = require('./header.js');
 
@@ -2565,6 +2569,7 @@ async function init () {
 	clear_page();
 	add_css(require('./main.css'));
 	document.body.innerHTML = require('./main.html');
+	const e621 = await get_authenticated_e621();
 }
 
 async function exec () {
@@ -3839,12 +3844,14 @@ module.exports = {
 const headers = require('./header.js');
 const defaults = require('./../../default_settings.js');
 const Settings = require('./../../../dependencies/extensions.js');
+const { set_value } = require('./../../utils/utils.js');
 
 function exec () {
 	// Do something with utils
 	on_site_hasher_settings();
 	image_compare_settings();
 	post_bvas_settings();
+	add_credentials_listener();
 }
 
 function on_site_hasher_settings () {
@@ -3912,7 +3919,7 @@ function image_compare_settings () {
 function post_bvas_settings () {
 	const settings = new Settings({
 		name: 'post-bvas',
-		description: 'A tool to automate the process of replacing posts.',
+		description: 'A tool to automate the process of replacing posts with better versions.',
 		url: 'https://e621.net/extensions/upload_bvas'
 	});
 
@@ -3924,12 +3931,21 @@ function post_bvas_settings () {
 	});
 }
 
+function add_credentials_listener () {
+	document.getElementById('update_credentials_button').addEventListener('click', async e => {
+		const username = document.getElementById('credentials_username').value;
+		const api_key = document.getElementById('credentials_api_key').value;
+		await set_value('username', username);
+		await set_value('api_key', api_key);
+	});
+}
+
 module.exports = {
 	exec: exec,
 	...headers
 };
 
-},{"./../../../dependencies/extensions.js":3,"./../../default_settings.js":7,"./header.js":35}],37:[function(require,module,exports){
+},{"./../../../dependencies/extensions.js":3,"./../../default_settings.js":7,"./../../utils/utils.js":52,"./header.js":35}],37:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -4288,14 +4304,29 @@ module.exports = {
 
 },{"./node_to_dtext.js":47}],44:[function(require,module,exports){
 const E621API = require('./../../dependencies/e621_API.commonjs2.userscript.js');
+const gm_values = require('./gm_values.js');
 
-const e621 = new E621API('Idem\'s Sourcing Suite');
+const user_agent_string = 'Idem\'s Sourcing Suite';
+
+const e621 = new E621API(user_agent_string);
+
+async function get_authenticated () {
+	const username = await gm_values.get_value('username');
+	const api_key = await gm_values.get_value('api_key');
+
+	if (username === null || api_key === null) {
+		throw new Error('username or api_key are not set');
+	}
+
+	return new E621API(user_agent_string, username, api_key);
+}
 
 module.exports = {
-	e621: e621
+	e621: e621,
+	get_authenticated_e621: get_authenticated
 };
 
-},{"./../../dependencies/e621_API.commonjs2.userscript.js":2}],45:[function(require,module,exports){
+},{"./../../dependencies/e621_API.commonjs2.userscript.js":2,"./gm_values.js":45}],45:[function(require,module,exports){
 const GM = require('./../../dependencies/gm_functions.js');
 const defaults = require('./../default_settings.js');
 
@@ -4303,8 +4334,13 @@ async function get_value (key) {
 	return GM.getValue(key).then(e => e === undefined ? defaults[key] : e);
 }
 
+async function set_value (key, value) {
+	return GM.setValue(key, value);
+}
+
 module.exports = {
-	get_value: get_value
+	get_value: get_value,
+	set_value: set_value
 };
 
 },{"./../../dependencies/gm_functions.js":4,"./../default_settings.js":7}],46:[function(require,module,exports){

@@ -1,12 +1,14 @@
 const headers = require('./header.js');
 const defaults = require('./../../default_settings.js');
 const Settings = require('./../../../dependencies/extensions.js');
+const { set_value } = require('./../../utils/utils.js');
 
 function exec () {
 	// Do something with utils
 	on_site_hasher_settings();
 	image_compare_settings();
 	post_bvas_settings();
+	add_credentials_listener();
 }
 
 function on_site_hasher_settings () {
@@ -83,6 +85,15 @@ function post_bvas_settings () {
 		key: 'on_site_postbvas_enabled',
 		default: defaults['on_site_postbvas_enabled'],
 		description: `Enables or disables the post-bvaser tool located at <a href="https://e621.net/extensions/upload_bvas">/extensions/upload_bvas</a>.`
+	});
+}
+
+function add_credentials_listener () {
+	document.getElementById('update_credentials_button').addEventListener('click', async e => {
+		const username = document.getElementById('credentials_username').value;
+		const api_key = document.getElementById('credentials_api_key').value;
+		await set_value('username', username);
+		await set_value('api_key', api_key);
 	});
 }
 

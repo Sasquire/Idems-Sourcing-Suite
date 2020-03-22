@@ -24,5 +24,8 @@ module.exports = {
 	// Make sure that the settings page is accessible. If you
 	// somehow manage to set this to false, well, you'll have a
 	// rather large and not easy to fix problem.
-	on_site_settingspage_enabled: true
+	on_site_settingspage_enabled: true,
+
+	username: null,
+	api_key: null
 };
