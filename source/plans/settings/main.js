@@ -86,6 +86,27 @@ function post_bvas_settings () {
 		default: defaults['on_site_postbvas_enabled'],
 		description: `Enables or disables the post-bvaser tool located at <a href="https://e621.net/extensions/upload_bvas">/extensions/upload_bvas</a>.`
 	});
+
+	settings.checkbox({
+		name: 'Edit Description',
+		key: 'postbvas_edit_description',
+		default: defaults['postbvas_edit_description'],
+		description: 'Toggles the automatic editing of a new post\'s description to link to the old post.'
+	});
+
+	settings.checkbox({
+		name: 'Post Comment',
+		key: 'postbvas_post_comment',
+		default: defaults['postbvas_post_comment'],
+		description: 'Toggles the automatic creation of a comment linking to the old post.'
+	});
+
+	settings.checkbox({
+		name: 'Delete post',
+		key: 'postbvas_delete_post',
+		default: defaults['postbvas_delete_post'],
+		description: 'For janitor+ use. If enabled the post will be deleted instead of flagged.'
+	});
 }
 
 function add_credentials_listener () {

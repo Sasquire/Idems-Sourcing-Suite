@@ -26,6 +26,12 @@ module.exports = {
 	// rather large and not easy to fix problem.
 	on_site_settingspage_enabled: true,
 
+	// Values so that the helper function will have something to return.
 	username: null,
-	api_key: null
+	api_key: null,
+
+	// Defaults for how the post bvaser should operate
+	postbvas_edit_description: true,
+	postbvas_post_comment: false,
+	postbvas_delete_post: false
 };

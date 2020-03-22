@@ -16,63 +16,13 @@
 .hidden { display:none; }
 
 body {
-	background-color: var(--dark-blue);
-	color: var(--text-color);
+	background-color: var(--background-blue);
+	color: #ccc;
 }
 
-input, button { border:none; }
-
-#message > a { color: var(--text-color); }
-
-#settings > span {
-	border: 1px solid var(--yellow);
-	margin-right: 10px;
+#messages {
+	height: 5rem;
+	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
 }
-#settings > span > span {
-	border-left: 1px solid var(--light-yellow);
-	padding-left: 5px;
-}
-
-#post_container {
-	display:grid;
-	grid-template-columns: calc(50% - 10px) calc(50% - 10px);
-	grid-gap: 20px;
-	width:100%;
-	height:100%
-}
-
-#old_post, #new_post {
-	display: grid;
-	grid-template-columns: 250px 1fr;
-	grid-template-rows: 250px auto;
-}
-
-#old_stats, #new_stats {
-	background-color: var(--blue);
-	height: 100%;
-}
-#old_fields, #new_fields {
-	grid-column: 1/3; grid-row: 2/3;
-	background-color: var(--blue);
-}
-
-#old_img, #new_img { background-color: var(--grey-blue); }
-
-#old_fields {
-	display: block;
-	overflow-x: auto;
-	border-collapse: collapse;
-}
-#old_fields td { border: 2px solid black; }
-#old_sources { white-space: pre; }
-#old_md5, #new_md5, #new_md5 > a { font-size: 0.5rem; }
-#new_md5 > a { color: #f66; }
-#load_new_file { width: 100%; }
-
-table { line-height: 16px; }
-table * { font-size: 13px; }
-#new_fields table { width:95% }
-table textarea { width: 90%; }
-#new_stats tr > td:first-child { width:150px; }
-#new_fields tr > td:first-child { width:20px; }
-table textarea { height: 5em; }
