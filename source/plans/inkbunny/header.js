@@ -11,5 +11,5 @@ module.exports = {
 	connect: [], // I have complete trust in InkBunny's md5s
 
 	title: 'InkBunny',
-	version: 1
+	version: 2
 };

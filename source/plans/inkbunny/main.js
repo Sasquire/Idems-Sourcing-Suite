@@ -75,7 +75,7 @@ function fix_styles () {
 	common_styles();
 	add_css(`
 		#md5box {
-			display: flex;
+			display: flex !important;
 			flex-direction: column;
 			margin: 0px 0px 0px 20px;
 			font-size: 8pt;

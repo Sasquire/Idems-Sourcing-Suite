@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00033
+// @version      1.00034
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -43,7 +43,7 @@
 // @match        *://*.e621.net/extensions/image_compare
 // @connect      *
 
-//               InkBunny v1
+//               InkBunny v2
 // @match        *://*.inkbunny.net/s/*
 
 //               Pixiv v1
@@ -3537,7 +3537,7 @@ module.exports = {
 	connect: [], // I have complete trust in InkBunny's md5s
 
 	title: 'InkBunny',
-	version: 1
+	version: 2
 };
 
 },{}],32:[function(require,module,exports){
@@ -3618,7 +3618,7 @@ function fix_styles () {
 	common_styles();
 	add_css(`
 		#md5box {
-			display: flex;
+			display: flex !important;
 			flex-direction: column;
 			margin: 0px 0px 0px 20px;
 			font-size: 8pt;
