@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00032
+// @version      1.00033
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -54,7 +54,7 @@
 // @match        https://e621.net/extensions/upload_bvas
 // @connect      *
 
-//               SettingsPage v1
+//               SettingsPage v2
 // @match        *://*.e621.net/extensions
 
 //               SoFurry v1
@@ -1920,7 +1920,7 @@ function validate_boolean (boolean, name) {
 		settings.custom({
 			name: 'API Key',
 			placeholder: 'API Key',
-			description: 'Your api key which can be found at <a href="https://e621.net/user/api_key">this page</a>',
+			description: 'Your api key which can be found from your <a href="https://e621.net/users/home">homepage</a>',
 			key: null,
 			id: 'credentials_api_key',
 			is_secret: true
@@ -2061,7 +2061,7 @@ h1 {
 `,
 (() => {
 	// eslint-disable-next-line no-undef
-	let gm_object = window.GM ? window.GM : GM;
+	const gm_object = window.GM ? window.GM : GM;
 	wrap_generic('GM_setValue', 'setValue');
 	wrap_generic('GM_getValue', 'getValue');
 	return gm_object;
@@ -3903,7 +3903,7 @@ module.exports = {
 	connect: [],
 
 	title: 'SettingsPage',
-	version: 1
+	version: 2
 };
 
 },{}],36:[function(require,module,exports){
@@ -3977,8 +3977,8 @@ function image_compare_settings () {
 	settings.checkbox({
 		name: 'Enabled',
 		key: 'on_site_imagecomparison_enabled',
-		default: defaults['on_site_imagecomparison_enabled'],
-		description: `Enables or disables the image-compare tool located at <a href="https://e621.net/extensions/image_compare">/extensions/image_compare</a>.`
+		default: defaults.on_site_imagecomparison_enabled,
+		description: 'Enables or disables the image-compare tool located at <a href="https://e621.net/extensions/image_compare">/extensions/image_compare</a>.'
 	});
 }
 
@@ -3992,28 +3992,28 @@ function post_bvas_settings () {
 	settings.checkbox({
 		name: 'Enabled',
 		key: 'on_site_postbvas_enabled',
-		default: defaults['on_site_postbvas_enabled'],
-		description: `Enables or disables the post-bvaser tool located at <a href="https://e621.net/extensions/upload_bvas">/extensions/upload_bvas</a>.`
+		default: defaults.on_site_postbvas_enabled,
+		description: 'Enables or disables the post-bvaser tool located at <a href="https://e621.net/extensions/upload_bvas">/extensions/upload_bvas</a>.'
 	});
 
 	settings.checkbox({
 		name: 'Edit Description',
 		key: 'postbvas_edit_description',
-		default: defaults['postbvas_edit_description'],
+		default: defaults.postbvas_edit_description,
 		description: 'Toggles the automatic editing of a new post\'s description to link to the old post.'
 	});
 
 	settings.checkbox({
 		name: 'Post Comment',
 		key: 'postbvas_post_comment',
-		default: defaults['postbvas_post_comment'],
+		default: defaults.postbvas_post_comment,
 		description: 'Toggles the automatic creation of a comment linking to the old post.'
 	});
 
 	settings.checkbox({
 		name: 'Delete post',
 		key: 'postbvas_delete_post',
-		default: defaults['postbvas_delete_post'],
+		default: defaults.postbvas_delete_post,
 		description: 'For janitor+ use. If enabled the post will be deleted instead of flagged.'
 	});
 }

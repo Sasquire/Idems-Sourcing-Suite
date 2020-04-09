@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00032
+// @version      1.00033
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -54,7 +54,7 @@
 // @match        https://e621.net/extensions/upload_bvas
 // @connect      *
 
-//               SettingsPage v1
+//               SettingsPage v2
 // @match        *://*.e621.net/extensions
 
 //               SoFurry v1

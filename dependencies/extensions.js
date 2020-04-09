@@ -239,7 +239,7 @@
 		settings.custom({
 			name: 'API Key',
 			placeholder: 'API Key',
-			description: 'Your api key which can be found at <a href="https://e621.net/user/api_key">this page</a>',
+			description: 'Your api key which can be found from your <a href="https://e621.net/users/home">homepage</a>',
 			key: null,
 			id: 'credentials_api_key',
 			is_secret: true
@@ -380,7 +380,7 @@ h1 {
 `,
 (() => {
 	// eslint-disable-next-line no-undef
-	let gm_object = window.GM ? window.GM : GM;
+	const gm_object = window.GM ? window.GM : GM;
 	wrap_generic('GM_setValue', 'setValue');
 	wrap_generic('GM_getValue', 'getValue');
 	return gm_object;
