@@ -67,7 +67,6 @@ async function lookup_hash (container_node) {
 
 async function e621_lookup_hash (hash, hash_node) {
 	e621_lookup(hash, hash_node)
-		.then(e => { console.log(e); return e; })
 		.then(posts => set_hash_status(posts, hash_node))
 		.catch(e => (hash_node.textContent = hash_lookup_error(e)));
 }

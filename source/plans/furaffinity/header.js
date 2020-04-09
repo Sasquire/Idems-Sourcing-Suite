@@ -12,5 +12,5 @@ module.exports = {
 	connect: ['facdn.net'],
 
 	title: 'FurAffinity',
-	version: 1
+	version: 2
 };

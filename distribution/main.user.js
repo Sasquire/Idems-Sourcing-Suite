@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00031
+// @version      1.00032
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -30,7 +30,7 @@
 // @match        *://*.deviantart.com/*
 // @connect      wixmp.com
 
-//               FurAffinity v1
+//               FurAffinity v2
 // @match        *://*.furaffinity.net/view/*
 // @match        *://*.furaffinity.net/full/*
 // @connect      facdn.net
@@ -2542,7 +2542,7 @@ if (site !== undefined) {
 	});
 }
 
-},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":6,"./plans/bvas/main.js":12,"./plans/deviantart/main.js":15,"./plans/furaffinity/main.js":22,"./plans/furrynetwork/main.js":24,"./plans/image_compare/main.js":30,"./plans/inkbunny/main.js":32,"./plans/pixiv/main.js":34,"./plans/settings/main.js":36,"./plans/sofurry/main.js":38,"./plans/twitter/main.js":40,"./plans/weasyl/main.js":42,"./utils/utils.js":52}],9:[function(require,module,exports){
+},{"./../dependencies/arrive.js":1,"./../dependencies/on_url_change.js":6,"./plans/bvas/main.js":12,"./plans/deviantart/main.js":15,"./plans/furaffinity/main.js":21,"./plans/furrynetwork/main.js":24,"./plans/image_compare/main.js":30,"./plans/inkbunny/main.js":32,"./plans/pixiv/main.js":34,"./plans/settings/main.js":36,"./plans/sofurry/main.js":38,"./plans/twitter/main.js":40,"./plans/weasyl/main.js":42,"./utils/utils.js":52}],9:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		return url.href === 'https://e621.net/extensions/upload_bvas';
@@ -2597,7 +2597,6 @@ async function init () {
 	log_message('Credentials obtained. If entered incorrectly this page will experience issues later.');
 
 	bvas_listener();
-	// e621.post_show_id(6268).then(console.log);
 }
 
 function bvas_listener () {
@@ -3008,71 +3007,6 @@ const { simple_site, append } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
 const get_info = async (full_url) => simple_site({
-	artist: document.querySelector('.submission-artist-container > a ~ a'),
-	title: document.querySelector('.submission-title > h2'),
-	description: () => {
-		// FA combines the title node and the description into one
-		// This will create a duplicate node where the title is not
-		// there. This will duplicate and remove that node.
-		const description = document
-			.querySelector('.submission-description-container')
-			.cloneNode(true);
-		const bad_title = description.querySelector('.submission-title');
-		description.removeChild(bad_title);
-		return description;
-	},
-	full_url: full_url,
-	hashes: [
-		[full_to_thumb(full_url), 'thumb image']
-	],
-	css: `
-		#iss_container { 
-			display: flex;
-			flex-direction: column;
-			overflow: hidden;
-		}
-		#iss_container > * { white-space: nowrap; }
-		.iss_hash { font-weight: 700; }
-		.iss_image_link { margin-right: 0.4rem; }
-	`,
-	hashes_as_array: true
-});
-
-async function exec () {
-	// There seem to be two different display modes for the beta site
-	// This code only works on the wide version because in the thin
-	// view, the place where the container is placed disappears. This
-	// seems like it is only done with css because the node will come
-	// back if the window is stretched to fit again.
-
-	// It appears that you can only be on the beta site while logged
-	// in. This does not concern me about this node being hidden
-	const full_url = document.querySelector('.download-logged-in').href;
-	const info = await get_info(full_url);
-
-	const container = document.createElement('div');
-	container.id = 'iss_container';
-	const more_from = document
-		.querySelector('#columnpage .preview-gallery')
-		.previousElementSibling;
-	more_from.parentNode.insertBefore(container, more_from);
-
-	const header = document.createElement('h2');
-	header.innerText = 'idem\'s sourcing suite';
-	container.appendChild(header);
-
-	append(container, info.upload);
-	append(container, info.description);
-	info.hashes.forEach(e => append(container, e));
-}
-
-module.exports = exec;
-
-},{"./../../utils/utils.js":52,"./links.js":21}],19:[function(require,module,exports){
-const { simple_site, append } = require('./../../utils/utils.js');
-const { full_to_thumb } = require('./links.js');
-
-const get_info = async (full_url) => simple_site({
 	artist: document.querySelector('.information a'),
 	title: document.querySelector('.information h2'),
 	description: document.querySelector('.alt1[width="70%"]'),
@@ -3114,7 +3048,7 @@ async function exec () {
 
 module.exports = exec;
 
-},{"./../../utils/utils.js":52,"./links.js":21}],20:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"./links.js":20}],19:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -3129,10 +3063,10 @@ module.exports = {
 	connect: ['facdn.net'],
 
 	title: 'FurAffinity',
-	version: 1
+	version: 2
 };
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 function full_to_thumb (full_url) {
 	const timestamp = full_url.match(/.*\/(\d+)\/\d+\..*?_.*\..*/u)[1];
 	const post_id = new URL(window.location.href).pathname.split('/')[2];
@@ -3143,9 +3077,9 @@ module.exports = {
 	full_to_thumb: full_to_thumb
 };
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 const run_classic = require('./classic.js');
-const run_beta = require('./beta.js');
+const run_modern = require('./modern.js');
 const header = require('./header.js');
 
 async function exec () {
@@ -3155,8 +3089,8 @@ async function exec () {
 		console.log(`ISS: ${header.title} classic version`);
 		run_classic();
 	} else {
-		console.log(`ISS: ${header.title} beta version`);
-		run_beta();
+		console.log(`ISS: ${header.title} modern version`);
+		run_modern();
 	}
 }
 
@@ -3165,7 +3099,65 @@ module.exports = {
 	exec: exec
 };
 
-},{"./beta.js":18,"./classic.js":19,"./header.js":20}],23:[function(require,module,exports){
+},{"./classic.js":18,"./header.js":19,"./modern.js":22}],22:[function(require,module,exports){
+const { simple_site, append } = require('./../../utils/utils.js');
+const { full_to_thumb } = require('./links.js');
+
+const get_info = async (full_url) => simple_site({
+	artist: {
+		href: document.querySelector('.submission-id-avatar > a').href,
+		textContent: document.querySelector('.submission-id-sub-container a > strong').textContent
+	},
+	title: document.querySelector('.submission-title > h2'),
+	description: () => document.querySelector('.submission-description'),
+	full_url: full_url,
+	hashes: [
+		[full_to_thumb(full_url), 'thumb image']
+	],
+	css: `
+		#iss_container { 
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+		}
+		#iss_container > * { white-space: nowrap; }
+		.iss_hash { font-weight: 700; }
+		.iss_image_link { margin-right: 0.4rem; }
+	`,
+	hashes_as_array: true
+});
+
+async function exec () {
+	// There seem to be two different display modes for the beta site
+	// This code only works on the wide version because in the thin
+	// view, the place where the container is placed disappears. This
+	// seems like it is only done with css because the node will come
+	// back if the window is stretched to fit again.
+
+	// It appears that you can only be on the beta site while logged
+	// in. This does not concern me about this node being hidden
+	const full_url = document.querySelector('a.button[href^="//d.facdn.net/art/"]').href;
+	const info = await get_info(full_url);
+
+	const container = document.createElement('div');
+	container.id = 'iss_container';
+	const more_from = document
+		.querySelector('#columnpage .preview-gallery')
+		.previousElementSibling;
+	more_from.parentNode.insertBefore(container, more_from);
+
+	const header = document.createElement('h2');
+	header.innerText = 'idem\'s sourcing suite';
+	container.appendChild(header);
+
+	append(container, info.upload);
+	append(container, info.description);
+	info.hashes.forEach(e => append(container, e));
+}
+
+module.exports = exec;
+
+},{"./../../utils/utils.js":52,"./links.js":20}],23:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');
@@ -4508,7 +4500,6 @@ async function lookup_hash (container_node) {
 
 async function e621_lookup_hash (hash, hash_node) {
 	e621_lookup(hash, hash_node)
-		.then(e => { console.log(e); return e; })
 		.then(posts => set_hash_status(posts, hash_node))
 		.catch(e => (hash_node.textContent = hash_lookup_error(e)));
 }

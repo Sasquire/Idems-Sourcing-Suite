@@ -32,7 +32,6 @@ async function init () {
 	log_message('Credentials obtained. If entered incorrectly this page will experience issues later.');
 
 	bvas_listener();
-	// e621.post_show_id(6268).then(console.log);
 }
 
 function bvas_listener () {

@@ -2,19 +2,12 @@ const { simple_site, append } = require('./../../utils/utils.js');
 const { full_to_thumb } = require('./links.js');
 
 const get_info = async (full_url) => simple_site({
-	artist: document.querySelector('.submission-artist-container > a ~ a'),
-	title: document.querySelector('.submission-title > h2'),
-	description: () => {
-		// FA combines the title node and the description into one
-		// This will create a duplicate node where the title is not
-		// there. This will duplicate and remove that node.
-		const description = document
-			.querySelector('.submission-description-container')
-			.cloneNode(true);
-		const bad_title = description.querySelector('.submission-title');
-		description.removeChild(bad_title);
-		return description;
+	artist: {
+		href: document.querySelector('.submission-id-avatar > a').href,
+		textContent: document.querySelector('.submission-id-sub-container a > strong').textContent
 	},
+	title: document.querySelector('.submission-title > h2'),
+	description: () => document.querySelector('.submission-description'),
 	full_url: full_url,
 	hashes: [
 		[full_to_thumb(full_url), 'thumb image']
@@ -41,7 +34,7 @@ async function exec () {
 
 	// It appears that you can only be on the beta site while logged
 	// in. This does not concern me about this node being hidden
-	const full_url = document.querySelector('.download-logged-in').href;
+	const full_url = document.querySelector('a.button[href^="//d.facdn.net/art/"]').href;
 	const info = await get_info(full_url);
 
 	const container = document.createElement('div');

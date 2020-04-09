@@ -1,5 +1,5 @@
 const run_classic = require('./classic.js');
-const run_beta = require('./beta.js');
+const run_modern = require('./modern.js');
 const header = require('./header.js');
 
 async function exec () {
@@ -9,8 +9,8 @@ async function exec () {
 		console.log(`ISS: ${header.title} classic version`);
 		run_classic();
 	} else {
-		console.log(`ISS: ${header.title} beta version`);
-		run_beta();
+		console.log(`ISS: ${header.title} modern version`);
+		run_modern();
 	}
 }
 
