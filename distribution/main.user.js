@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00034
+// @version      1.00035
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -46,7 +46,7 @@
 //               InkBunny v2
 // @match        *://*.inkbunny.net/s/*
 
-//               Pixiv v1
+//               Pixiv v2
 // @match        *://*.pixiv.net/*
 // @connect      i.pximg.net
 
@@ -3718,7 +3718,7 @@ module.exports = {
 	connect: ['i.pximg.net'],
 
 	title: 'Pixiv',
-	version: 1
+	version: 2
 };
 
 },{}],34:[function(require,module,exports){
@@ -3786,8 +3786,7 @@ async function run () {
 	// await document.body.leave('#\\32 ');
 	// last_image_url = image.srcset;
 
-	await document.body.arrive('img[srcset]');
-	await document.body.arrive('aside h2 a[href^="/member"] > div');
+	await document.body.arrive('[role=presentation] [role=presentation]');
 
 	// Description can always be done
 	conditional_execute('on_site_commentary_enabled', do_commentary);
@@ -3829,14 +3828,14 @@ async function do_md5s () {
 
 function get_description () {
 	return artist_commentary(
-		document.querySelectorAll('a[href^="/member"]')[1], // Artist
+		document.querySelectorAll('a[href^="/en/users"]')[1], // Artist
 		document.getElementsByTagName('h1')[0], // Title
 		document.querySelector('h1 ~ div > div') // Description
 	);
 }
 
 function do_upload () {
-	const gallery_url = document.querySelectorAll('a[href^="/member"]')[1].href;
+	const gallery_url = document.querySelectorAll('a[href^="/en/users"]')[1].href;
 
 	const images = get_images();
 	for (let i = 0; i < images.length; i++) {
