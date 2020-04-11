@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00035
+// @version      1.00036
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -26,7 +26,7 @@
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 
-//               DeviantArt v1
+//               DeviantArt v2
 // @match        *://*.deviantart.com/*
 // @connect      wixmp.com
 
@@ -2762,21 +2762,32 @@ function get_sources (da_object) {
 	const download_url = (() => {
 		const download = da_object.deviation.extended.download;
 		if (download) {
-			return [{ type: 'download', src: download.url }];
+			return [[download.url, 'download']];
 		} else {
 			return [];
 		}
 	})();
 
 	const other_sources = ['fullview', 'social_preview', 'preview']
-		.map(e => da_object.deviation.files.find(p => p.type === e))
-		.filter(e => e); // Perhaps one of the results from above is null
+		.map(e => ([makeDALink(da_object, e), e.replace('full', 'large ').replace('_', ' ')]));
 
 	return download_url
 		.concat(other_sources)
-		.filter(e => e.src !== 'https://st.deviantart.net/misc/noentrythumb-200.png')
-		.filter((e, i, a) => i === a.findIndex(p => p.src === e.src))
-		.map(e => ([e.src, e.type.replace('full', 'large ').replace('_', ' ')]));
+		.filter(e => e[0])
+		.filter(e => e[0] !== 'https://st.deviantart.net/misc/noentrythumb-200.png')
+		.filter((e, i, a) => i === a.findIndex(p => p[0] === e[0]));
+}
+
+function makeDALink (da_object, type) {
+	const media = da_object.deviation.media;
+	const values = media.types.find(p => p.t === type);
+	if (values === undefined) {
+		return undefined;
+	} else if (values.c === undefined) {
+		return values.baseUri;
+	} else {
+		return `${media.baseUri}/${values.c.replace('<prettyName>', media.prettyName)}?token=${media.token[0]}`;
+	}
 }
 
 module.exports = {
@@ -2796,7 +2807,7 @@ module.exports = {
 	connect: ['wixmp.com'],
 
 	title: 'DeviantArt',
-	version: 1
+	version: 2
 };
 
 },{}],15:[function(require,module,exports){
@@ -4901,8 +4912,8 @@ module.exports = {
 },{"./artist_commentary.js":43,"./gm_values.js":45,"./hash_image.js":46,"./nodes.js":48,"./upload_url.js":51}],51:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
 	const url = new URL('https://e621.net/post/upload');
-	url.searchParams.set('url', source_url);
-	url.searchParams.set('source', sources.join('\n'));
+	url.searchParams.set('upload_url', source_url);
+	url.searchParams.set('sources', sources.join(','));
 	url.searchParams.set('description', description);
 	url.searchParams.set('tags', tags.join(' '));
 	return url.href;
