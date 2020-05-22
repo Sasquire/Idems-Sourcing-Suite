@@ -25,6 +25,7 @@ The post BVASer is a recreation of [a tool](https://e621.net/forum/show/87369) o
 If new issues are discovered or you would like another site supported, please create an issue on this github repository or contact idem on e621 via dmail.
 
 #### DeviantArt
+* You must be logged in to view posts of the `download` quality.
 #### FurAffinity
 #### FurryNetwork
 #### [image-data comparison](https://e621.net/extensions/image_compare)

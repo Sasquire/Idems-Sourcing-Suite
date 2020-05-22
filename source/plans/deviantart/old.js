@@ -103,7 +103,7 @@ function get_commentary (da_object, html1) {
 	const description_node = html1.querySelector('.dev-description .text.block');
 	const description = node_to_dtext(description_node);
 
-	return commentary_from_text(null, da_object.title, description);
+	return commentary_from_text(null, null, da_object.title, description);
 }
 
 function get_sources (html2) {

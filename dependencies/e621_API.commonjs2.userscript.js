@@ -917,7 +917,7 @@ async function post_show_id (post_id) {
 async function post_show_md5 (md5) {
 	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_2__["validate_md5"])(md5);
 	return _index_raw_post_search_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_search"].call(this, {
-		tags: `md5:${md5}`,
+		tags: `md5:${md5} status:any`,
 		limit: 1,
 		page: null
 	}).then(e => {

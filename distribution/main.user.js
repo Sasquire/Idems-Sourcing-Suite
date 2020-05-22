@@ -1069,7 +1069,7 @@ async function post_show_id (post_id) {
 async function post_show_md5 (md5) {
 	Object(_validation_validation_js__WEBPACK_IMPORTED_MODULE_2__["validate_md5"])(md5);
 	return _index_raw_post_search_js__WEBPACK_IMPORTED_MODULE_0__["raw_post_search"].call(this, {
-		tags: `md5:${md5}`,
+		tags: `md5:${md5} status:any`,
 		limit: 1,
 		page: null
 	}).then(e => {
@@ -2962,7 +2962,7 @@ function get_commentary (da_object, html1) {
 	const description_node = html1.querySelector('.dev-description .text.block');
 	const description = node_to_dtext(description_node);
 
-	return commentary_from_text(null, da_object.title, description);
+	return commentary_from_text(null, null, da_object.title, description);
 }
 
 function get_sources (html2) {
@@ -4358,24 +4358,33 @@ function set_clipboard (str) {
 
 function artist_commentary (artist_node, title_node, description_node) {
 	const artist = artist_node.textContent;
+	const artist_link = artist_node.href;
 	const title = title_node !== null ? node_to_dtext(title_node) : 'Untitled';
 	const description = node_to_dtext(description_node);
-	return commentary_from_text(artist, title, description);
+	return commentary_from_text(artist, artist_link, title, description);
 }
 
-function commentary_from_text (artist, title, description) {
+function commentary_from_text (artist, artist_link, title, description) {
 	description = description.replace('[/section]', '(/section)');
-	const lines = description.split('\n').length;
-	const should_expand = lines <= 5 || description.length <= 500;
+	const full_title = (() => {
+		const fixed_title = title.replace(/\[/gu, '(').replace(/\]/gu, ')');
+		if (artist === null) {
+			return fixed_title;
+		} else if (artist_link === null) {
+			return `${fixed_title} - by ${artist}`;
+		} else {
+			return `${fixed_title} - by "${artist}":${artist_link}`;
+		}
+	})();
 
-	const fixed_title = title
-		.replace(/\[/gu, '(')
-		.replace(/\]/gu, ')');
+	const header = (() => {
+		const lines = description.split('\n').length;
+		const should_expand = lines <= 5 || description.length <= 500;
+		const expanded_text = should_expand ? ',expanded' : '';
+		return `[section${expanded_text}=${full_title}]`;
+	})();
 
-	const full_title = artist === null ? title : `${fixed_title} - by ${artist}`;
-
-	const header = `[section${should_expand ? ',expanded' : ''}=${full_title}]`;
-	return `${header}\n${description}\n[/section]`;
+	return `From source:\n${header}\n${description}\n[/section]`;
 }
 
 function commentary_button (description) {
