@@ -23,7 +23,7 @@ function commentary_from_text (artist, artist_link, title, description) {
 		const fixed_title = title.replace(/\[/gu, '(').replace(/\]/gu, ')');
 		if (artist === null) {
 			return fixed_title;
-		} else if (artist_link === null) {
+		} else if (artist_link === null || artist_link === undefined) {
 			return `${fixed_title} - by ${artist}`;
 		} else {
 			return `${fixed_title} - by "${artist}":${artist_link}`;

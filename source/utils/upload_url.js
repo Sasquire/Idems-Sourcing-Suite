@@ -1,5 +1,5 @@
 function produce_link (source_url, sources, description = '', tags = []) {
-	const url = new URL('https://e621.net/post/upload');
+	const url = new URL('https://e621.net/uploads/new');
 	url.searchParams.set('upload_url', source_url);
 	url.searchParams.set('sources', sources.join(','));
 	url.searchParams.set('description', description);

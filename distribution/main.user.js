@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00037
+// @version      1.00038
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -12,7 +12,7 @@
 
 // @license      Unlicense
 
-//               Common v20
+//               Common v21
 // @noframes
 // @connect      e621.net
 // @grant        GM.addStyle
@@ -4384,7 +4384,7 @@ function commentary_from_text (artist, artist_link, title, description) {
 		const fixed_title = title.replace(/\[/gu, '(').replace(/\]/gu, ')');
 		if (artist === null) {
 			return fixed_title;
-		} else if (artist_link === null) {
+		} else if (artist_link === null || artist_link === undefined) {
 			return `${fixed_title} - by ${artist}`;
 		} else {
 			return `${fixed_title} - by "${artist}":${artist_link}`;
@@ -4934,7 +4934,7 @@ module.exports = {
 
 },{"./artist_commentary.js":43,"./gm_values.js":45,"./hash_image.js":46,"./nodes.js":48,"./upload_url.js":51}],51:[function(require,module,exports){
 function produce_link (source_url, sources, description = '', tags = []) {
-	const url = new URL('https://e621.net/post/upload');
+	const url = new URL('https://e621.net/uploads/new');
 	url.searchParams.set('upload_url', source_url);
 	url.searchParams.set('sources', sources.join(','));
 	url.searchParams.set('description', description);
