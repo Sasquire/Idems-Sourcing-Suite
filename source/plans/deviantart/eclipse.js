@@ -111,8 +111,14 @@ function get_sources (da_object) {
 		}
 	})();
 
-	const other_sources = ['fullview', 'social_preview', 'preview']
-		.map(e => ([makeDALink(da_object, e), e.replace('full', 'large ').replace('_', ' ')]));
+	const other_sources = [
+		[makeDALink(da_object, 'fullview', true), 'large view 100'],
+		[makeDALink(da_object, 'fullview', false), 'large view'],
+		[makeDALink(da_object, 'social_preview', true), 'social preview'],
+		[makeDALink(da_object, 'social_preview', false), 'social preview 100'],
+		[makeDALink(da_object, 'preview', true), 'preview 100'],
+		[makeDALink(da_object, 'preview', false), 'preview']
+	];
 
 	return download_url
 		.concat(other_sources)
@@ -121,7 +127,7 @@ function get_sources (da_object) {
 		.filter((e, i, a) => i === a.findIndex(p => p[0] === e[0]));
 }
 
-function makeDALink (da_object, type) {
+function makeDALink (da_object, type, hundred_quality) {
 	const media = da_object.deviation.media;
 	const values = media.types.find(p => p.t === type);
 	if (values === undefined) {
@@ -129,7 +135,15 @@ function makeDALink (da_object, type) {
 	} else if (values.c === undefined) {
 		return values.baseUri;
 	} else {
-		return `${media.baseUri}/${values.c.replace('<prettyName>', media.prettyName)}?token=${media.token[0]}`;
+		console.log(media);
+		const prettyName = (() => {
+			let changing_name = values.c;
+			if (hundred_quality === true) {
+				changing_name = changing_name.replace(/q_\d+/g, 'q_100');
+			}
+			return changing_name.replace('<prettyName>', media.prettyName);
+		})();
+		return `${media.baseUri}/${prettyName}?token=${media.token[0]}`;
 	}
 }
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00036
+// @version      1.00037
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -26,7 +26,7 @@
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 
-//               DeviantArt v2
+//               DeviantArt v3
 // @match        *://*.deviantart.com/*
 // @connect      wixmp.com
 
