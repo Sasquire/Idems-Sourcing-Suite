@@ -9,5 +9,5 @@ module.exports = {
 	connect: ['wixmp.com'],
 
 	title: 'DeviantArt',
-	version: 3
+	version: 4
 };

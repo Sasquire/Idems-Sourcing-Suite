@@ -114,8 +114,8 @@ function get_sources (da_object) {
 	const other_sources = [
 		[makeDALink(da_object, 'fullview', true), 'large view 100'],
 		[makeDALink(da_object, 'fullview', false), 'large view'],
-		[makeDALink(da_object, 'social_preview', true), 'social preview'],
-		[makeDALink(da_object, 'social_preview', false), 'social preview 100'],
+		[makeDALink(da_object, 'social_preview', true), 'social preview 100'],
+		[makeDALink(da_object, 'social_preview', false), 'social preview'],
 		[makeDALink(da_object, 'preview', true), 'preview 100'],
 		[makeDALink(da_object, 'preview', false), 'preview']
 	];
