@@ -56,13 +56,14 @@ async function lookup_hash (container_node) {
 	const url = container_node.querySelector('.iss_image_link').href;
 	const hash_node = container_node.getElementsByClassName('iss_hash')[0];
 
-	hash_url(url)
-		.then(check_hash)
-		// Catching here looks a bit weird, but that is because the
-		// e621_lookup_hash function will do its own error handling,
-		// and handling the error twice would actually be really weird.
-		.catch(e => (hash_node.textContent = hash_lookup_error(e)))
-		.then(hash => e621_lookup_hash(hash, hash_node));
+	const hash = await hash_url(url).then(check_hash).catch(e => {
+		hash_node.textContent = hash_lookup_error(e);
+		return null;
+	});
+
+	if (hash !== null) {
+		e621_lookup_hash(hash, hash_node);
+	}
 }
 
 async function e621_lookup_hash (hash, hash_node) {

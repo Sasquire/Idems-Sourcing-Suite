@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00039
+// @version      1.00041
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -12,7 +12,7 @@
 
 // @license      Unlicense
 
-//               Common v21
+//               Common v22
 // @noframes
 // @connect      e621.net
 // @grant        GM.addStyle
@@ -26,7 +26,7 @@
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 
-//               DeviantArt v4
+//               DeviantArt v5
 // @match        *://*.deviantart.com/*
 // @connect      wixmp.com
 
@@ -2792,7 +2792,6 @@ function makeDALink (da_object, type, hundred_quality) {
 	} else if (values.c === undefined) {
 		return values.baseUri;
 	} else {
-		console.log(media);
 		const prettyName = (() => {
 			let changing_name = values.c;
 			if (hundred_quality === true) {
@@ -2821,7 +2820,7 @@ module.exports = {
 	connect: ['wixmp.com'],
 
 	title: 'DeviantArt',
-	version: 4
+	version: 5
 };
 
 },{}],15:[function(require,module,exports){
@@ -4522,13 +4521,14 @@ async function lookup_hash (container_node) {
 	const url = container_node.querySelector('.iss_image_link').href;
 	const hash_node = container_node.getElementsByClassName('iss_hash')[0];
 
-	hash_url(url)
-		.then(check_hash)
-		// Catching here looks a bit weird, but that is because the
-		// e621_lookup_hash function will do its own error handling,
-		// and handling the error twice would actually be really weird.
-		.catch(e => (hash_node.textContent = hash_lookup_error(e)))
-		.then(hash => e621_lookup_hash(hash, hash_node));
+	const hash = await hash_url(url).then(check_hash).catch(e => {
+		hash_node.textContent = hash_lookup_error(e);
+		return null;
+	});
+
+	if (hash !== null) {
+		e621_lookup_hash(hash, hash_node);
+	}
 }
 
 async function e621_lookup_hash (hash, hash_node) {

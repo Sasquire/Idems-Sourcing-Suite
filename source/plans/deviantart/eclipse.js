@@ -135,7 +135,6 @@ function makeDALink (da_object, type, hundred_quality) {
 	} else if (values.c === undefined) {
 		return values.baseUri;
 	} else {
-		console.log(media);
 		const prettyName = (() => {
 			let changing_name = values.c;
 			if (hundred_quality === true) {
