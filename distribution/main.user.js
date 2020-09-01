@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00042
+// @version      1.00043
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -12,7 +12,7 @@
 
 // @license      Unlicense
 
-//               Common v22
+//               Common v23
 // @noframes
 // @connect      e621.net
 // @grant        GM.addStyle
@@ -4361,7 +4361,7 @@ module.exports = {
 };
 
 },{"./../../utils/utils.js":52,"./header.js":41}],43:[function(require,module,exports){
-const { node_to_dtext } = require('./node_to_dtext.js');
+const { node_to_dtext, node_to_plain_text } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
 	const el = document.createElement('textarea');
@@ -4375,7 +4375,7 @@ function set_clipboard (str) {
 function artist_commentary (artist_node, title_node, description_node) {
 	const artist = artist_node.textContent;
 	const artist_link = artist_node.href;
-	const title = title_node !== null ? node_to_dtext(title_node) : 'Untitled';
+	const title = title_node !== null ? node_to_plain_text(title_node) : 'Untitled';
 	const description = node_to_dtext(description_node);
 	return commentary_from_text(artist, artist_link, title, description);
 }
@@ -4389,7 +4389,7 @@ function commentary_from_text (artist, artist_link, title, description) {
 		} else if (artist_link === null || artist_link === undefined) {
 			return `${fixed_title} - by ${artist}`;
 		} else {
-			return `${fixed_title} - by "${artist}":${artist_link}`;
+			return `${fixed_title} - by ${artist} ( ${artist_link} )`;
 		}
 	})();
 
@@ -4651,13 +4651,17 @@ module.exports = {
 },{"./../../dependencies/gm_functions.js":4,"./../../dependencies/md5.js":5,"./e621_api.js":44}],47:[function(require,module,exports){
 const { safe_link } = require('./safe_link.js');
 
-function get_link (node) {
+function get_link (node, is_dtext) {
 	const inner = inner_text(node);
 	const link = safe_link(node.href);
 
 	// if node is like <a href="https://google.com">Yahoo</a>
 	if (inner && inner !== node.href) {
-		return `"${inner}":${link}`;
+		if (is_dtext) {
+			return `"${inner}":${link}`;
+		} else {
+			return `${inner} ( ${link} )`;
+		}
 	} else {
 		return link;
 	}
@@ -4693,7 +4697,7 @@ function html_to_dtext (entry) {
 		case 'SUP': return `[sup] ${inner_text(entry)} [/sup]`;
 		case 'SUB': return `[sub] ${inner_text(entry)} [/sub]`;
 
-		case 'A': return get_link(entry);
+		case 'A': return get_link(entry, true);
 
 		case 'PRE': return `[code] ${inner_text(entry)} [/code]`;
 
@@ -4715,8 +4719,27 @@ function html_to_dtext (entry) {
 	}
 }
 
+function node_to_plain_text (entry) {
+	if (entry === null) {
+		return '';
+	} else if (typeof entry === 'string') {
+		return entry;
+	}
+console.log(entry)
+	switch (entry.nodeName) {
+		case '#comment':
+		case 'IMG': return ''; // Images get destroyed :(
+		case 'BR': return '\n';
+
+		case 'A': return get_link(entry, false);
+
+		default: return inner_text(entry);
+	}
+}
+
 module.exports = {
-	node_to_dtext: html_to_dtext
+	node_to_dtext: html_to_dtext,
+	node_to_plain_text: node_to_plain_text
 };
 
 },{"./safe_link.js":49}],48:[function(require,module,exports){

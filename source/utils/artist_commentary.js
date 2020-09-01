@@ -1,4 +1,4 @@
-const { node_to_dtext } = require('./node_to_dtext.js');
+const { node_to_dtext, node_to_plain_text } = require('./node_to_dtext.js');
 
 function set_clipboard (str) {
 	const el = document.createElement('textarea');
@@ -12,7 +12,7 @@ function set_clipboard (str) {
 function artist_commentary (artist_node, title_node, description_node) {
 	const artist = artist_node.textContent;
 	const artist_link = artist_node.href;
-	const title = title_node !== null ? node_to_dtext(title_node) : 'Untitled';
+	const title = title_node !== null ? node_to_plain_text(title_node) : 'Untitled';
 	const description = node_to_dtext(description_node);
 	return commentary_from_text(artist, artist_link, title, description);
 }
@@ -26,7 +26,7 @@ function commentary_from_text (artist, artist_link, title, description) {
 		} else if (artist_link === null || artist_link === undefined) {
 			return `${fixed_title} - by ${artist}`;
 		} else {
-			return `${fixed_title} - by "${artist}":${artist_link}`;
+			return `${fixed_title} - by ${artist} ( ${artist_link} )`;
 		}
 	})();
 

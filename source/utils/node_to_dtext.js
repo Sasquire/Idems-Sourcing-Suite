@@ -1,12 +1,16 @@
 const { safe_link } = require('./safe_link.js');
 
-function get_link (node) {
+function get_link (node, is_dtext) {
 	const inner = inner_text(node);
 	const link = safe_link(node.href);
 
 	// if node is like <a href="https://google.com">Yahoo</a>
 	if (inner && inner !== node.href) {
-		return `"${inner}":${link}`;
+		if (is_dtext) {
+			return `"${inner}":${link}`;
+		} else {
+			return `${inner} ( ${link} )`;
+		}
 	} else {
 		return link;
 	}
@@ -42,7 +46,7 @@ function html_to_dtext (entry) {
 		case 'SUP': return `[sup] ${inner_text(entry)} [/sup]`;
 		case 'SUB': return `[sub] ${inner_text(entry)} [/sub]`;
 
-		case 'A': return get_link(entry);
+		case 'A': return get_link(entry, true);
 
 		case 'PRE': return `[code] ${inner_text(entry)} [/code]`;
 
@@ -64,6 +68,25 @@ function html_to_dtext (entry) {
 	}
 }
 
+function node_to_plain_text (entry) {
+	if (entry === null) {
+		return '';
+	} else if (typeof entry === 'string') {
+		return entry;
+	}
+console.log(entry)
+	switch (entry.nodeName) {
+		case '#comment':
+		case 'IMG': return ''; // Images get destroyed :(
+		case 'BR': return '\n';
+
+		case 'A': return get_link(entry, false);
+
+		default: return inner_text(entry);
+	}
+}
+
 module.exports = {
-	node_to_dtext: html_to_dtext
+	node_to_dtext: html_to_dtext,
+	node_to_plain_text: node_to_plain_text
 };
