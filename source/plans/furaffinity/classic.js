@@ -29,7 +29,7 @@ const get_info = async (full_url) => simple_site({
 });
 
 async function exec () {
-	const full_url = document.querySelector('a[href^="//d.facdn.net"]').href;
+	const full_url = document.querySelector('a[href*="facdn.net"]').href;
 	const info = await get_info(full_url);
 
 	const container = document.createElement('div');

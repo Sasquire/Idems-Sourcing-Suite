@@ -34,7 +34,7 @@ async function exec () {
 
 	// It appears that you can only be on the beta site while logged
 	// in. This does not concern me about this node being hidden
-	const full_url = document.querySelector('a.button[href^="//d.facdn.net/art/"]').href;
+	const full_url = document.querySelector('a.button[href*="facdn.net/art/"]').href;
 	const info = await get_info(full_url);
 
 	const container = document.createElement('div');

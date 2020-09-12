@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00043
+// @version      1.00044
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -30,7 +30,7 @@
 // @match        *://*.deviantart.com/*
 // @connect      wixmp.com
 
-//               FurAffinity v2
+//               FurAffinity v3
 // @match        *://*.furaffinity.net/view/*
 // @match        *://*.furaffinity.net/full/*
 // @connect      facdn.net
@@ -3061,7 +3061,7 @@ const get_info = async (full_url) => simple_site({
 });
 
 async function exec () {
-	const full_url = document.querySelector('a[href^="//d.facdn.net"]').href;
+	const full_url = document.querySelector('a[href*="facdn.net"]').href;
 	const info = await get_info(full_url);
 
 	const container = document.createElement('div');
@@ -3090,7 +3090,7 @@ module.exports = {
 	connect: ['facdn.net'],
 
 	title: 'FurAffinity',
-	version: 2
+	version: 3
 };
 
 },{}],20:[function(require,module,exports){
@@ -3163,7 +3163,7 @@ async function exec () {
 
 	// It appears that you can only be on the beta site while logged
 	// in. This does not concern me about this node being hidden
-	const full_url = document.querySelector('a.button[href^="//d.facdn.net/art/"]').href;
+	const full_url = document.querySelector('a.button[href*="facdn.net/art/"]').href;
 	const info = await get_info(full_url);
 
 	const container = document.createElement('div');
