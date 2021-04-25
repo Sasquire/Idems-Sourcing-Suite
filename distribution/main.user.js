@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00046
+// @version      1.00047
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -61,7 +61,7 @@
 // @match        *://*.sofurry.com/view/*
 // @connect      www.sofurryfiles.com
 
-//               Twitter v1
+//               Twitter v2
 // @match        *://*.twitter.com/*
 // @connect      pbs.twimg.com
 
@@ -4160,7 +4160,7 @@ module.exports = {
 	connect: ['pbs.twimg.com'],
 
 	title: 'Twitter',
-	version: 1
+	version: 2
 };
 
 },{}],40:[function(require,module,exports){
@@ -4198,24 +4198,37 @@ function exec () {
 }
 
 async function get_sources () {
-	const image_id = parseInt((/\d+$/).exec(window.location.href)[0], 10);
-	const list_elems = new Array(image_id).fill('li').join(' ~ ');
-	const query = `ul[role=list] > ${list_elems} img`;
+	const image_node = await (async () => {
+		// Apparently some posts will be weird and not have a single ul element
+		// on the page at all. Here is an example link that showcases this behavior.
+		// No idea how well this will hold up in the future with changes to twitter,
+		// but on the two test cases I tried, it worked!
+		// https://twitter.com/xzorgothoth/status/1376220068711923720
+		if (document.querySelector('ul') === null) {
+			const image_node = await document.getElementById('react-root').arrive('div[role=dialog] img');
+			document.getElementById('react-root').forget_arrives();
+			return image_node;
+		} else {
+			const image_id = parseInt((/\d+$/).exec(window.location.href)[0], 10);
+			const list_elems = new Array(image_id).fill('li').join(' ~ ');
+			const query = `ul[role=list] > ${list_elems} img`;
 
-	// The structure for displaying multiple images and single
-	// images is different. This attempt to find each style and
-	// then return the first one that is found. The other's event
-	// listeners are then discarded and those promises are left
-	// never resolving. Perhaps this is not the best idea.
-	const image_node = await Promise.race([
-		// Specific image
-		document.getElementById('react-root').arrive(query),
+			// The structure for displaying multiple images and single
+			// images is different. This attempt to find each style and
+			// then return the first one that is found. The other's event
+			// listeners are then discarded and those promises are left
+			// never resolving. Perhaps this is not the best idea.
+			const image_node = await Promise.race([
+				// Specific image
+				document.getElementById('react-root').arrive(query),
 
-		// Single image
-		document.getElementById('react-root').arrive('div > div > div > div > div > img[alt=Image]')
-	]);
-	document.getElementById('react-root').forget_arrives();
-
+				// Single image
+				document.getElementById('react-root').arrive('div > div > div > div > div > img[alt=Image]')
+			]);
+			document.getElementById('react-root').forget_arrives();
+			return image_node;
+		}
+	})();
 	const all_sources = produce_sources(image_node.src);
 	return all_sources;
 }
