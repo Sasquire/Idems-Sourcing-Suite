@@ -4,6 +4,7 @@ const get_info = async () => simple_site({
 	artist: document.querySelector('#db-user > .username'),
 	title: document.querySelector('#detail-bar-title'),
 	description: document.querySelector('#detail-description > .formatted-content'),
+	year: document.querySelector('.date').innerText.match(/\b\d{4}\b/),
 	full_url: document.querySelector('#detail-art > a').href,
 	hashes: [
 		[document.querySelector('#detail-art > a > img').src, 'thumb image']

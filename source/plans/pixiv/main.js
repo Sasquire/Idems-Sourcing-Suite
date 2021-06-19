@@ -124,7 +124,8 @@ function do_upload () {
 				image.best_url,
 				gallery_url
 			],
-			get_description()
+			get_description(),
+			document.querySelector('[title="Posting date"]').textContent.match(/\b\d{4}\b/)
 		);
 
 		image.container.appendChild(button);
