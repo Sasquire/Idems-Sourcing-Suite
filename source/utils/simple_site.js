@@ -9,6 +9,7 @@ async function build_simple (options) {
 	// artist
 	// title
 	// description
+	// year
 	// full_url
 	// full_url_name
 	// hashes
@@ -27,6 +28,10 @@ async function build_simple (options) {
 		options.artist.href
 	];
 
+	const tags = [
+		options.year
+	];
+
 	let commentary_span = null;
 	const on_site_commentary_enabled = await get_value('on_site_commentary_enabled');
 	if (on_site_commentary_enabled === true) {
@@ -38,7 +43,7 @@ async function build_simple (options) {
 	const on_site_upload_enabled = await get_value('on_site_upload_enabled');
 	if (on_site_upload_enabled === true) {
 		upload_span = document.createElement('span');
-		const button = upload_button(options.full_url, sources, commentary);
+		const button = upload_button(options.full_url, sources, commentary, tags);
 		upload_span.appendChild(button);
 	}
 
