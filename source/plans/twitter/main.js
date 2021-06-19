@@ -111,10 +111,14 @@ async function build_info () {
 	// it is empty is a lot better
 	const description = document.querySelector('[data-testid=tweet] ~ [dir=auto] > span');
 	const sources = await get_sources();
+	// TODO: Clean this query up
+	const date = await document.body.arrive('#layers > div:nth-child(2) > div > div > div > div > div > div.css-1dbjc4n.r-1awozwy.r-18u37iz.r-1pi2tsx.r-1777fci.r-1xcajam.r-ipm5af.r-g6jmlv > div.css-1dbjc4n.r-17gur6a.r-1wbh5a2.r-1pi2tsx.r-htvplk.r-1udh08x.r-13qz1uu > div > div.css-1dbjc4n.r-yfoy6g.r-18bvks7.r-1ljd8xs.r-1phboty.r-1dqxon3.r-1hycxz > div > section > div > div > div:nth-child(1) > div > div > article > div > div > div > div:nth-child(3) > div.css-1dbjc4n.r-1r5su4o > div > div.css-901oao.r-111h2gw.r-1qd0xha.r-a023e6.r-16dba41.r-rjixqe.r-1b7u577.r-bcqeeo.r-qvutc0 > a:nth-child(1) > span');
+	const year = date.textContent.slice(-4);
 
 	return get_info({
 		artist: artist,
 		description: description,
+		year: year,
 		sources: sources
 	});
 }
@@ -123,6 +127,7 @@ const get_info = async (pre_found) => simple_site({
 	artist: pre_found.artist,
 	title: null, // No titles on twitter
 	description: pre_found.description,
+	year: pre_found.year,
 	full_url: pre_found.sources[0][0],
 	full_url_name: 'orig',
 	hashes: pre_found.sources.slice(1),
