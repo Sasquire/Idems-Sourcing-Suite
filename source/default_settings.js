@@ -4,6 +4,7 @@ module.exports = {
 	// Different parts of the on-site-utilities
 	on_site_hasher_enabled: true,
 	on_site_upload_enabled: true,
+	on_site_upload_add_year_tag: false,
 	on_site_commentary_enabled: true,
 
 	// Individual sites that control if the on-site-utilities become enabled.

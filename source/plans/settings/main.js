@@ -32,6 +32,13 @@ function on_site_hasher_settings () {
 	});
 
 	settings.checkbox({
+		name: 'on-site-upload-add-year-tag',
+		key: 'on_site_upload_add_year_tag',
+		default: defaults.on_site_upload_add_year_tag,
+		description: 'Automatically guesses year-tags for posts. Enable only if you understand the risks.'
+	});
+
+	settings.checkbox({
 		name: 'on-site-commentary',
 		key: 'on_site_commentary_enabled',
 		default: defaults.on_site_commentary_enabled,

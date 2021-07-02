@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00047
+// @version      1.00048
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -12,7 +12,7 @@
 
 // @license      Unlicense
 
-//               Common v23
+//               Common v24
 // @noframes
 // @connect      e621.net
 // @grant        GM.addStyle
@@ -2474,6 +2474,7 @@ module.exports = {
 	// Different parts of the on-site-utilities
 	on_site_hasher_enabled: true,
 	on_site_upload_enabled: true,
+	on_site_upload_add_year_tag: false,
 	on_site_commentary_enabled: true,
 
 	// Individual sites that control if the on-site-utilities become enabled.
@@ -3037,6 +3038,7 @@ const get_info = async (full_url) => simple_site({
 	artist: document.querySelector('.information a'),
 	title: document.querySelector('.information h2'),
 	description: document.querySelector('.alt1[width="70%"]'),
+	year: new Date(document.querySelector('.popup_date').title).getFullYear().toString(),
 	full_url: full_url,
 	hashes: [
 		[full_to_thumb(full_url), 'thumb image']
@@ -3137,6 +3139,7 @@ const get_info = async (full_url) => simple_site({
 	},
 	title: document.querySelector('.submission-title > h2'),
 	description: () => document.querySelector('.submission-description'),
+	year: document.querySelector('.popup_date').title.match(/\b\d{4}\b/),
 	full_url: full_url,
 	hashes: [
 		[full_to_thumb(full_url), 'thumb image']
@@ -3281,6 +3284,7 @@ const get_info = async () => simple_site({
 	},
 	title: document.querySelector('.submission-description__title'),
 	description: document.querySelector('.submission-description__description__md'),
+	year: document.querySelector('.submission-description__created').title.match(/\b\d{4}\b/),
 	full_url: get_sources().full,
 	hashes: [
 		[get_sources().thumb, 'thumb image']
@@ -3719,7 +3723,8 @@ function do_upload () {
 			generate_urls()[1],
 			get_artist().href
 		],
-		get_description()
+		get_description(),
+		document.querySelector('#submittime_exact').innerText.match(/\b\d{4}\b/)
 	);
 	const container = document.createElement('span');
 	container.appendChild(link);
@@ -3875,7 +3880,8 @@ function do_upload () {
 				image.best_url,
 				gallery_url
 			],
-			get_description()
+			get_description(),
+			document.querySelector('[title="Posting date"]').textContent.match(/\b\d{4}\b/)
 		);
 
 		image.container.appendChild(button);
@@ -3964,6 +3970,13 @@ function on_site_hasher_settings () {
 		key: 'on_site_upload_enabled',
 		default: defaults.on_site_upload_enabled,
 		description: 'Provides a convenient link to upload posts directly to e621.'
+	});
+
+	settings.checkbox({
+		name: 'on-site-upload-add-year-tag',
+		key: 'on_site_upload_add_year_tag',
+		default: defaults.on_site_upload_add_year_tag,
+		description: 'Automatically guesses year-tags for posts. Enable only if you understand the risks.'
 	});
 
 	settings.checkbox({
@@ -4101,6 +4114,7 @@ const get_info = async () => simple_site({
 	},
 	title: document.getElementById('sfContentTitle'),
 	description: document.getElementById('sfContentBody'),
+	year: document.querySelectorAll('.section-content')[4].innerText.split('\n')[0].match(/\b\d{4}\b/),
 	full_url: get_urls()[0][0],
 	hashes: get_urls().slice(1),
 	css: `
@@ -4277,10 +4291,14 @@ async function build_info () {
 	// it is empty is a lot better
 	const description = document.querySelector('[data-testid=tweet] ~ [dir=auto] > span');
 	const sources = await get_sources();
+	// TODO: Clean this query up
+	const date = await document.body.arrive('#layers > div:nth-child(2) > div > div > div > div > div > div.css-1dbjc4n.r-1awozwy.r-18u37iz.r-1pi2tsx.r-1777fci.r-1xcajam.r-ipm5af.r-g6jmlv > div.css-1dbjc4n.r-17gur6a.r-1wbh5a2.r-1pi2tsx.r-htvplk.r-1udh08x.r-13qz1uu > div > div.css-1dbjc4n.r-yfoy6g.r-18bvks7.r-1ljd8xs.r-1phboty.r-1dqxon3.r-1hycxz > div > section > div > div > div:nth-child(1) > div > div > article > div > div > div > div:nth-child(3) > div.css-1dbjc4n.r-1r5su4o > div > div.css-901oao.r-111h2gw.r-1qd0xha.r-a023e6.r-16dba41.r-rjixqe.r-1b7u577.r-bcqeeo.r-qvutc0 > a:nth-child(1) > span');
+	const year = date.textContent.slice(-4);
 
 	return get_info({
 		artist: artist,
 		description: description,
+		year: year,
 		sources: sources
 	});
 }
@@ -4289,6 +4307,7 @@ const get_info = async (pre_found) => simple_site({
 	artist: pre_found.artist,
 	title: null, // No titles on twitter
 	description: pre_found.description,
+	year: pre_found.year,
 	full_url: pre_found.sources[0][0],
 	full_url_name: 'orig',
 	hashes: pre_found.sources.slice(1),
@@ -4342,6 +4361,7 @@ const get_info = async () => simple_site({
 	artist: document.querySelector('#db-user > .username'),
 	title: document.querySelector('#detail-bar-title'),
 	description: document.querySelector('#detail-description > .formatted-content'),
+	year: document.querySelector('.date').innerText.match(/\b\d{4}\b/),
 	full_url: document.querySelector('#detail-art > a').href,
 	hashes: [
 		[document.querySelector('#detail-art > a > img').src, 'thumb image']
@@ -4738,7 +4758,7 @@ function node_to_plain_text (entry) {
 	} else if (typeof entry === 'string') {
 		return entry;
 	}
-console.log(entry)
+
 	switch (entry.nodeName) {
 		case '#comment':
 		case 'IMG': return ''; // Images get destroyed :(
@@ -4898,6 +4918,7 @@ async function build_simple (options) {
 	// artist
 	// title
 	// description
+	// year
 	// full_url
 	// full_url_name
 	// hashes
@@ -4916,6 +4937,24 @@ async function build_simple (options) {
 		options.artist.href
 	];
 
+	const setting_value_pairs = [
+		['on_site_upload_add_year_tag', options.year]
+	];
+
+	const tags = [];
+	for (const [setting_name, result_value] of setting_value_pairs) {
+		if (result_value === null) {
+			continue;
+		} else if (typeof result_value !== 'string') {
+			throw new Error(`For setting ${setting_name}, tried to add a non-string value`);
+		} else {
+			const should_include = await get_value(setting_name);
+			if (should_include === true) {
+				tags.push(result_value);
+			}
+		}
+	}
+
 	let commentary_span = null;
 	const on_site_commentary_enabled = await get_value('on_site_commentary_enabled');
 	if (on_site_commentary_enabled === true) {
@@ -4927,7 +4966,7 @@ async function build_simple (options) {
 	const on_site_upload_enabled = await get_value('on_site_upload_enabled');
 	if (on_site_upload_enabled === true) {
 		upload_span = document.createElement('span');
-		const button = upload_button(options.full_url, sources, commentary);
+		const button = upload_button(options.full_url, sources, commentary, tags);
 		upload_span.appendChild(button);
 	}
 

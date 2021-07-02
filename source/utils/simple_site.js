@@ -28,9 +28,23 @@ async function build_simple (options) {
 		options.artist.href
 	];
 
-	const tags = [
-		options.year
+	const setting_value_pairs = [
+		['on_site_upload_add_year_tag', options.year]
 	];
+
+	const tags = [];
+	for (const [setting_name, result_value] of setting_value_pairs) {
+		if (result_value === null) {
+			continue;
+		} else if (typeof result_value !== 'string') {
+			throw new Error(`For setting ${setting_name}, tried to add a non-string value`);
+		} else {
+			const should_include = await get_value(setting_name);
+			if (should_include === true) {
+				tags.push(result_value);
+			}
+		}
+	}
 
 	let commentary_span = null;
 	const on_site_commentary_enabled = await get_value('on_site_commentary_enabled');
