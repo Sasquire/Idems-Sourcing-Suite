@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00047
+// @version      1.00048
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -12,7 +12,7 @@
 
 // @license      Unlicense
 
-//               Common v23
+//               Common v24
 // @noframes
 // @connect      e621.net
 // @grant        GM.addStyle

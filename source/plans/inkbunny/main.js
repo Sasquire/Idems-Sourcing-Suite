@@ -149,7 +149,8 @@ function do_upload () {
 			generate_urls()[1],
 			get_artist().href
 		],
-		get_description()
+		get_description(),
+		document.querySelector('#submittime_exact').innerText.match(/\b\d{4}\b/)
 	);
 	const container = document.createElement('span');
 	container.appendChild(link);

@@ -74,7 +74,7 @@ function node_to_plain_text (entry) {
 	} else if (typeof entry === 'string') {
 		return entry;
 	}
-console.log(entry)
+
 	switch (entry.nodeName) {
 		case '#comment':
 		case 'IMG': return ''; // Images get destroyed :(
