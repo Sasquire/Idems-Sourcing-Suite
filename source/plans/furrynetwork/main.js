@@ -79,7 +79,7 @@ const get_info = async () => simple_site({
 	},
 	title: document.querySelector('.submission-description__title'),
 	description: document.querySelector('.submission-description__description__md'),
-	year: document.querySelector('.submission-description__created').title.match(/\b\d{4}\b/),
+	year: document.querySelector('.submission-description__created').title.match(/\b\d{4}\b/)[0],
 	full_url: get_sources().full,
 	hashes: [
 		[get_sources().thumb, 'thumb image']

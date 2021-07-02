@@ -30,7 +30,16 @@ function apply_common_styles () {
 		span.iss_hash_notfound { color: #333; }
 		a.iss_hash_found, a.iss_hash_found:visited { color: #4cf; }
 		a.iss_image_link, a.iss_image_link:visited { color: #fff; }
-		.iss_hash { font-family: monospace; }
+		.iss_hash {
+			font-family: monospace;
+		/*	Tried experimenting with an outline. May return at a later time.
+			Currently it just looks really bad and going with a different color is easier.
+			text-shadow: 
+				-0.5px  0.5px 0 #FFF,
+				 0.5px  0.5px 0 #FFF,
+				 0.5px -0.5px 0 #FFF,
+				-0.5px -0.5px 0 #FFF; */
+		}
 	`);
 }
 
