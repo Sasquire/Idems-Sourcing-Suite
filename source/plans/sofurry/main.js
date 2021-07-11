@@ -23,7 +23,10 @@ const get_info = async () => simple_site({
 	},
 	title: document.getElementById('sfContentTitle'),
 	description: document.getElementById('sfContentBody'),
-	year: document.querySelectorAll('.section-content')[4].innerText.split('\n')[0].match(/\b\d{4}\b/)[0],
+	year: Array.from(document.querySelectorAll('.section-title'))
+		.filter(e => e.innerText === 'Stats')[0] // Get stats Block
+		.nextSibling.nextSibling.innerText // Select text from it
+		.split('\n')[0].match(/\b\d{4}\b/)[0], // extract year string
 	full_url: get_urls()[0][0],
 	hashes: get_urls().slice(1),
 	css: `

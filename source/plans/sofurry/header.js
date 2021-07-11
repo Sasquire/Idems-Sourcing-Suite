@@ -11,5 +11,5 @@ module.exports = {
 	connect: ['www.sofurryfiles.com'],
 
 	title: 'SoFurry',
-	version: 1
+	version: 2
 };

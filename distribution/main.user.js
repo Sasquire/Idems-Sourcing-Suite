@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00049
+// @version      1.00050
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -57,7 +57,7 @@
 //               SettingsPage v2
 // @match        *://*.e621.net/extensions
 
-//               SoFurry v1
+//               SoFurry v2
 // @match        *://*.sofurry.com/view/*
 // @connect      www.sofurryfiles.com
 
@@ -4085,7 +4085,7 @@ module.exports = {
 	connect: ['www.sofurryfiles.com'],
 
 	title: 'SoFurry',
-	version: 1
+	version: 2
 };
 
 },{}],38:[function(require,module,exports){
@@ -4114,7 +4114,10 @@ const get_info = async () => simple_site({
 	},
 	title: document.getElementById('sfContentTitle'),
 	description: document.getElementById('sfContentBody'),
-	year: document.querySelectorAll('.section-content')[4].innerText.split('\n')[0].match(/\b\d{4}\b/)[0],
+	year: Array.from(document.querySelectorAll('.section-title'))
+		.filter(e => e.innerText === 'Stats')[0] // Get stats Block
+		.nextSibling.nextSibling.innerText // Select text from it
+		.split('\n')[0].match(/\b\d{4}\b/)[0], // extract year string
 	full_url: get_urls()[0][0],
 	hashes: get_urls().slice(1),
 	css: `
