@@ -109,10 +109,13 @@ async function build_info () {
 	// when launched from a  direct photo url, the top tweet
 	// isn't actually present! This causes some problems, so saying
 	// it is empty is a lot better
-	const description = document.querySelector('[data-testid=tweet] ~ [dir=auto] > span');
+
+	// Pray that twitter doesn't change this, yet again, so I don't have the whole thing break.
+	const description = document.querySelector('[data-testid=tweet] > div > div > div > div ~ div ~ div [dir=auto]');
 	const sources = await get_sources();
 	// TODO: Clean this query up
-	const date = await document.body.arrive('[data-testid=tweet] + div [dir=auto] > a > span');
+	// TODO: Write to twitter to clean their site up
+	const date = await document.body.arrive(`[data-testid=tweet] > div > div > div > div ~ div ~ div a[href="${window.location.pathname.split('/').splice(0, 4).join('/')}"`);
 	const year = date.textContent.slice(-4);
 
 	return get_info({

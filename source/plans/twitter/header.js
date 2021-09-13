@@ -11,5 +11,5 @@ module.exports = {
 	connect: ['pbs.twimg.com'],
 
 	title: 'Twitter',
-	version: 2
+	version: 3
 };
