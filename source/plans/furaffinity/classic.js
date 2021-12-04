@@ -5,7 +5,10 @@ const get_info = async (full_url) => simple_site({
 	artist: document.querySelector('.information a'),
 	title: document.querySelector('.information h2'),
 	description: document.querySelector('.alt1[width="70%"]'),
-	year: new Date(document.querySelector('.popup_date').title).getFullYear().toString(),
+	year: new Date(document.querySelector('.popup_date').title.includes(',')
+		? document.querySelector('.popup_date').title
+		: document.querySelector('.popup_date').innerText)
+		.getFullYear().toString(),
 	full_url: full_url,
 	hashes: [
 		[full_to_thumb(full_url), 'thumb image']
