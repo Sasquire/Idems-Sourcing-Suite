@@ -6,7 +6,7 @@ const { performance } = require('perf_hooks');
 
 const apply_header = require('./dependencies/prepend-text.js');
 const info = {
-	base_version: 25,
+	base_version: 26,
 	authors: 'Meras',
 	updateURL: 'https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/distribution/header.user.js',
 	downloadURL: 'https://raw.githubusercontent.com/Sasquire/Idems-Sourcing-Suite/master/distribution/main.user.js',
@@ -45,12 +45,14 @@ function build_header () {
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
+// @grant        GM.addElement
 
 //               Legacy userscript support
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
+// @grant        GM_addElement
 
 ${build_match_connects()}
 // ==/UserScript==

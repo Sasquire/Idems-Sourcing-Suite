@@ -4,6 +4,7 @@ const {
 	clear_page,
 	add_css
 } = require('./../../utils/utils.js');
+const { addElement } = require('././../../../dependencies/gm_functions.js');
 const compare_nodes = require('./compare_canvas.js');
 
 function exec () {
@@ -56,15 +57,21 @@ function add_input_canvases () {
 
 async function paste_data (data, canvas_node) {
 	const ctx = canvas_node.getContext('2d');
-	const img = new Image();
+	const img = await addElement('img', { src: URL.createObjectURL(data) });
 	return new Promise((resolve, reject) => {
-		img.onload = () => {
+		const image_loaded = () => {
 			ctx.canvas.width = img.width;
 			ctx.canvas.height = img.height;
 			ctx.drawImage(img, 0, 0);
 			resolve(ctx);
 		};
-		img.src = URL.createObjectURL(data);
+
+		// Loaded from cache
+		if (img.complete) {
+			image_loaded();
+		} else {
+			img.onload = image_loaded;
+		}
 	});
 }
 

@@ -10,5 +10,5 @@ module.exports = {
 	connect: ['*'],
 
 	title: 'ImageComparison',
-	version: 1
+	version: 2
 };

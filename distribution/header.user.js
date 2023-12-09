@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00051
+// @version      1.00053
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -12,19 +12,21 @@
 
 // @license      Unlicense
 
-//               Common v25
+//               Common v26
 // @noframes
 // @connect      e621.net
 // @grant        GM.addStyle
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
+// @grant        GM.addElement
 
 //               Legacy userscript support
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
+// @grant        GM_addElement
 
 //               DeviantArt v6
 // @match        *://*.deviantart.com/*
@@ -39,7 +41,7 @@
 // @match        *://*.furrynetwork.com/*
 // @connect      https://d3gz42uwgl1r1y.cloudfront.net/
 
-//               ImageComparison v1
+//               ImageComparison v2
 // @match        *://*.e621.net/extensions/image_compare
 // @connect      *
 

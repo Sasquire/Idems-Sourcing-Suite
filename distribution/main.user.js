@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idem's Sourcing Suite
 // @description  Adds a whole bunch of utilities, helpful for sourcing images
-// @version      1.00051
+// @version      1.00053
 // @author       Meras
 
 // @namespace    https://github.com/Sasquire/
@@ -12,19 +12,21 @@
 
 // @license      Unlicense
 
-//               Common v25
+//               Common v26
 // @noframes
 // @connect      e621.net
 // @grant        GM.addStyle
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
+// @grant        GM.addElement
 
 //               Legacy userscript support
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
+// @grant        GM_addElement
 
 //               DeviantArt v6
 // @match        *://*.deviantart.com/*
@@ -39,7 +41,7 @@
 // @match        *://*.furrynetwork.com/*
 // @connect      https://d3gz42uwgl1r1y.cloudfront.net/
 
-//               ImageComparison v1
+//               ImageComparison v2
 // @match        *://*.e621.net/extensions/image_compare
 // @connect      *
 
@@ -2134,7 +2136,8 @@ const transitions = [
 	['GM_openInTab', 'openInTab'],
 	['GM_setClipboard', 'setClipboard'],
 	['GM_xmlhttpRequest', 'xmlHttpRequest'],
-	['GM_addStyle', 'addStyle']
+	['GM_addStyle', 'addStyle'],
+	['GM_addValue', 'addValue']
 ];
 
 transitions.forEach(([old_id, new_id]) => {
@@ -3455,7 +3458,7 @@ module.exports = {
 	connect: ['*'],
 
 	title: 'ImageComparison',
-	version: 1
+	version: 2
 };
 
 },{}],28:[function(require,module,exports){
@@ -3471,6 +3474,7 @@ const {
 	clear_page,
 	add_css
 } = require('./../../utils/utils.js');
+const { addElement } = require('././../../../dependencies/gm_functions.js');
 const compare_nodes = require('./compare_canvas.js');
 
 function exec () {
@@ -3523,15 +3527,21 @@ function add_input_canvases () {
 
 async function paste_data (data, canvas_node) {
 	const ctx = canvas_node.getContext('2d');
-	const img = new Image();
+	const img = await addElement('img', { src: URL.createObjectURL(data) });
 	return new Promise((resolve, reject) => {
-		img.onload = () => {
+		const image_loaded = () => {
 			ctx.canvas.width = img.width;
 			ctx.canvas.height = img.height;
 			ctx.drawImage(img, 0, 0);
 			resolve(ctx);
 		};
-		img.src = URL.createObjectURL(data);
+
+		// Loaded from cache
+		if (img.complete) {
+			image_loaded();
+		} else {
+			img.onload = image_loaded;
+		}
 	});
 }
 
@@ -3554,7 +3564,7 @@ module.exports = {
 	exec: exec
 };
 
-},{"./../../utils/utils.js":52,"./compare_canvas.js":25,"./header.js":27,"./main.css":28,"./main.html":29}],31:[function(require,module,exports){
+},{"./../../utils/utils.js":52,"././../../../dependencies/gm_functions.js":4,"./compare_canvas.js":25,"./header.js":27,"./main.css":28,"./main.html":29}],31:[function(require,module,exports){
 module.exports = {
 	test: (url) => {
 		const this_url = url.hostname.split('.').slice(-2).join('.');

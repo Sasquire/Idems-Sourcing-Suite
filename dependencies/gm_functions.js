@@ -46,7 +46,8 @@ const transitions = [
 	['GM_openInTab', 'openInTab'],
 	['GM_setClipboard', 'setClipboard'],
 	['GM_xmlhttpRequest', 'xmlHttpRequest'],
-	['GM_addStyle', 'addStyle']
+	['GM_addStyle', 'addStyle'],
+	['GM_addValue', 'addValue']
 ];
 
 transitions.forEach(([old_id, new_id]) => {
